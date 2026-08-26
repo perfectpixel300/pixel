@@ -1,12 +1,24 @@
+// backend/config/db.js
 const mongoose = require("mongoose");
 
 let isConnected = false;
 
 const connectDB = async () => {
-  if (isConnected) return;
+  if (isConnected) {
+    return;
+  }
 
-  const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/pixel_db";
-  
+  const mongoUri = process.env.MONGO_URI;
+
+  if (!mongoUri) {
+    console.error("[Database Error] MONGO_URI is not defined in environment variables!");
+    return;
+  }
+
+  // Safe logging: masks password so you can safely verify the username & host in Render logs
+  const maskedUri = mongoUri.replace(/:\/\/(.*?):(.*?)@/, "://$1:****@");
+  console.log(`[Database] Attempting to connect: ${maskedUri}`);
+
   try {
     const connection = await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 5000,
@@ -15,7 +27,6 @@ const connectDB = async () => {
     console.log(`[Database] MongoDB Connected: ${connection.connection.host}`);
   } catch (err) {
     console.error(`[Database Error] MongoDB connection failed: ${err.message}`);
-    console.warn(`[Database Warning] Please ensure MongoDB service is running (e.g. 'mongod' or 'sudo systemctl start mongod').`);
   }
 };
 
