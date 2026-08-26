@@ -1,0 +1,14 @@
+{
+  "name": "pixel-mern",
+  "version": "1.0.0",
+  "description": "Pixel Studio - MERN E-Commerce & Admin Control Panel",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "seed": "cd backend && node -e \"require('./routes/seed.routes')\""
+  },
+  "keywords": ["mern", "admin-panel", "ecommerce", "dashboard", "banners", "products"],
+  "author": "",
+  "license": "ISC"
+}

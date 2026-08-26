@@ -1,0 +1,217 @@
+import React, { useState, useEffect } from "react";
+import {
+  Clock,
+  AlertCircle,
+  X,
+  Phone,
+  MessageCircle,
+  ArrowRight,
+  ShieldAlert,
+  Sparkles,
+  Calendar,
+} from "lucide-react";
+
+export function ShopClosedModal({
+  isOpen,
+  onClose,
+  shopStatus,
+}) {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isExpired: true,
+  });
+
+  const timerTarget = shopStatus?.timerTarget;
+  const isTimerEnabled = Boolean(shopStatus?.timerEnabled && timerTarget);
+
+  useEffect(() => {
+    if (!isTimerEnabled || !timerTarget) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
+      return;
+    }
+
+    const calculateTimeLeft = () => {
+      const targetTime = new Date(timerTarget).getTime();
+      const now = new Date().getTime();
+      const difference = targetTime - now;
+
+      if (difference <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      setTimeLeft({ days, hours, minutes, seconds, isExpired: false });
+    };
+
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(interval);
+  }, [timerTarget, isTimerEnabled]);
+
+  if (!isOpen) return null;
+
+  const handleOpenWhatsApp = () => {
+    const text = encodeURIComponent(
+      "Hello Pixel Perfect Atelier! I saw your store is currently closed, but I'd like to leave an inquiry."
+    );
+    window.open(`https://wa.me/9779845991878?text=${text}`, "_blank");
+  };
+
+  const formattedTargetDate = timerTarget
+    ? new Date(timerTarget).toLocaleString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : null;
+
+  return (
+    <div className="modal-overlay z-[200] p-4 sm:p-6" onClick={onClose}>
+      <div
+        className="modal-card max-w-[560px] !border-2 border-white/20 bg-gradient-to-b from-[var(--bg-elevated)] to-[var(--bg-card)] shadow-[0_20px_60px_rgba(0,0,0,0.7)] animate-[scaleUp_0.2s_ease-out] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Top Status Ambient Ribbon */}
+        <div className="bg-white text-black px-5 py-2.5 flex items-center justify-between font-bold text-xs uppercase tracking-wider">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-red-600 animate-ping inline-block" />
+            <span className="w-2 h-2 rounded-full bg-red-600 inline-block -ml-4" />
+            <span>Store Notice • Currently Closed</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="btn-icon !w-6 !h-6 bg-black/10 hover:bg-black/20 text-black border-0 rounded-full cursor-pointer"
+            title="Dismiss notice"
+          >
+            <X size={14} />
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div className="p-6 sm:p-8 flex flex-col gap-6">
+          {/* Header icon & title */}
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0">
+              <Clock size={24} />
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--bg-input)] border border-[var(--border-subtle)] text-[0.68rem] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
+                <ShieldAlert size={12} className="text-red-400" />
+                <span>Operating Hours Update</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-extrabold m-0 text-[var(--text-primary)] leading-tight">
+                {shopStatus?.title || "We're Currently Closed"}
+              </h2>
+            </div>
+          </div>
+
+          {/* Admin Closed Message */}
+          <div className="p-4 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[0.875rem] text-[var(--text-secondary)] leading-relaxed whitespace-pre-line">
+            {shopStatus?.closedMessage ||
+              "We are currently closed for off-hours / maintenance. You can still explore our curated catalog, view IT services, and submit inquiries or message us on WhatsApp. We will process them immediately once open!"}
+          </div>
+
+          {/* Countdown Timer Block (If Enabled & Target in Future) */}
+          {isTimerEnabled && !timeLeft.isExpired && (
+            <div className="rounded-[var(--radius-md)] bg-gradient-to-r from-[var(--bg-card)] via-[var(--bg-elevated)] to-[var(--bg-card)] border-2 border-white/20 p-4 sm:p-5 flex flex-col items-center text-center shadow-inner">
+              <div className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)] flex items-center gap-1.5 mb-3">
+                <Sparkles size={13} />
+                <span>{shopStatus?.timerLabel || "Reopening In"}</span>
+              </div>
+
+              {/* Digital countdown tiles */}
+              <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full max-w-[380px]">
+                <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
+                  <span className="font-mono text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] leading-none">
+                    {String(timeLeft.days).padStart(2, "0")}
+                  </span>
+                  <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider font-semibold mt-1">
+                    Days
+                  </span>
+                </div>
+
+                <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
+                  <span className="font-mono text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] leading-none">
+                    {String(timeLeft.hours).padStart(2, "0")}
+                  </span>
+                  <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider font-semibold mt-1">
+                    Hours
+                  </span>
+                </div>
+
+                <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
+                  <span className="font-mono text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] leading-none">
+                    {String(timeLeft.minutes).padStart(2, "0")}
+                  </span>
+                  <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider font-semibold mt-1">
+                    Mins
+                  </span>
+                </div>
+
+                <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
+                  <span className="font-mono text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] leading-none">
+                    {String(timeLeft.seconds).padStart(2, "0")}
+                  </span>
+                  <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider font-semibold mt-1">
+                    Secs
+                  </span>
+                </div>
+              </div>
+
+              {formattedTargetDate && (
+                <div className="flex items-center gap-1.5 text-[0.725rem] text-[var(--text-muted)] mt-3 font-mono">
+                  <Calendar size={12} />
+                  <span>Target Date: {formattedTargetDate}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quick contact alternatives */}
+          <div className="flex items-center justify-between text-xs text-[var(--text-muted)] pt-1 border-t border-[var(--border-subtle)]">
+            <span>Need urgent assistance?</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleOpenWhatsApp}
+                className="btn-ghost !p-0 text-xs font-semibold text-[var(--text-primary)] hover:underline flex items-center gap-1 bg-transparent border-0 cursor-pointer"
+              >
+                <MessageCircle size={13} />
+                <span>WhatsApp</span>
+              </button>
+              <span>•</span>
+              <a
+                href="tel:+9779845991878"
+                className="text-xs font-semibold text-[var(--text-primary)] hover:underline flex items-center gap-1"
+              >
+                <Phone size={13} />
+                <span>Call Us</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              onClick={onClose}
+              className="btn btn-primary w-full py-3 text-sm font-bold gap-2 justify-center shadow-lg"
+            >
+              <span>Acknowledge & Browse Catalog</span>
+              <ArrowRight size={15} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
