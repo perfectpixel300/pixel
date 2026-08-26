@@ -30,8 +30,8 @@ export function AdminLoginPage({ onBackToStore, onLoginSuccess }) {
   };
 
   const handleQuickDemoFill = () => {
-    setEmail("admin@pixelperfect.com");
-    setPassword("admin123");
+    setEmail("");
+    setPassword("");
     setError("");
   };
 
@@ -67,7 +67,7 @@ export function AdminLoginPage({ onBackToStore, onLoginSuccess }) {
               className="form-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@pixelperfect.com"
+              placeholder="••••••••"
             />
           </div>
 
@@ -93,20 +93,6 @@ export function AdminLoginPage({ onBackToStore, onLoginSuccess }) {
           </button>
         </form>
 
-        {/* Demo Credentials Helper */}
-        <div className="mt-7 p-3 bg-[var(--bg-input)] border border-dashed border-[var(--border-medium)] rounded-[var(--radius-sm)] text-xs text-[var(--text-muted)]">
-          <div className="flex justify-between items-center mb-1">
-            <strong className="text-[var(--text-primary)]">Default Credentials:</strong>
-            <button
-              onClick={handleQuickDemoFill}
-              className="bg-transparent border-0 text-[var(--text-primary)] cursor-pointer text-[0.7rem] underline"
-            >
-              Fill Defaults
-            </button>
-          </div>
-          <div>Email: <code className="text-[var(--text-primary)]">admin@pixelperfect.com</code></div>
-          <div>Pass: <code className="text-[var(--text-primary)]">admin123</code></div>
-        </div>
 
         {/* Back Link */}
         <div className="mt-6 text-center">
