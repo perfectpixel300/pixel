@@ -58,7 +58,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
               product.isAvailable ? "text-[var(--color-success)]" : "text-[var(--text-muted)]"
             }`}
           >
-            ● {product.isAvailable ? "Available in Atelier" : "Out of Stock"}
+            ● {product.isAvailable ? "Available" : "Out of Stock"}
           </span>
 
           <div className="flex gap-1.5">

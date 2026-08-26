@@ -220,7 +220,7 @@ export function ServicesPage({
         <div className="text-center max-w-[820px] mx-auto mb-16 sm:mb-20">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[0.725rem] font-bold uppercase tracking-[0.12em] text-[var(--text-primary)] mb-4">
             <Sparkles size={13} />
-            <span>Digital Engineering & IT Atelier</span>
+            <span>Digital Engineering & IT</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.04em] leading-[1.15] text-[var(--text-primary)]">

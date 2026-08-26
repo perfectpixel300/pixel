@@ -15,7 +15,7 @@ export function ContactPage() {
 
   const [activeFaq, setActiveFaq] = useState(null);
 
-  const atelierWhatsApp = "https://wa.me/46841020045?text=Hello%20Pixel%20Perfect%20Atelier,%20I%20would%20like%20to%20inquire%20about%20your%20stationery%20and%20bespoke%20options.";
+  const atelierWhatsApp = "https://wa.me/977980895925?text=Hello%20Pixel%20Perfect%20Atelier,%20I%20would%20like%20to%20inquire%20about%20your%20stationery%20and%20bespoke%20options.";
 
   const faqs = [
     {
@@ -197,8 +197,8 @@ export function ContactPage() {
                 <Phone size={18} className="text-[var(--text-primary)] shrink-0 mt-0.5" />
                 <div>
                   <div className="font-semibold text-sm">Telephone Hotline</div>
-                  <a href="tel:+46841020045" className="text-[0.85rem] text-[var(--text-secondary)] font-mono hover:text-[var(--text-primary)]">
-                    +977 9845991878
+                  <a href="tel:+977980895925" className="text-[0.85rem] text-[var(--text-secondary)] font-mono hover:text-[var(--text-primary)]">
+                    +977 980895925
                   </a>
                 </div>
               </div>

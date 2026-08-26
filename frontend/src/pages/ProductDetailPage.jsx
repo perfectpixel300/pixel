@@ -15,7 +15,7 @@ export function ProductDetailPage({
   if (!product) return null;
 
   const atelierWhatsAppNumber = "46841020045";
-  const whatsAppText = `Hello Pixel Perfect Atelier,\nI am inquiring about "${product.name}" (Price: NRs. ${Number(product.indicativePrice).toLocaleString()}). Please advise on availability and bespoke options.`;
+  const whatsAppText = `Hello Pixel Perfect,\nI am inquiring about "${product.name}" (Price: NRs. ${Number(product.indicativePrice).toLocaleString()}). Please advise on availability and bespoke options.`;
   const whatsAppUrl = `https://wa.me/${atelierWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
 
   return (
@@ -67,7 +67,7 @@ export function ProductDetailPage({
               <div className="flex gap-2 mb-2.5 flex-wrap">
                 <span className="badge badge-dark">{product.category}</span>
                 <span className={`badge ${product.isAvailable ? "badge-success" : "badge-neutral"}`}>
-                  {product.isAvailable ? "Available in Atelier" : "Out of Stock"}
+                  {product.isAvailable ? "Available" : "Out of Stock"}
                 </span>
                 {product.featured && <span className="badge badge-white">Featured Object</span>}
               </div>
@@ -124,7 +124,7 @@ export function ProductDetailPage({
                   )}
                   {product.specs.origin && (
                     <div className="flex justify-between px-3.5 py-2.5 text-[0.825rem]">
-                      <span className="text-[var(--text-muted)]">Atelier Provenance</span>
+                      <span className="text-[var(--text-muted)]">Provenance</span>
                       <span className="font-semibold">{product.specs.origin}</span>
                     </div>
                   )}
@@ -142,7 +142,7 @@ export function ProductDetailPage({
                   className="btn btn-primary py-3.5 text-sm gap-2"
                 >
                   <MessageCircle size={17} />
-                  <span>WhatsApp Atelier</span>
+                  <span>WhatsApp</span>
                 </a>
 
                 <button

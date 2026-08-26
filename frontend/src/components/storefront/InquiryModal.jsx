@@ -13,7 +13,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const atelierWhatsAppNumber = "9779845991878"; // Nepal WhatsApp hotline
+  const atelierWhatsAppNumber = "9779808950275"; // Nepal WhatsApp hotline
 
   useEffect(() => {
     if (product) {
@@ -27,7 +27,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
         subject: `Inquiry: ${itemName}`,
         message: isService
           ? `Hello Pixel Perfect Team,\n\nI would like to inquire about your "${itemName}" service ${priceStr ? `(${priceStr})` : ""}.\nPlease share the project timeline, kickoff process, and proposal details.\n\nThank you.`
-          : `Hello Pixel Perfect Atelier,\n\nI would like to inquire about purchasing "${itemName}" ${priceStr ? `(${priceStr})` : ""}. Please advise on availability and bespoke options.\n\nThank you.`,
+          : `Hello Pixel Perfect,\n\nI would like to inquire about purchasing "${itemName}" ${priceStr ? `(${priceStr})` : ""}. Please advise on availability and bespoke options.\n\nThank you.`,
       });
     } else {
       setFormData({
@@ -115,7 +115,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
               Instant Messaging
             </span>
             <span className="text-[0.68rem] text-[var(--color-success)] font-medium">
-              ● Atelier Online
+              ● Online
             </span>
           </div>
 
@@ -139,7 +139,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
             </div>
             <h3 className="text-lg font-bold">Inquiry Received</h3>
             <p className="text-[var(--text-secondary)] text-sm max-w-[380px]">
-              Your inquiry has been recorded in the atelier ledger. Our makers will reach out to you via email shortly.
+              Your inquiry has been recorded in the our ledger. Our makers will reach out to you via email shortly.
             </p>
           </div>
         ) : (
