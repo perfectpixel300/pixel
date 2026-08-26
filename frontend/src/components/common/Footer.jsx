@@ -159,7 +159,6 @@ export function Footer({ setActivePage }) {
 
           <div className="flex items-center gap-4">
             
-            <span className="font-mono text-[0.7rem]">Stockholm • Munich • Kyoto</span>
             <button
               onClick={scrollToTop}
               className="bg-transparent border-0 text-[var(--text-muted)] cursor-pointer text-[0.75rem] hover:text-[var(--text-primary)]"
