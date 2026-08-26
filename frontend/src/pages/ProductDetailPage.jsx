@@ -72,7 +72,7 @@ export function ProductDetailPage({
                 {product.featured && <span className="badge badge-white">Featured Object</span>}
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight m-0 mb-2">
+              <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight m-0 mb-2 capitalize">
                 {product.name}
               </h1>
 

@@ -38,7 +38,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
         <div className="flex justify-between items-start gap-2.5">
           <h3
             onClick={() => onViewDetails(product)}
-            className="text-base font-bold m-0 leading-snug cursor-pointer hover:text-zinc-500 transition-colors"
+            className="text-base font-bold m-0 leading-snug cursor-pointer hover:text-zinc-500 transition-colors capitalize"
           >
             {product.name}
           </h3>
