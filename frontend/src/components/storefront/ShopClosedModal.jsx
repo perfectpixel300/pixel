@@ -62,7 +62,7 @@ export function ShopClosedModal({
     const text = encodeURIComponent(
       "Hello Pixel Perfect Atelier! I saw your store is currently closed, but I'd like to leave an inquiry."
     );
-    window.open(`https://wa.me/9779845991878?text=${text}`, "_blank");
+    window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
   };
 
   const formattedTargetDate = timerTarget
@@ -191,7 +191,7 @@ export function ShopClosedModal({
               </button>
               <span>•</span>
               <a
-                href="tel:+9779845991878"
+                href="tel:+9779808950275"
                 className="text-xs font-semibold text-[var(--text-primary)] hover:underline flex items-center gap-1"
               >
                 <Phone size={13} />
