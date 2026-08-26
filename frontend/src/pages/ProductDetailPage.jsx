@@ -14,7 +14,7 @@ export function ProductDetailPage({
 
   if (!product) return null;
 
-  const atelierWhatsAppNumber = "46841020045";
+  const atelierWhatsAppNumber = "9808950275";
   const whatsAppText = `Hello Pixel Perfect,\nI am inquiring about "${product.name}" (Price: NRs. ${Number(product.indicativePrice).toLocaleString()}). Please advise on availability and bespoke options.`;
   const whatsAppUrl = `https://wa.me/${atelierWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
 
