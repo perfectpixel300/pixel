@@ -770,7 +770,7 @@ class ApiService {
   }
 
   /* ==========================================================================
-     DASHBOARD & SEED API
+     DASHBOARD API
      ========================================================================== */
 
   async getDashboardStats() {
@@ -808,30 +808,6 @@ class ApiService {
     };
   }
 
-  async seedDatabase(overwrite = false) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/seed`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ overwrite }),
-      });
-      if (res.ok) return await res.json();
-    } catch {}
-
-    this.localProducts = [...initialMockProducts];
-    this.localBanners = [...initialMockBanners];
-    this.localCategories = [...initialMockCategories];
-    this.localServices = [...initialMockServices];
-    this.localServiceCategories = [...initialMockServiceCategories];
-    this.localShopStatus = { ...initialMockShopStatus };
-    this.saveToStorage("pixel_mock_products", this.localProducts);
-    this.saveToStorage("pixel_mock_banners", this.localBanners);
-    this.saveToStorage("pixel_mock_categories", this.localCategories);
-    this.saveToStorage("pixel_mock_services", this.localServices);
-    this.saveToStorage("pixel_mock_service_categories", this.localServiceCategories);
-    this.saveToStorage("pixel_mock_shop_status", this.localShopStatus);
-    return { success: true, message: "Sample data seeded with IT Services, Categories, and Shop Status in NRs. currency!" };
-  }
 }
 
 export const api = new ApiService();

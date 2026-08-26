@@ -340,17 +340,6 @@ export function AdminDashboardPage({
     }
   };
 
-  // Seed sample data
-  const handleSeedData = async () => {
-    try {
-      const res = await api.seedDatabase(true);
-      showToast(res.message || "Sample catalog and IT services seeded in NRs.!");
-      onRefreshData();
-    } catch (err) {
-      showToast("Error resetting sample data", "error");
-    }
-  };
-
   return (
     <div className="admin-layout">
       <AdminSidebar
@@ -366,7 +355,6 @@ export function AdminDashboardPage({
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
         isLiveBackend={isLiveBackend}
-        onSeedData={handleSeedData}
         onExitToStore={onExitToStore}
       />
 
@@ -405,7 +393,6 @@ export function AdminDashboardPage({
               onDeleteProduct={handleDeleteProductPrompt}
               onToggleProductAvailability={handleToggleProductAvailability}
               onToggleProductFeatured={handleToggleProductFeatured}
-              onSeedData={handleSeedData}
             />
           )}
 

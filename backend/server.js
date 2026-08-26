@@ -15,7 +15,7 @@ const contactRoutes = require("./routes/contact.routes");
 const serviceRoutes = require("./routes/service.routes");
 const serviceCategoryRoutes = require("./routes/serviceCategory.routes");
 const shopStatusRoutes = require("./routes/shopStatus.routes");
-const seedRoutes = require("./routes/seed.routes");
+
 
 const PORT = process.env.PORT || 5000;
 
@@ -55,7 +55,6 @@ app.use("/api/service-categories", serviceCategoryRoutes);
 app.use("/api/shop-status", shopStatusRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/contact", contactRoutes);
-app.use("/api/seed", seedRoutes);
 
 // Base route & Health check
 app.get("/", (req, res) => {
@@ -76,7 +75,6 @@ app.get("/", (req, res) => {
       webDevelopment: "/api/services/web-development",
       contact: "/api/contact",
       dashboard: "/api/dashboard/stats",
-      seed: "/api/seed",
     },
   });
 });
