@@ -176,17 +176,17 @@ export function Navbar({
 
   return (
     <header className="sticky top-0 z-[100] bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] transition-all">
-      <div className="storefront-container h-[72px] flex items-center justify-between gap-4">
+      <div className="storefront-container h-[72px] flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
         <div
           onClick={() => handleNavClick("home")}
-          className="cursor-pointer flex flex-col shrink-0"
+          className="cursor-pointer flex flex-col shrink-0 min-w-0"
         >
-          <span className="text-[1.15rem] font-extrabold tracking-[0.08em] uppercase text-[var(--text-primary)] leading-tight">
+          <span className="text-[0.8rem] sm:text-[1.15rem] font-extrabold tracking-[0.06em] sm:tracking-[0.08em] uppercase text-[var(--text-primary)] leading-tight">
             PIXEL PERFECT
           </span>
-          <span className="text-[0.625rem] font-medium tracking-[0.15em] uppercase text-[var(--text-muted)] mt-0.5">
-            Artisan Stationery & Objects
+          <span className="text-[0.55rem] sm:text-[0.625rem] font-medium tracking-[0.12em] sm:tracking-[0.15em] uppercase text-[var(--text-muted)] mt-0.5 hidden sm:inline">
+            Stationery, Studio & IT
           </span>
         </div>
 
@@ -307,7 +307,7 @@ export function Navbar({
         </div>
 
         {/* Right Side - Shop Status, Phone inquiry, Search trigger (Mobile), Theme Toggle */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Live Shop Status Indicator Pill */}
           <div className="relative" ref={statusPopoverRef}>
             <button
@@ -318,7 +318,7 @@ export function Navbar({
                   setShowStatusPopover(!showStatusPopover);
                 }
               }}
-              className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[0.725rem] sm:text-[0.75rem] font-bold border transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[0.7rem] sm:text-[0.75rem] font-bold border transition-all cursor-pointer ${
                 shopStatus?.isOpen
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
                   : "bg-red-500/15 border-red-500/40 text-red-300 hover:bg-red-500/25"
@@ -329,7 +329,7 @@ export function Navbar({
                   : "Store is currently closed • Click to view reopen timer"
               }
             >
-              <span className="relative flex h-2 w-2">
+              <span className="relative flex h-2 w-2 shrink-0">
                 <span
                   className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                     shopStatus?.isOpen ? "bg-emerald-400" : "bg-red-400"
@@ -342,12 +342,12 @@ export function Navbar({
                 />
               </span>
 
-              <span className="hidden xs:inline">{shopStatus?.isOpen ? "Shop Open" : "Shop Closed"}</span>
-              <span className="xs:hidden">{shopStatus?.isOpen ? "Open" : "Closed"}</span>
+              <span className="hidden sm:inline">{shopStatus?.isOpen ? "Shop Open" : "Shop Closed"}</span>
+              <span className="sm:hidden">{shopStatus?.isOpen ? "Open" : "Closed"}</span>
 
               {/* Countdown text if closed & timer set */}
               {!shopStatus?.isOpen && timerText && (
-                <span className="text-[0.65rem] sm:text-[0.675rem] font-mono font-normal opacity-90 border-l border-red-500/30 pl-1.5 flex items-center gap-0.5">
+                <span className="text-[0.625rem] sm:text-[0.675rem] font-mono font-normal opacity-90 border-l border-red-500/30 pl-1 sm:pl-1.5 flex items-center gap-0.5">
                   <Clock size={10} />
                   <span>{timerText}</span>
                 </span>
@@ -502,7 +502,7 @@ export function Navbar({
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[var(--bg-card)] border-b border-[var(--border-medium)] px-6 py-5 flex flex-col gap-3.5 animate-[fadeIn_0.2s_ease-out]">
+        <div className="lg:hidden bg-[var(--bg-card)] border-b border-[var(--border-medium)] px-4 sm:px-6 py-5 flex flex-col gap-3.5 animate-[fadeIn_0.2s_ease-out]">
           {/* Mobile status banner in drawer */}
           <div
             onClick={() => {

@@ -169,7 +169,7 @@ export function HomePage({
       />
 
       {/* Craftsmanship Spotlight */}
-      <section className="py-22 border-b border-[var(--border-subtle)]">
+      {/* <section className="py-22 border-b border-[var(--border-subtle)]">
         <div className="storefront-container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div>
@@ -226,7 +226,7 @@ export function HomePage({
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* =========================================================================
           FEATURED WEB SERVICES AT THE LAST IN THE HOME PAGE
@@ -265,7 +265,7 @@ export function HomePage({
                   key={tier._id}
                   className={`relative rounded-[var(--radius-lg)] flex flex-col p-6 sm:p-8 transition-all duration-300 ${
                     isPro
-                      ? "bg-[var(--bg-elevated)] border-2 border-white shadow-[0_0_35px_rgba(255,255,255,0.12)] scale-[1.02] lg:-translate-y-3 z-10"
+                      ? "bg-[var(--bg-elevated)] border-2 border-white shadow-[0_0_35px_rgba(255,255,255,0.12)] lg:scale-[1.02] lg:-translate-y-3 z-10"
                       : "bg-[var(--bg-card)] border border-[var(--border-medium)] hover:border-[var(--border-bright)]"
                   }`}
                 >
@@ -420,6 +420,10 @@ export function HomePage({
           </div>
         </div>
       </section>
+
+
+      {/* OTHER ID SERVICES SECTION  */}
+      
 
       {/* Ending Action Strip */}
       <section className="py-20 text-center bg-[var(--bg-app)]">

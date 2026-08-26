@@ -115,6 +115,13 @@
   box-sizing: border-box;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+  position: relative;
+}
+
 html, body, #root {
   min-height: 100vh;
   background-color: var(--bg-app);
@@ -386,6 +393,7 @@ input, textarea, select {
   }
 
   /* Modals & Overlays */
+  /* Modals & Overlays */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -395,8 +403,14 @@ input, textarea, select {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem;
+    padding: 1rem;
     animation: fadeIn 0.2s ease-out;
+  }
+
+  @media (min-width: 640px) {
+    .modal-overlay {
+      padding: 1.5rem;
+    }
   }
 
   .modal-card {
@@ -442,7 +456,13 @@ input, textarea, select {
     width: 100%;
     max-width: 1240px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .storefront-container {
+      padding: 0 1.5rem;
+    }
   }
 
   /* Admin Dashboard Layout */
@@ -450,6 +470,9 @@ input, textarea, select {
     display: flex;
     min-height: 100vh;
     background-color: var(--bg-app);
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
   }
 
   .admin-main {
@@ -457,14 +480,23 @@ input, textarea, select {
     display: flex;
     flex-direction: column;
     min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   .admin-content {
     flex: 1;
-    padding: 2rem;
+    padding: 1rem;
     max-width: 1300px;
     margin: 0 auto;
     width: 100%;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .admin-content {
+      padding: 2rem;
+    }
   }
 }
 

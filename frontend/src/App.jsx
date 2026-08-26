@@ -225,7 +225,7 @@ function AppContent() {
 
       {/* Storefront Layout (Public Pages) */}
       {!isAdminView ? (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
           <Navbar
             activePage={activePage}
             setActivePage={setActivePage}
@@ -238,7 +238,7 @@ function AppContent() {
             onOpenShopClosedModal={() => setShopClosedModalOpen(true)}
           />
 
-          <main className="flex-1">
+          <main className="flex-1 min-w-0 w-full">
             {activePage === "home" && (
               <HomePage
                 banners={banners}

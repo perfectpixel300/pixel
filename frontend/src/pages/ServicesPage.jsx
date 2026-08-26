@@ -90,7 +90,7 @@ export function ServicesPage({
             title: "Starter Web Presence",
             packageTier: "starter",
             tierBadge: "Essential Plan",
-            price: 25000,
+            price: 0,
             deliveryTime: "5-7 Days",
             shortDescription: "High-converting modern responsive web presence for businesses, portfolios, and startups.",
             features: [
@@ -108,7 +108,7 @@ export function ServicesPage({
             title: "Professional Full-Stack App",
             packageTier: "professional",
             tierBadge: "Most Popular Plan",
-            price: 55000,
+            price: 0,
             deliveryTime: "2-3 Weeks",
             shortDescription: "Custom MERN stack application with admin dashboard, authentication, and Nepali payment gateway.",
             features: [
@@ -127,7 +127,7 @@ export function ServicesPage({
             title: "Enterprise SaaS Platform",
             packageTier: "enterprise",
             tierBadge: "Enterprise Grade",
-            price: 120000,
+            price: 0,
             deliveryTime: "4-6 Weeks",
             shortDescription: "Scalable multi-tenant enterprise system, microservices, advanced analytics, and cloud infrastructure.",
             features: [
@@ -208,7 +208,7 @@ export function ServicesPage({
     const text = encodeURIComponent(
       `Hello Pixel Perfect Team! I am interested in inquiring about your "${title}" service (Priced at NRs. ${Number(price).toLocaleString()}). Could you please share more details?`
     );
-    window.open(`https://wa.me/9779845991878?text=${text}`, "_blank");
+    window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
   };
 
   return (
@@ -297,7 +297,7 @@ export function ServicesPage({
                     key={pkg._id}
                     className={`relative rounded-[var(--radius-lg)] flex flex-col p-6 sm:p-8 transition-all duration-300 ${
                       isPro
-                        ? "bg-[var(--bg-elevated)] border-2 border-white shadow-[0_0_35px_rgba(255,255,255,0.12)] scale-[1.02] lg:-translate-y-2 z-10"
+                        ? "bg-[var(--bg-elevated)] border-2 border-white shadow-[0_0_35px_rgba(255,255,255,0.12)] lg:scale-[1.02] lg:-translate-y-2 z-10"
                         : "bg-[var(--bg-card)] border border-[var(--border-medium)] hover:border-[var(--border-bright)]"
                     }`}
                   >
@@ -763,7 +763,7 @@ export function ServicesPage({
               className="btn btn-secondary gap-2"
             >
               <MessageCircle size={15} />
-              <span>WhatsApp Us: +977 9845991878</span>
+              <span>WhatsApp Us: +977 9808950275</span>
             </button>
           </div>
         </div>

@@ -42,7 +42,7 @@ export function AdminHeader({
   };
 
   return (
-    <header className="h-16 bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between px-8 sticky top-0 z-10">
+    <header className="h-16 bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10">
       {/* Title */}
       <div className="flex items-center gap-2">
         <span className="text-[var(--text-muted)] text-[0.75rem] uppercase tracking-[0.06em]">

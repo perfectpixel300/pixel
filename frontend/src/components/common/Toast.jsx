@@ -6,7 +6,7 @@ export function Toast({ toast, onClose }) {
 
   return (
     <div
-      className="fixed bottom-6 right-6 z-[2000] flex items-center gap-2.5 px-4.5 py-3 bg-[var(--bg-elevated)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] shadow-[var(--shadow-xl)] text-[var(--text-primary)] text-[0.825rem] max-w-[400px] animate-[scaleUp_0.2s_ease-out]"
+      className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-[2000] flex items-center gap-2.5 px-4 py-3 bg-[var(--bg-elevated)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] shadow-[var(--shadow-xl)] text-[var(--text-primary)] text-[0.825rem] max-w-[calc(100vw-2rem)] sm:max-w-[400px] animate-[scaleUp_0.2s_ease-out]"
     >
       {toast.type === "error" ? (
         <AlertCircle size={17} className="text-[var(--color-danger)] shrink-0" />

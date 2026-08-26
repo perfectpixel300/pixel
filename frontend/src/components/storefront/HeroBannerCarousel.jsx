@@ -28,7 +28,7 @@ export function HeroBannerCarousel({ banners, onCtaClick }) {
       <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/85" />
 
       {/* Main Banner Content */}
-      <div className="storefront-container relative z-10 w-full px-6 sm:px-12">
+      <div className="storefront-container relative z-10 w-full sm:px-6">
         <div
           className={`max-w-[680px] ${
             currentBanner.alignment === "center"
@@ -79,19 +79,19 @@ export function HeroBannerCarousel({ banners, onCtaClick }) {
             onClick={() =>
               setCurrentSlide((prev) => (prev > 0 ? prev - 1 : activeBanners.length - 1))
             }
-            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/65 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-200 shadow-xl cursor-pointer"
+            className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-9.5 h-9.5 sm:w-11 sm:h-11 rounded-full bg-black/65 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-200 shadow-xl cursor-pointer"
             title="Previous Banner"
             aria-label="Previous Slide"
           >
-            <ChevronLeft size={22} />
+            <ChevronLeft size={20} />
           </button>
           <button
             onClick={() => setCurrentSlide((prev) => (prev + 1) % activeBanners.length)}
-            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/65 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-200 shadow-xl cursor-pointer"
+            className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-9.5 h-9.5 sm:w-11 sm:h-11 rounded-full bg-black/65 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-200 shadow-xl cursor-pointer"
             title="Next Banner"
             aria-label="Next Slide"
           >
-            <ChevronRight size={22} />
+            <ChevronRight size={20} />
           </button>
 
           {/* Dots Indicator */}
