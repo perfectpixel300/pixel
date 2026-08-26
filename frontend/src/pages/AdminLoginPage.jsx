@@ -3,8 +3,8 @@ import { Lock, ArrowLeft, KeyRound, ShieldAlert } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 export function AdminLoginPage({ onBackToStore, onLoginSuccess }) {
-  const [email, setEmail] = useState("admin@pixelperfect.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
