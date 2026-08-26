@@ -35,7 +35,7 @@ export function ProductDetailPage({
           {/* Left Column: Image Gallery */}
           <div className="flex flex-col gap-3.5">
             {/* Main Image */}
-            <div className="rounded-[var(--radius-md)] overflow-hidden h-[360px] sm:h-[460px] bg-[#050505] border border-[var(--border-subtle)]">
+            <div className="rounded-[var(--radius-md)] overflow-hidden h-[360px] sm:h-[460px] lg:h-auto bg-[#050505] border border-[var(--border-subtle)]">
               <img
                 src={images[activeImgIndex]}
                 alt={product.name}
