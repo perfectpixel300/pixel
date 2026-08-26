@@ -121,7 +121,7 @@ export function HomePage({
     const text = encodeURIComponent(
       `Hello Pixel Perfect Team! I would like to subscribe to the "${tier.title}" Web Development plan (NRs. ${Number(tier.price).toLocaleString()}). Please let me know how we can get started.`
     );
-    window.open(`https://wa.me/9779845991878?text=${text}`, "_blank");
+    window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
   };
 
   return (

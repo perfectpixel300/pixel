@@ -59,7 +59,7 @@ export function ProductsPage({
             Catalog
           </span>
           <h1 className="text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-[-0.03em]">
-            The Complete Atelier Collection
+            The Complete Collection
           </h1>
           <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[600px]">
             Explore handcrafted notebooks, solid brass instruments, desk organizers, and fine cotton papers.
@@ -129,7 +129,7 @@ export function ProductsPage({
                 onChange={(e) => setAvailabilityOnly(e.target.checked)}
                 className="accent-white"
               />
-              <span>In Atelier Stock Only</span>
+              <span>In Stock Only</span>
             </label>
 
             <select
