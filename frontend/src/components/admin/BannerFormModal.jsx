@@ -60,7 +60,12 @@ export function BannerFormModal({
 
   const validate = () => {
     const errs = {};
-    if (!formData.title.trim()) errs.title = "Headline is required";
+    const trimmedTitle = formData.title.trim();
+    if (!trimmedTitle) {
+      errs.title = "Headline is required";
+    } else if (/^\d+$/.test(trimmedTitle)) {
+      errs.title = "Headline cannot be only numbers";
+    }
     if (!formData.imageUrl.trim()) errs.imageUrl = "Image URL is required";
     setErrors(errs);
     return Object.keys(errs).length === 0;

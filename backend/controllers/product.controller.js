@@ -155,6 +155,9 @@ exports.createProduct = async (req, res) => {
       slug = `${slug}-${Date.now().toString().slice(-4)}`;
     }
 
+    const stockVal = stock !== undefined ? Number(stock) : 20;
+    const isAvailableVal = stockVal === 0 ? false : (isAvailable !== undefined ? Boolean(isAvailable) : true);
+
     const product = new Product({
       name,
       slug,
@@ -162,9 +165,9 @@ exports.createProduct = async (req, res) => {
       description,
       indicativePrice: Number(indicativePrice),
       images: Array.isArray(images) ? images.filter((img) => img && img.trim()) : [],
-      isAvailable: isAvailable !== undefined ? Boolean(isAvailable) : true,
+      isAvailable: isAvailableVal,
       featured: featured !== undefined ? Boolean(featured) : false,
-      stock: stock !== undefined ? Number(stock) : 20,
+      stock: stockVal,
       specs: specs || {},
     });
 
@@ -234,9 +237,10 @@ exports.updateProduct = async (req, res) => {
     if (images !== undefined) {
       product.images = Array.isArray(images) ? images.filter((img) => img && img.trim()) : [];
     }
-    product.isAvailable = isAvailable !== undefined ? Boolean(isAvailable) : product.isAvailable;
+    const updatedStockVal = stock !== undefined ? Number(stock) : product.stock;
+    product.isAvailable = updatedStockVal === 0 ? false : (isAvailable !== undefined ? Boolean(isAvailable) : product.isAvailable);
     product.featured = featured !== undefined ? Boolean(featured) : product.featured;
-    product.stock = stock !== undefined ? Number(stock) : product.stock;
+    product.stock = updatedStockVal;
     if (specs !== undefined) {
       product.specs = { ...product.specs, ...specs };
     }

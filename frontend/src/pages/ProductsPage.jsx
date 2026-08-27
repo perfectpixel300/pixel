@@ -27,7 +27,8 @@ export function ProductsPage({
       }
 
       // Availability filter
-      if (availabilityOnly && !product.isAvailable) {
+      const isAvailable = product.isAvailable && (product.stock === undefined || Number(product.stock) > 0);
+      if (availabilityOnly && !isAvailable) {
         return false;
       }
 

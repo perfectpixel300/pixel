@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Code,
   Zap,
+  Coins,
 } from "lucide-react";
 
 export function DashboardOverview({
@@ -44,14 +45,18 @@ export function DashboardOverview({
   const webDevServices = safeServices.filter((s) => s && s.isWebDevPackage);
 
   const totalInventoryValue = safeProducts.reduce(
-    (acc, p) => acc + (p?.indicativePrice || 0) * (p?.stock || 1),
+    (acc, p) => acc + (Number(p?.indicativePrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
+    0
+  );
+  const totalStockUnits = safeProducts.reduce(
+    (acc, p) => acc + (p?.stock !== undefined ? Number(p.stock) : 0),
     0
   );
 
   return (
     <div className="flex flex-col gap-7">
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
         {/* Metric 1: Products */}
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4.5 flex flex-col gap-1.5 border border-[var(--border-subtle)]">
           <div className="flex justify-between text-[var(--text-muted)] text-[0.7rem] uppercase font-bold">
@@ -62,11 +67,25 @@ export function DashboardOverview({
             {safeProducts.length}
           </div>
           <div className="text-[0.7rem] text-[var(--text-secondary)]">
-            {safeProducts.filter((p) => p && p.isAvailable).length} in stock
+            {safeProducts.filter((p) => p && p.isAvailable).length} available
           </div>
         </div>
 
-        {/* Metric 2: Categories */}
+        {/* Metric 2: Total Inventory Value */}
+        <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4.5 flex flex-col gap-1.5 border border-[var(--border-subtle)]">
+          <div className="flex justify-between text-[var(--text-muted)] text-[0.7rem] uppercase font-bold">
+            <span>Inventory Total</span>
+            <Coins size={14} />
+          </div>
+          <div className="text-xl sm:text-2xl font-extrabold tracking-[-0.03em] font-mono">
+            NRs. {totalInventoryValue.toLocaleString()}
+          </div>
+          <div className="text-[0.7rem] text-[var(--text-secondary)]">
+            {totalStockUnits.toLocaleString()} units in stock
+          </div>
+        </div>
+
+        {/* Metric 3: Categories */}
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4.5 flex flex-col gap-1.5 border border-[var(--border-subtle)]">
           <div className="flex justify-between text-[var(--text-muted)] text-[0.7rem] uppercase font-bold">
             <span>Categories</span>
@@ -80,7 +99,7 @@ export function DashboardOverview({
           </div>
         </div>
 
-        {/* Metric 3: Web Dev Plans */}
+        {/* Metric 4: Web Dev Plans */}
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4.5 flex flex-col gap-1.5 border border-[var(--border-subtle)]">
           <div className="flex justify-between text-[var(--text-muted)] text-[0.7rem] uppercase font-bold">
             <span>Web Dev Plans</span>
@@ -94,7 +113,7 @@ export function DashboardOverview({
           </div>
         </div>
 
-        {/* Metric 4: IT Capabilities */}
+        {/* Metric 5: IT Capabilities */}
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4.5 flex flex-col gap-1.5 border border-[var(--border-subtle)]">
           <div className="flex justify-between text-[var(--text-muted)] text-[0.7rem] uppercase font-bold">
             <span>IT Capabilities</span>
@@ -108,7 +127,7 @@ export function DashboardOverview({
           </div>
         </div>
 
-        {/* Metric 5: Inquiries */}
+        {/* Metric 6: Inquiries */}
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4.5 flex flex-col gap-1.5 border border-[var(--border-subtle)]">
           <div className="flex justify-between text-[var(--text-muted)] text-[0.7rem] uppercase font-bold">
             <span>Inquiries</span>
@@ -315,18 +334,38 @@ export function DashboardOverview({
                   </td>
                   <td className="p-2.5">
                     <button
+                      type="button"
                       onClick={() => onToggleProductAvailability(p._id)}
-                      className={`badge cursor-pointer ${p.isAvailable ? "badge-success" : "badge-neutral"}`}
+                      className={`badge cursor-pointer ${
+                        p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+                          ? "badge-success"
+                          : "badge-neutral"
+                      }`}
+                      title={
+                        p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+                          ? "In Stock (Click to mark Out of Stock)"
+                          : "Out of Stock (Click to mark In Stock)"
+                      }
                     >
-                      {p.isAvailable ? "Available" : "Unavailable"}
+                      {p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+                        ? "In Stock"
+                        : "Out of Stock"}
                     </button>
                   </td>
                   <td className="p-2.5">
                     <button
+                      type="button"
                       onClick={() => onToggleProductFeatured(p._id)}
-                      className={`btn-icon btn-ghost !w-6.5 !h-6.5 ${p.featured ? "text-[var(--color-warning)]" : "text-[var(--text-muted)]"}`}
+                      className={`btn-icon btn-ghost !w-6.5 !h-6.5 ${
+                        p.featured ? "text-amber-400" : "text-[var(--text-muted)] hover:text-amber-400"
+                      }`}
+                      title={p.featured ? "Featured Product (Click to unfeature)" : "Click to feature product"}
                     >
-                      <Star size={14} fill={p.featured ? "currentColor" : "none"} />
+                      <Star
+                        size={14}
+                        fill={p.featured ? "#fbbf24" : "none"}
+                        stroke={p.featured ? "#fbbf24" : "currentColor"}
+                      />
                     </button>
                   </td>
                   <td className="p-2.5 text-right">

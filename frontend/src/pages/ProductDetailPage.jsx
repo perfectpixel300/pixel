@@ -66,8 +66,16 @@ export function ProductDetailPage({
             <div>
               <div className="flex gap-2 mb-2.5 flex-wrap">
                 <span className="badge badge-dark">{product.category}</span>
-                <span className={`badge ${product.isAvailable ? "badge-success" : "badge-neutral"}`}>
-                  {product.isAvailable ? "Available" : "Out of Stock"}
+                <span
+                  className={`badge ${
+                    product.isAvailable && (product.stock === undefined || Number(product.stock) > 0)
+                      ? "badge-success"
+                      : "badge-neutral"
+                  }`}
+                >
+                  {product.isAvailable && (product.stock === undefined || Number(product.stock) > 0)
+                    ? "Available"
+                    : "Out of Stock"}
                 </span>
                 {product.featured && <span className="badge badge-white">Featured Object</span>}
               </div>

@@ -249,12 +249,21 @@ class ApiService {
   }
 
   async toggleProductAvailability(id) {
+    if (!id || id === "undefined" || id === "null") return;
     try {
-      const res = await fetch(`${API_BASE_URL}/products/${id}/availability`, {
+      const res = await fetch(`${API_BASE_URL}/products/${id}/toggle-availability`, {
         method: "PATCH",
         headers: this.getAuthHeaders(),
       });
-      if (res.ok) return await res.json();
+      if (res.ok) {
+        const data = await res.json();
+        const product = this.localProducts.find((p) => p._id === id);
+        if (product && data.product) {
+          product.isAvailable = data.product.isAvailable;
+          this.saveToStorage("pixel_mock_products", this.localProducts);
+        }
+        return data;
+      }
     } catch {}
 
     const product = this.localProducts.find((p) => p._id === id);
@@ -266,12 +275,21 @@ class ApiService {
   }
 
   async toggleProductFeatured(id) {
+    if (!id || id === "undefined" || id === "null") return;
     try {
-      const res = await fetch(`${API_BASE_URL}/products/${id}/featured`, {
+      const res = await fetch(`${API_BASE_URL}/products/${id}/toggle-featured`, {
         method: "PATCH",
         headers: this.getAuthHeaders(),
       });
-      if (res.ok) return await res.json();
+      if (res.ok) {
+        const data = await res.json();
+        const product = this.localProducts.find((p) => p._id === id);
+        if (product && data.product) {
+          product.featured = data.product.featured;
+          this.saveToStorage("pixel_mock_products", this.localProducts);
+        }
+        return data;
+      }
     } catch {}
 
     const product = this.localProducts.find((p) => p._id === id);

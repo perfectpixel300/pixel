@@ -12,15 +12,24 @@ export function AdminLoginPage({ onBackToStore, onLoginSuccess }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
       setError("Please enter both email and password");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("Please enter a valid email address");
       return;
     }
 
     try {
       setIsLoading(true);
       setError("");
-      await login(email.trim(), password.trim());
+      await login(trimmedEmail, trimmedPassword);
       if (onLoginSuccess) onLoginSuccess();
     } catch (err) {
       setError(err.message || "Invalid administrative credentials");

@@ -120,11 +120,27 @@ export function ProductFormModal({
 
   const validate = () => {
     const errs = {};
-    if (!formData.name.trim()) errs.name = "Name is required";
-    if (!formData.description.trim()) errs.description = "Description is required";
-    if (formData.indicativePrice === "" || Number(formData.indicativePrice) < 0) {
-      errs.indicativePrice = "Valid price in NRs. required";
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) {
+      errs.name = "Name is required";
+    } else if (/^\d+$/.test(trimmedName)) {
+      errs.name = "Product name cannot be only numbers";
+    } else if (trimmedName.length < 2) {
+      errs.name = "Product name must be at least 2 characters";
     }
+
+    if (!formData.description.trim()) {
+      errs.description = "Description is required";
+    }
+
+    if (formData.indicativePrice === "" || isNaN(Number(formData.indicativePrice)) || Number(formData.indicativePrice) < 0) {
+      errs.indicativePrice = "Valid positive price in NRs. required";
+    }
+
+    if (formData.stock !== "" && (isNaN(Number(formData.stock)) || Number(formData.stock) < 0)) {
+      errs.stock = "Stock must be a non-negative number";
+    }
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -133,10 +149,15 @@ export function ProductFormModal({
     e.preventDefault();
     if (!validate()) return;
 
+    const stockNum = Number(formData.stock);
+    const isAvailableVal = stockNum === 0 ? false : Boolean(formData.isAvailable);
+
     onSubmit({
       ...formData,
       indicativePrice: Number(formData.indicativePrice),
-      stock: Number(formData.stock),
+      stock: stockNum,
+      isAvailable: isAvailableVal,
+      featured: Boolean(formData.featured),
       currency: "NRs.",
       images: formData.images.filter((img) => img.trim().length > 0),
     });
@@ -220,13 +241,24 @@ export function ProductFormModal({
               </div>
 
               <div className="form-group">
-                <label className="form-label">Stock Units</label>
+                <label className="form-label">
+                  Stock Units
+                  {errors.stock && <span className="text-[var(--color-danger)] ml-1">{errors.stock}</span>}
+                </label>
                 <input
                   type="number"
                   min="0"
                   className="form-input"
                   value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const num = Number(val);
+                    setFormData((prev) => ({
+                      ...prev,
+                      stock: val,
+                      isAvailable: val === "" ? prev.isAvailable : num === 0 ? false : (Number(prev.stock) === 0 ? true : prev.isAvailable),
+                    }));
+                  }}
                 />
               </div>
 
@@ -320,23 +352,28 @@ export function ProductFormModal({
             </div>
 
             {/* Switches */}
-            <div className="flex gap-6 p-3 bg-[var(--bg-input)] rounded-[var(--radius-sm)] mb-3.5">
-              <label className="flex items-center gap-2.5 cursor-pointer">
+            <div className="flex gap-6 p-3 bg-[var(--bg-input)] rounded-[var(--radius-sm)] mb-3.5 flex-wrap">
+              <div className="flex items-center gap-2.5">
                 <label className="toggle-switch">
                   <input
                     type="checkbox"
-                    checked={formData.isAvailable}
+                    checked={Number(formData.stock) === 0 ? false : formData.isAvailable}
                     onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
+                    disabled={Number(formData.stock) === 0}
                   />
                   <span className="toggle-slider"></span>
                 </label>
                 <div>
-                  <div className="text-[0.8rem] font-bold">In Atelier Stock</div>
-                  <div className="text-[0.68rem] text-[var(--text-muted)]">Available for inquiry</div>
+                  <div className="text-[0.8rem] font-bold">
+                    {Number(formData.stock) === 0 ? "Out of Stock" : formData.isAvailable ? "In Atelier Stock" : "Out of Stock"}
+                  </div>
+                  <div className="text-[0.68rem] text-[var(--text-muted)]">
+                    {Number(formData.stock) === 0 ? "0 stock units (marked unavailable)" : formData.isAvailable ? "Available for inquiry" : "Unavailable for inquiry"}
+                  </div>
                 </div>
-              </label>
+              </div>
 
-              <label className="flex items-center gap-2.5 cursor-pointer">
+              <div className="flex items-center gap-2.5">
                 <label className="toggle-switch">
                   <input
                     type="checkbox"
@@ -349,7 +386,7 @@ export function ProductFormModal({
                   <div className="text-[0.8rem] font-bold">Featured Artifact</div>
                   <div className="text-[0.68rem] text-[var(--text-muted)]">Highlight on storefront home</div>
                 </div>
-              </label>
+              </div>
             </div>
 
             {/* Specifications */}

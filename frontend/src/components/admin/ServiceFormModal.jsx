@@ -142,16 +142,25 @@ export function ServiceFormModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.title.trim()) {
+    const trimmedTitle = formData.title.trim();
+    if (!trimmedTitle) {
       setError("Please provide a service title");
+      return;
+    }
+    if (/^\d+$/.test(trimmedTitle)) {
+      setError("Service title cannot be only numbers");
+      return;
+    }
+    if (trimmedTitle.length < 2) {
+      setError("Service title must be at least 2 characters");
       return;
     }
     if (!formData.shortDescription.trim()) {
       setError("Please provide a short summary");
       return;
     }
-    if (formData.price === undefined || formData.price === null || formData.price < 0) {
-      setError("Please provide a valid price in NRs.");
+    if (formData.price === undefined || formData.price === null || formData.price === "" || isNaN(Number(formData.price)) || Number(formData.price) < 0) {
+      setError("Please provide a valid non-negative price in NRs.");
       return;
     }
 

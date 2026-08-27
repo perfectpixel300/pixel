@@ -38,15 +38,56 @@ export function ContactPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
-      setError("Please complete all required fields");
+    const trimmedName = formData.name.trim();
+    const trimmedEmail = formData.email.trim();
+    const trimmedSubject = formData.subject.trim();
+    const trimmedMessage = formData.message.trim();
+
+    if (!trimmedName) {
+      setError("Please enter your name.");
+      return;
+    }
+    if (/\d/.test(trimmedName)) {
+      setError("Name must contain only alphabetic characters, not numbers.");
+      return;
+    }
+    if (!/^[a-zA-Z\s.'-]+$/.test(trimmedName)) {
+      setError("Name must contain only alphabetic letters and spaces.");
+      return;
+    }
+    if (trimmedName.length < 2) {
+      setError("Name must be at least 2 characters long.");
+      return;
+    }
+
+    if (!trimmedEmail) {
+      setError("Please enter your email address.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!trimmedMessage) {
+      setError("Please enter your message.");
+      return;
+    }
+    if (trimmedMessage.length < 5) {
+      setError("Message must be at least 5 characters long.");
       return;
     }
 
     try {
       setIsSubmitting(true);
       setError("");
-      await api.submitContact(formData);
+      await api.submitContact({
+        name: trimmedName,
+        email: trimmedEmail,
+        subject: trimmedSubject,
+        message: trimmedMessage,
+      });
       setIsSuccess(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (err) {

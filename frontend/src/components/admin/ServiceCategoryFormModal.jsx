@@ -79,8 +79,17 @@ export function ServiceCategoryFormModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) {
       setError("Please provide a category name");
+      return;
+    }
+    if (/^\d+$/.test(trimmedName)) {
+      setError("Category name cannot be only numbers");
+      return;
+    }
+    if (trimmedName.length < 2) {
+      setError("Category name must be at least 2 characters");
       return;
     }
 

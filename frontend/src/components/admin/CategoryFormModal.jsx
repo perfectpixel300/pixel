@@ -60,7 +60,14 @@ export function CategoryFormModal({
 
   const validate = () => {
     const errs = {};
-    if (!formData.name.trim()) errs.name = "Category name is required";
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) {
+      errs.name = "Category name is required";
+    } else if (/^\d+$/.test(trimmedName)) {
+      errs.name = "Category name cannot be only numbers";
+    } else if (trimmedName.length < 2) {
+      errs.name = "Category name must be at least 2 characters";
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Search, Plus, List, LayoutGrid, Star, Edit2, Trash2, Package } from "lucide-react";
+import { Search, Plus, List, LayoutGrid, Star, Edit2, Trash2, Package, Coins } from "lucide-react";
 
 export function ProductManagement({
-  products,
+  products = [],
   categories = [],
   onOpenCreateModal,
   onEditProduct,
@@ -14,6 +14,15 @@ export function ProductManagement({
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [viewMode, setViewMode] = useState("table");
+
+  const totalInventoryPrice = products.reduce(
+    (acc, p) => acc + (Number(p?.indicativePrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
+    0
+  );
+  const totalStockUnits = products.reduce(
+    (acc, p) => acc + (p?.stock !== undefined ? Number(p.stock) : 0),
+    0
+  );
 
   const filtered = products
     .filter((p) => {
@@ -36,6 +45,51 @@ export function ProductManagement({
 
   return (
     <div className="flex flex-col gap-5">
+      {/* Inventory Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4 flex items-center justify-between border border-[var(--border-subtle)]">
+          <div>
+            <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)]">
+              Total Products
+            </div>
+            <div className="text-xl font-extrabold mt-0.5 tracking-tight">
+              {products.length} Items
+            </div>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)]">
+            <Package size={16} />
+          </div>
+        </div>
+
+        <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4 flex items-center justify-between border border-[var(--border-subtle)]">
+          <div>
+            <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)]">
+              Total Stock Units
+            </div>
+            <div className="text-xl font-extrabold mt-0.5 tracking-tight">
+              {totalStockUnits.toLocaleString()} Units
+            </div>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)]">
+            <Package size={16} />
+          </div>
+        </div>
+
+        <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4 flex items-center justify-between border border-[var(--border-subtle)]">
+          <div>
+            <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)]">
+              Total Inventory Price
+            </div>
+            <div className="text-xl font-extrabold mt-0.5 tracking-tight font-mono text-[var(--text-primary)]">
+              NRs. {totalInventoryPrice.toLocaleString()}
+            </div>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)]">
+            <Coins size={16} />
+          </div>
+        </div>
+      </div>
+
       {/* Category Filter Pills */}
       <div className="flex gap-1.5 overflow-x-auto pb-1">
         <button
@@ -128,6 +182,7 @@ export function ProductManagement({
                   <th className="py-2.5 px-3.5">Category</th>
                   <th className="py-2.5 px-3.5">Price (NRs.)</th>
                   <th className="py-2.5 px-3.5">Stock</th>
+                  <th className="py-2.5 px-3.5">Total Value (NRs.)</th>
                   <th className="py-2.5 px-3.5">Specs</th>
                   <th className="py-2.5 px-3.5">Status</th>
                   <th className="py-2.5 px-3.5">Featured</th>
@@ -137,6 +192,7 @@ export function ProductManagement({
               <tbody>
                 {filtered.map((p) => {
                   const img = p.images && p.images[0] ? p.images[0] : "";
+                  const totalVal = (Number(p.indicativePrice) || 0) * (p.stock !== undefined ? Number(p.stock) : 0);
                   return (
                     <tr key={p._id} className="border-b border-[var(--border-subtle)]">
                       <td className="py-3 px-3.5">
@@ -157,23 +213,46 @@ export function ProductManagement({
                       <td className="py-3 px-3.5">
                         <span className="badge badge-neutral">{p.stock || 0} units</span>
                       </td>
+                      <td className="py-3 px-3.5 font-bold font-mono text-[var(--text-primary)]">
+                        NRs. {totalVal.toLocaleString()}
+                      </td>
                       <td className="py-3 px-3.5 text-[0.725rem] text-[var(--text-muted)]">
                         {p.specs?.paperGsm || p.specs?.color || "Standard"}
                       </td>
                       <td className="py-3 px-3.5">
                         <button
+                          type="button"
                           onClick={() => onToggleAvailability(p._id)}
-                          className={`badge cursor-pointer ${p.isAvailable ? "badge-success" : "badge-neutral"}`}
+                          className={`badge cursor-pointer ${
+                            p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+                              ? "badge-success"
+                              : "badge-neutral"
+                          }`}
+                          title={
+                            p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+                              ? "In Stock (Click to mark Out of Stock)"
+                              : "Out of Stock (Click to mark In Stock)"
+                          }
                         >
-                          {p.isAvailable ? "In Stock" : "Unavailable"}
+                          {p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+                            ? "In Stock"
+                            : "Out of Stock"}
                         </button>
                       </td>
                       <td className="py-3 px-3.5">
                         <button
+                          type="button"
                           onClick={() => onToggleFeatured(p._id)}
-                          className={`btn-icon btn-ghost !w-7 !h-7 ${p.featured ? "text-[var(--color-warning)]" : "text-[var(--text-muted)]"}`}
+                          className={`btn-icon btn-ghost !w-7 !h-7 ${
+                            p.featured ? "text-amber-400" : "text-[var(--text-muted)] hover:text-amber-400"
+                          }`}
+                          title={p.featured ? "Featured Product (Click to unfeature)" : "Click to feature product"}
                         >
-                          <Star size={15} fill={p.featured ? "currentColor" : "none"} />
+                          <Star
+                            size={15}
+                            fill={p.featured ? "#fbbf24" : "none"}
+                            stroke={p.featured ? "#fbbf24" : "currentColor"}
+                          />
                         </button>
                       </td>
                       <td className="py-3 px-3.5 text-right">
@@ -196,29 +275,73 @@ export function ProductManagement({
       ) : (
         /* Grid Mode */
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {filtered.map((p) => (
-            <div key={p._id} className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col border border-[var(--border-subtle)]">
-              <div className="h-40 relative">
-                <img src={p.images && p.images[0] ? p.images[0] : ""} alt={p.name} className="w-full h-full object-cover" />
-                <span className="badge badge-dark absolute top-2 left-2">{p.category}</span>
-              </div>
-              <div className="p-4 flex flex-col gap-1.5 flex-1">
-                <div className="flex justify-between items-start">
-                  <h4 className="text-sm font-bold m-0">{p.name}</h4>
-                  <span className="font-bold font-mono text-sm">NRs. {Number(p.indicativePrice).toLocaleString()}</span>
+          {filtered.map((p) => {
+            const totalVal = (Number(p.indicativePrice) || 0) * (p.stock !== undefined ? Number(p.stock) : 0);
+            return (
+              <div key={p._id} className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col border border-[var(--border-subtle)]">
+                <div className="h-40 relative">
+                  <img src={p.images && p.images[0] ? p.images[0] : ""} alt={p.name} className="w-full h-full object-cover" />
+                  <span className="badge badge-dark absolute top-2 left-2">{p.category}</span>
+                  {p.featured && (
+                    <span className="badge badge-white absolute top-2 right-2 flex items-center gap-1 text-[0.6rem]">
+                      <Star size={10} fill="#fbbf24" stroke="#fbbf24" />
+                      <span>Featured</span>
+                    </span>
+                  )}
                 </div>
-                <div className="mt-auto pt-2.5 flex justify-between items-center">
-                  <button onClick={() => onToggleAvailability(p._id)} className={`badge cursor-pointer ${p.isAvailable ? "badge-success" : "badge-neutral"}`}>
-                    {p.isAvailable ? "Available" : "Unavailable"}
-                  </button>
-                  <div className="flex gap-1">
-                    <button onClick={() => onEditProduct(p)} className="btn-icon btn-secondary !w-7 !h-7"><Edit2 size={12} /></button>
-                    <button onClick={() => onDeleteProduct(p)} className="btn-icon btn-secondary !w-7 !h-7 text-[var(--color-danger)]"><Trash2 size={12} /></button>
+                <div className="p-4 flex flex-col gap-1.5 flex-1">
+                  <div className="flex justify-between items-start">
+                    <h4 className="text-sm font-bold m-0">{p.name}</h4>
+                    <span className="font-bold font-mono text-sm">NRs. {Number(p.indicativePrice).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[0.72rem] text-[var(--text-muted)] font-mono">
+                    <span>Stock: {p.stock || 0} units</span>
+                    <span className="font-semibold text-[var(--text-primary)]">
+                      Total: NRs. {totalVal.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="mt-auto pt-2.5 flex justify-between items-center border-t border-[var(--border-subtle)]">
+                    <button
+                      type="button"
+                      onClick={() => onToggleAvailability(p._id)}
+                      className={`badge cursor-pointer ${
+                        p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+                          ? "badge-success"
+                          : "badge-neutral"
+                      }`}
+                      title={
+                        p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+                          ? "In Stock (Click to mark Out of Stock)"
+                          : "Out of Stock (Click to mark In Stock)"
+                      }
+                    >
+                      {p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+                        ? "In Stock"
+                        : "Out of Stock"}
+                    </button>
+                    <div className="flex gap-1 items-center">
+                      <button
+                        type="button"
+                        onClick={() => onToggleFeatured(p._id)}
+                        className={`btn-icon btn-ghost !w-7 !h-7 ${
+                          p.featured ? "text-amber-400" : "text-[var(--text-muted)] hover:text-amber-400"
+                        }`}
+                        title={p.featured ? "Unfeature Product" : "Feature Product"}
+                      >
+                        <Star
+                          size={14}
+                          fill={p.featured ? "#fbbf24" : "none"}
+                          stroke={p.featured ? "#fbbf24" : "currentColor"}
+                        />
+                      </button>
+                      <button onClick={() => onEditProduct(p)} className="btn-icon btn-secondary !w-7 !h-7"><Edit2 size={12} /></button>
+                      <button onClick={() => onDeleteProduct(p)} className="btn-icon btn-secondary !w-7 !h-7 text-[var(--color-danger)]"><Trash2 size={12} /></button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

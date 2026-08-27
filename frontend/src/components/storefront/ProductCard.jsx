@@ -55,10 +55,12 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
         <div className="mt-auto pt-3 flex items-center justify-between border-t border-[var(--border-subtle)]">
           <span
             className={`text-[0.725rem] font-semibold ${
-              product.isAvailable ? "text-[var(--color-success)]" : "text-[var(--text-muted)]"
+              product.isAvailable && (product.stock === undefined || Number(product.stock) > 0)
+                ? "text-[var(--color-success)]"
+                : "text-[var(--text-muted)]"
             }`}
           >
-            ● {product.isAvailable ? "Available" : "Out of Stock"}
+            ● {product.isAvailable && (product.stock === undefined || Number(product.stock) > 0) ? "Available" : "Out of Stock"}
           </span>
 
           <div className="flex gap-1.5">

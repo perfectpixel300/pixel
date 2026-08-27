@@ -22,6 +22,8 @@ router.post("/", protect, createProduct);
 router.put("/:id", protect, updateProduct);
 router.delete("/:id", protect, deleteProduct);
 router.patch("/:id/toggle-availability", protect, toggleAvailability);
+router.patch("/:id/availability", protect, toggleAvailability);
 router.patch("/:id/toggle-featured", protect, toggleFeatured);
+router.patch("/:id/featured", protect, toggleFeatured);
 
 module.exports = router;
