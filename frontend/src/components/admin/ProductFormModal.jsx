@@ -354,7 +354,7 @@ export function ProductFormModal({
                 <button
                   type="button"
                   onClick={() => setShowManualUrl(!showManualUrl)}
-                  className="text-[0.725rem] text-[var(--text-muted)] hover:text-white bg-transparent border-0 cursor-pointer"
+                  className="text-[0.725rem] text-[var(--text-muted)] hover:text-zinc-600 bg-transparent border-0 cursor-pointer"
                 >
                   {showManualUrl ? "Hide URL Input" : "+ Add image via URL"}
                 </button>
@@ -373,7 +373,7 @@ export function ProductFormModal({
                 className={`border-2 border-dashed rounded-[var(--radius-sm)] p-5 text-center cursor-pointer transition-all duration-200 ${
                   uploading
                     ? "border-[var(--border-bright)] bg-[var(--bg-elevated)]"
-                    : "border-[var(--border-medium)] hover:border-white hover:bg-[var(--bg-elevated)]"
+                    : "border-[var(--border-medium)] hover:border-slate-600 hover:bg-[var(--bg-elevated)]"
                 }`}
               >
                 <input

@@ -12,6 +12,7 @@ import {
   CheckCircle,
   AlertCircle,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
@@ -24,6 +25,7 @@ export function Navbar({
   onViewProduct,
   onSearchSubmit,
   shopStatus = { isOpen: true },
+  isStatusLoading = false,
   onOpenShopClosedModal,
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -314,75 +316,83 @@ export function Navbar({
 
         {/* Right Side - Shop Status, Phone inquiry, Search trigger (Mobile), Theme Toggle */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          {/* Live Shop Status Indicator Pill */}
-          <div className="relative" ref={statusPopoverRef}>
-            <button
-              onClick={() => {
-                if (!shopStatus?.isOpen) {
-                  if (onOpenShopClosedModal) onOpenShopClosedModal();
-                } else {
-                  setShowStatusPopover(!showStatusPopover);
+          {/* Live Shop Status Indicator Pill or Loader */}
+          {isStatusLoading || !shopStatus ? (
+            <div className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[0.7rem] sm:text-[0.75rem] font-medium border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-muted)] animate-pulse">
+              <Loader2 size={11} className="animate-spin text-[var(--text-muted)] shrink-0" />
+              <span className="hidden sm:inline text-[0.7rem]">Status...</span>
+              <span className="sm:hidden text-[0.65rem]">...</span>
+            </div>
+          ) : (
+            <div className="relative" ref={statusPopoverRef}>
+              <button
+                onClick={() => {
+                  if (!shopStatus?.isOpen) {
+                    if (onOpenShopClosedModal) onOpenShopClosedModal();
+                  } else {
+                    setShowStatusPopover(!showStatusPopover);
+                  }
+                }}
+                className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[0.7rem] sm:text-[0.75rem] font-bold border transition-all cursor-pointer ${
+                  shopStatus?.isOpen
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                    : "bg-red-500/15 border-red-500/40 text-red-300 hover:bg-red-500/25"
+                }`}
+                title={
+                  shopStatus?.isOpen
+                    ? "Store is currently open • Click for operating hours"
+                    : "Store is currently closed • Click to view reopen timer"
                 }
-              }}
-              className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[0.7rem] sm:text-[0.75rem] font-bold border transition-all cursor-pointer ${
-                shopStatus?.isOpen
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
-                  : "bg-red-500/15 border-red-500/40 text-red-300 hover:bg-red-500/25"
-              }`}
-              title={
-                shopStatus?.isOpen
-                  ? "Store is currently open • Click for operating hours"
-                  : "Store is currently closed • Click to view reopen timer"
-              }
-            >
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span
-                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    shopStatus?.isOpen ? "bg-emerald-400" : "bg-red-400"
-                  }`}
-                />
-                <span
-                  className={`relative inline-flex rounded-full h-2 w-2 ${
-                    shopStatus?.isOpen ? "bg-emerald-500" : "bg-red-500"
-                  }`}
-                />
-              </span>
-
-              <span className="hidden sm:inline">{shopStatus?.isOpen ? "Shop Open" : "Shop Closed"}</span>
-              <span className="sm:hidden">{shopStatus?.isOpen ? "Open" : "Closed"}</span>
-
-              {/* Countdown text if closed & timer set */}
-              {!shopStatus?.isOpen && timerText && (
-                <span className="text-[0.625rem] sm:text-[0.675rem] font-mono font-normal opacity-90 border-l border-red-500/30 pl-1 sm:pl-1.5 flex items-center gap-0.5">
-                  <Clock size={10} />
-                  <span>{timerText}</span>
+              >
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span
+                    className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                      shopStatus?.isOpen ? "bg-emerald-400" : "bg-red-400"
+                    }`}
+                  />
+                  <span
+                    className={`relative inline-flex rounded-full h-2 w-2 ${
+                      shopStatus?.isOpen ? "bg-emerald-500" : "bg-red-500"
+                    }`}
+                  />
                 </span>
-              )}
-            </button>
 
-            {/* Popover on click for Open store info */}
-            {showStatusPopover && shopStatus?.isOpen && (
-              <div className="absolute top-full right-0 mt-2 w-72 p-3.5 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
-                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
-                    Storefront Live & Operating
+                <span className="hidden sm:inline">{shopStatus?.isOpen ? "Shop Open" : "Shop Closed"}</span>
+                <span className="sm:hidden">{shopStatus?.isOpen ? "Open" : "Closed"}</span>
+
+                {/* Countdown text if closed & timer set */}
+                {!shopStatus?.isOpen && timerText && (
+                  <span className="text-[0.625rem] sm:text-[0.675rem] font-mono font-normal opacity-90 border-l border-red-500/30 pl-1 sm:pl-1.5 flex items-center gap-0.5">
+                    <Clock size={10} />
+                    <span>{timerText}</span>
                   </span>
+                )}
+              </button>
+
+              {/* Popover on click for Open store info (responsive on mobile & desktop) */}
+              {showStatusPopover && shopStatus?.isOpen && (
+                <div className="fixed top-[68px] left-3 right-3 max-w-[320px] ml-auto sm:ml-0 sm:max-w-none sm:left-auto sm:right-0 sm:absolute sm:top-full mt-2 sm:w-72 p-3.5 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
+                  <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                      Storefront Live & Operating
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed m-0">
+                    {shopStatus?.openMessage ||
+                      "We are currently open and taking orders and consulting inquiries."}
+                  </p>
+                  <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.7rem] text-[var(--text-muted)]">
+                    <span>Inquiries Active</span>
+                    <span className="font-mono text-emerald-400">● 100% Online</span>
+                  </div>
                 </div>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed m-0">
-                  {shopStatus?.openMessage ||
-                    "We are currently open and taking orders and consulting inquiries."}
-                </p>
-                <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.7rem] text-[var(--text-muted)]">
-                  <span>Inquiries Active</span>
-                  <span className="font-mono text-emerald-400">● 100% Online</span>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           <a
-            href="tel:++9779808950275"
+            href="tel:+9779808950275"
             className="hidden xl:inline-flex items-center gap-1.5 text-[0.775rem] font-semibold text-[var(--text-secondary)] tracking-[0.02em] hover:text-[var(--text-primary)]"
           >
             <Phone size={13} />
@@ -515,35 +525,42 @@ export function Navbar({
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[var(--bg-card)] border-b border-[var(--border-medium)] px-4 sm:px-6 py-5 flex flex-col gap-3.5 animate-[fadeIn_0.2s_ease-out]">
           {/* Mobile status banner in drawer */}
-          <div
-            onClick={() => {
-              if (!shopStatus?.isOpen && onOpenShopClosedModal) {
-                onOpenShopClosedModal();
-                setMobileMenuOpen(false);
-              }
-            }}
-            className={`p-3 rounded-[var(--radius-sm)] flex items-center justify-between cursor-pointer border ${
-              shopStatus?.isOpen
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                : "bg-red-500/15 border-red-500/40 text-red-300"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  shopStatus?.isOpen ? "bg-emerald-500" : "bg-red-500 animate-ping"
-                }`}
-              />
-              <span className="text-xs font-bold uppercase tracking-wider">
-                {shopStatus?.isOpen ? "Shop is Open" : "Shop is Currently Closed"}
-              </span>
+          {isStatusLoading || !shopStatus ? (
+            <div className="p-3 rounded-[var(--radius-sm)] flex items-center gap-2.5 border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-muted)] animate-pulse">
+              <Loader2 size={13} className="animate-spin text-[var(--text-muted)] shrink-0" />
+              <span className="text-xs font-medium">Checking atelier status...</span>
             </div>
-            {!shopStatus?.isOpen && timerText && (
-              <span className="text-xs font-mono font-bold bg-black/30 px-2 py-0.5 rounded">
-                {timerText}
-              </span>
-            )}
-          </div>
+          ) : (
+            <div
+              onClick={() => {
+                if (!shopStatus?.isOpen && onOpenShopClosedModal) {
+                  onOpenShopClosedModal();
+                  setMobileMenuOpen(false);
+                }
+              }}
+              className={`p-3 rounded-[var(--radius-sm)] flex items-center justify-between cursor-pointer border ${
+                shopStatus?.isOpen
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                  : "bg-red-500/15 border-red-500/40 text-red-300"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    shopStatus?.isOpen ? "bg-emerald-500" : "bg-red-500 animate-ping"
+                  }`}
+                />
+                <span className="text-xs font-bold uppercase tracking-wider">
+                  {shopStatus?.isOpen ? "Shop is Open" : "Shop is Currently Closed"}
+                </span>
+              </div>
+              {!shopStatus?.isOpen && timerText && (
+                <span className="text-xs font-mono font-bold bg-black/30 px-2 py-0.5 rounded">
+                  {timerText}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Drawer Search Input */}
           <form onSubmit={handleSearchFormSubmit} className="relative mb-2">

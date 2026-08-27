@@ -6,7 +6,9 @@ backend/node_modules/
 # Environment variables
 .env
 backend/.env
+backend/.env.example
 frontend/.env
+frontend/.env.example
 frontend/.env.local
 
 # Production builds & logs

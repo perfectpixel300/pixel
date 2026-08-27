@@ -45,7 +45,8 @@ function AppContent() {
   const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
   const [serviceCategories, setServiceCategories] = useState([]);
-  const [shopStatus, setShopStatus] = useState({ isOpen: true });
+  const [shopStatus, setShopStatus] = useState(null);
+  const [isStatusLoading, setIsStatusLoading] = useState(true);
   const [banners, setBanners] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [isLiveBackend, setIsLiveBackend] = useState(false);
@@ -116,8 +117,9 @@ function AppContent() {
       setServices(servicesRes.services || []);
       setServiceCategories(serviceCategoriesRes.categories || []);
       
-      const currentShopStatus = shopStatusRes.status || { isOpen: true };
+      const currentShopStatus = shopStatusRes?.status || { isOpen: true };
       setShopStatus(currentShopStatus);
+      setIsStatusLoading(false);
       setBanners(bannersRes.banners || []);
       setIsLiveBackend(Boolean(productsRes?.fromServer));
 
@@ -143,8 +145,11 @@ function AppContent() {
       }
     } catch (err) {
       console.warn("Local sandbox mode fallback:", err);
+      setShopStatus({ isOpen: true });
+      setIsStatusLoading(false);
     } finally {
       setIsLoading(false);
+      setIsStatusLoading(false);
     }
   }, []);
 
@@ -235,6 +240,7 @@ function AppContent() {
             onViewProduct={handleViewProduct}
             onSearchSubmit={handleSearchSubmit}
             shopStatus={shopStatus}
+            isStatusLoading={isStatusLoading || !shopStatus}
             onOpenShopClosedModal={() => setShopClosedModalOpen(true)}
           />
 
