@@ -7,9 +7,8 @@ import {
   ArrowUpRight,
   MessageCircle,
 } from "lucide-react";
-import { CATEGORIES } from "../../data/mockData";
 
-export function Footer({ setActivePage }) {
+export function Footer({ setActivePage, categories = [] }) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -91,13 +90,16 @@ export function Footer({ setActivePage }) {
             <span className="text-[0.75rem] font-bold uppercase tracking-[0.08em]">
               Disciplines
             </span>
-            {CATEGORIES.slice(0, 5).map((cat) => (
+            {(categories.length > 0
+              ? categories.slice(0, 5).map((c) => (typeof c === "string" ? c : c.name))
+              : ["Notebooks", "Pens & Writing", "Desk Accessories", "Fine Paper", "Art Supplies"]
+            ).map((catName) => (
               <span
-                key={cat}
+                key={catName}
                 onClick={() => handleNav("products")}
                 className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
-                {cat}
+                {catName}
               </span>
             ))}
           </div>

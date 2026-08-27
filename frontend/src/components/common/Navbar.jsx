@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Sparkles,
 } from "lucide-react";
+import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function Navbar({
   activePage,
@@ -267,14 +268,19 @@ export function Navbar({
                       onClick={() => handleSelectResult(product)}
                       className="p-3 flex items-center gap-3 cursor-pointer hover:bg-[var(--bg-elevated)] transition-colors"
                     >
-                      <img
-                        src={
-                          product.images?.[0] ||
-                          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=200"
-                        }
-                        alt={product.name}
-                        className="w-10 h-10 rounded-[var(--radius-xs)] object-cover bg-black shrink-0"
-                      />
+                      {product.images?.[0] ? (
+                        <img
+                          src={getOptimizedImageUrl(product.images[0], { width: 100 })}
+                          alt={product.name}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-10 h-10 rounded-[var(--radius-xs)] object-cover bg-black shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-[var(--radius-xs)] bg-[var(--bg-app)] flex items-center justify-center shrink-0 text-[var(--text-muted)]">
+                          <Package size={16} />
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="text-[0.825rem] font-bold text-[var(--text-primary)] truncate">
                           {product.name}
@@ -462,14 +468,19 @@ export function Navbar({
                       onClick={() => handleSelectResult(product)}
                       className="p-2.5 flex items-center gap-3 cursor-pointer hover:bg-[var(--bg-card)]"
                     >
-                      <img
-                        src={
-                          product.images?.[0] ||
-                          "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=150"
-                        }
-                        alt={product.name}
-                        className="w-9 h-9 rounded-[var(--radius-xs)] object-cover bg-black shrink-0"
-                      />
+                      {product.images?.[0] ? (
+                        <img
+                          src={getOptimizedImageUrl(product.images[0], { width: 100 })}
+                          alt={product.name}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-9 h-9 rounded-[var(--radius-xs)] object-cover bg-black shrink-0"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-[var(--radius-xs)] bg-[var(--bg-app)] flex items-center justify-center shrink-0 text-[var(--text-muted)]">
+                          <Package size={14} />
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="text-[0.8rem] font-bold text-[var(--text-primary)] truncate">
                           {product.name}

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { X, Sparkles, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
-import { PRESET_BANNER_IMAGES } from "../../data/mockData";
+import React, { useState, useEffect, useRef } from "react";
+import { X, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, UploadCloud, Loader2, Trash2 } from "lucide-react";
+import { api } from "../../services/api";
+import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function BannerFormModal({
   isOpen,
@@ -9,6 +10,8 @@ export function BannerFormModal({
   editingBanner,
   isSubmitting,
 }) {
+  const fileInputRef = useRef(null);
+
   const [formData, setFormData] = useState({
     title: "",
     subtitle: "",
@@ -23,7 +26,9 @@ export function BannerFormModal({
   });
 
   const [errors, setErrors] = useState({});
-  const [showPresets, setShowPresets] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [showManualUrl, setShowManualUrl] = useState(false);
 
   useEffect(() => {
     if (editingBanner) {
@@ -41,10 +46,10 @@ export function BannerFormModal({
       });
     } else {
       setFormData({
-        title: "Tactile Instruments for Deep Focus",
-        subtitle: "Meticulously crafted notebooks, raw brass instruments, and desktop essentials.",
-        badge: "2026 Edition",
-        imageUrl: "https://images.unsplash.com/photo-1517842645767-c639042777db?q=80&w=1800",
+        title: "",
+        subtitle: "",
+        badge: "",
+        imageUrl: "",
         ctaText: "Explore Collection",
         ctaLink: "/products",
         alignment: "left",
@@ -54,9 +59,38 @@ export function BannerFormModal({
       });
     }
     setErrors({});
+    setUploadError("");
+    setShowManualUrl(false);
   }, [editingBanner, isOpen]);
 
   if (!isOpen) return null;
+
+  // Handle Cloudinary Image File Upload for Banner
+  const handleFileUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setUploading(true);
+      setUploadError("");
+
+      const res = await api.uploadImage(files[0], "banners");
+      if (res.url) {
+        setFormData((prev) => ({
+          ...prev,
+          imageUrl: res.url,
+        }));
+      }
+    } catch (err) {
+      console.error("Banner upload failed:", err);
+      setUploadError(err.message || "Failed to upload banner image to Cloudinary.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   const validate = () => {
     const errs = {};
@@ -66,7 +100,7 @@ export function BannerFormModal({
     } else if (/^\d+$/.test(trimmedTitle)) {
       errs.title = "Headline cannot be only numbers";
     }
-    if (!formData.imageUrl.trim()) errs.imageUrl = "Image URL is required";
+    if (!formData.imageUrl.trim()) errs.imageUrl = "Image is required";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -98,7 +132,7 @@ export function BannerFormModal({
                 {editingBanner ? "Edit Home Hero Banner" : "Create Home Hero Banner"}
               </h3>
               <p className="text-[0.7rem] text-[var(--text-muted)] m-0">
-                Configure high-impact hero carousel banner for storefront
+                Configure high-impact hero carousel banner with Cloudinary optimization
               </p>
             </div>
           </div>
@@ -110,56 +144,58 @@ export function BannerFormModal({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="modal-body">
             {/* Live Mini Preview Bar */}
-            <div className="mb-5">
-              <div className="flex justify-between mb-1">
-                <span className="text-[0.7rem] font-bold uppercase text-[var(--text-muted)]">
-                  Real-time Hero Preview
-                </span>
-                <span className={`text-[0.7rem] ${formData.isActive ? "text-[var(--color-success)]" : "text-[var(--text-muted)]"}`}>
-                  ● {formData.isActive ? "Live on Home" : "Draft (Hidden)"}
-                </span>
-              </div>
+            {formData.imageUrl && (
+              <div className="mb-5">
+                <div className="flex justify-between mb-1">
+                  <span className="text-[0.7rem] font-bold uppercase text-[var(--text-muted)]">
+                    Real-time Hero Preview
+                  </span>
+                  <span className={`text-[0.7rem] ${formData.isActive ? "text-[var(--color-success)]" : "text-[var(--text-muted)]"}`}>
+                    ● {formData.isActive ? "Live on Home" : "Draft (Hidden)"}
+                  </span>
+                </div>
 
-              <div
-                className="h-38 rounded-[var(--radius-sm)] relative overflow-hidden bg-cover bg-center flex items-center p-5 border border-[var(--border-medium)]"
-                style={{
-                  backgroundImage: `url(${formData.imageUrl || "https://images.unsplash.com/photo-1517842645767-c639042777db?q=80&w=1800"})`,
-                }}
-              >
                 <div
-                  className="absolute inset-0"
+                  className="h-38 rounded-[var(--radius-sm)] relative overflow-hidden bg-cover bg-center flex items-center p-5 border border-[var(--border-medium)]"
                   style={{
-                    backgroundColor: `rgba(0, 0, 0, ${formData.overlayDarkness / 100})`,
+                    backgroundImage: `url(${getOptimizedImageUrl(formData.imageUrl, { width: 1000 })})`,
                   }}
-                />
-                <div
-                  className={`relative z-[2] max-w-[480px] ${
-                    formData.alignment === "center"
-                      ? "text-center mx-auto"
-                      : formData.alignment === "right"
-                      ? "text-right ml-auto mr-0"
-                      : "text-left mr-auto ml-0"
-                  }`}
                 >
-                  {formData.badge && (
-                    <span className="badge badge-white text-[0.6rem] px-1.5 py-0.5 mb-1">
-                      {formData.badge}
-                    </span>
-                  )}
-                  <h4 className="text-white text-base font-extrabold my-0.5 leading-tight">
-                    {formData.title || "Banner Headline"}
-                  </h4>
-                  {formData.subtitle && (
-                    <p className="text-white/80 text-[0.725rem] my-0.5 mb-1.5 line-clamp-1">
-                      {formData.subtitle}
-                    </p>
-                  )}
-                  <button type="button" className="btn btn-primary btn-sm text-[0.68rem] py-1 px-2.5">
-                    {formData.ctaText || "Explore"}
-                  </button>
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundColor: `rgba(0, 0, 0, ${formData.overlayDarkness / 100})`,
+                    }}
+                  />
+                  <div
+                    className={`relative z-[2] max-w-[480px] ${
+                      formData.alignment === "center"
+                        ? "text-center mx-auto"
+                        : formData.alignment === "right"
+                        ? "text-right ml-auto mr-0"
+                        : "text-left mr-auto ml-0"
+                    }`}
+                  >
+                    {formData.badge && (
+                      <span className="badge badge-white text-[0.6rem] px-1.5 py-0.5 mb-1">
+                        {formData.badge}
+                      </span>
+                    )}
+                    <h4 className="text-white text-base font-extrabold my-0.5 leading-tight">
+                      {formData.title || "Banner Headline"}
+                    </h4>
+                    {formData.subtitle && (
+                      <p className="text-white/80 text-[0.725rem] my-0.5 mb-1.5 line-clamp-1">
+                        {formData.subtitle}
+                      </p>
+                    )}
+                    <button type="button" className="btn btn-primary btn-sm text-[0.68rem] py-1 px-2.5">
+                      {formData.ctaText || "Explore"}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-[1.5fr_1fr] gap-3.5">
@@ -171,6 +207,7 @@ export function BannerFormModal({
                 <input
                   type="text"
                   className="form-input"
+                  placeholder="e.g. Tactile Instruments for Deep Focus"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 />
@@ -193,49 +230,114 @@ export function BannerFormModal({
               <textarea
                 rows="2"
                 className="form-textarea"
+                placeholder="Meticulously crafted notebooks and desk essentials..."
                 value={formData.subtitle}
                 onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
               />
             </div>
 
-            {/* Image URL & Preset Selection */}
+            {/* Cloudinary Banner Image Upload */}
             <div className="form-group">
               <div className="flex justify-between items-center mb-1">
-                <label className="form-label !mb-0">Banner Image URL *</label>
+                <label className="form-label !mb-0">
+                  Banner Hero Image * (Cloudinary CDN)
+                  {errors.imageUrl && <span className="text-[var(--color-danger)] ml-1">{errors.imageUrl}</span>}
+                </label>
                 <button
                   type="button"
-                  onClick={() => setShowPresets(!showPresets)}
-                  className="btn btn-secondary btn-sm text-[0.725rem] py-1 px-2 gap-1"
+                  onClick={() => setShowManualUrl(!showManualUrl)}
+                  className="text-[0.725rem] text-[var(--text-muted)] hover:text-white bg-transparent border-0 cursor-pointer"
                 >
-                  <Sparkles size={12} />
-                  <span>Choose Preset Image</span>
+                  {showManualUrl ? "Hide URL Input" : "+ Paste Image URL"}
                 </button>
               </div>
 
-              {showPresets && (
-                <div className="bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] p-2 mb-2.5 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                  {PRESET_BANNER_IMAGES.map((preset, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        setFormData({ ...formData, imageUrl: preset.url });
-                        setShowPresets(false);
-                      }}
-                      className="cursor-pointer rounded-[var(--radius-xs)] overflow-hidden"
-                    >
-                      <img src={preset.url} alt={preset.name} className="w-full h-14 object-cover block" />
-                      <div className="text-[0.65rem] p-1 truncate">{preset.name}</div>
-                    </div>
-                  ))}
+              {uploadError && (
+                <div className="mb-2 p-2 bg-[var(--color-danger-bg)] text-[var(--color-danger)] rounded-[var(--radius-xs)] text-xs">
+                  {uploadError}
                 </div>
               )}
 
-              <input
-                type="url"
-                className="form-input"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              />
+              {!formData.imageUrl ? (
+                <div
+                  onClick={() => !uploading && fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-[var(--radius-sm)] p-5 text-center cursor-pointer transition-all duration-200 ${
+                    uploading
+                      ? "border-[var(--border-bright)] bg-[var(--bg-elevated)]"
+                      : "border-[var(--border-medium)] hover:border-white hover:bg-[var(--bg-elevated)]"
+                  }`}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+
+                  {uploading ? (
+                    <div className="flex flex-col items-center justify-center gap-2 py-2">
+                      <Loader2 size={22} className="animate-spin text-white" />
+                      <span className="text-xs font-bold text-white">
+                        Uploading banner to Cloudinary...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-1.5">
+                      <div className="w-8 h-8 rounded-full bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center justify-center text-white">
+                        <UploadCloud size={16} />
+                      </div>
+                      <div className="text-xs font-bold text-[var(--text-primary)]">
+                        Click to upload hero banner image
+                      </div>
+                      <div className="text-[0.68rem] text-[var(--text-muted)]">
+                        High resolution supported • Auto-delivered in WebP/AVIF via Cloudinary
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex gap-2 items-center">
+                  <div className="flex-1 text-xs font-mono truncate p-2 rounded bg-[var(--bg-input)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
+                    {formData.imageUrl}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="btn btn-secondary btn-sm text-xs"
+                  >
+                    Change
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, imageUrl: "" }))}
+                    className="btn btn-secondary btn-sm text-xs text-[var(--color-danger)]"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </div>
+              )}
+
+              {showManualUrl && (
+                <div className="mt-2">
+                  <input
+                    type="url"
+                    className="form-input text-xs"
+                    placeholder="https://..."
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  />
+                </div>
+              )}
             </div>
 
             {/* CTA & Alignment */}
@@ -328,10 +430,10 @@ export function BannerFormModal({
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose} disabled={isSubmitting}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose} disabled={isSubmitting || uploading}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting}>
+            <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting || uploading}>
               {isSubmitting ? "Saving..." : editingBanner ? "Update Banner" : "Create Banner"}
             </button>
           </div>

@@ -12,8 +12,16 @@ import {
   ArrowRight,
   Layers,
 } from "lucide-react";
-import { SERVICE_CATEGORIES } from "../../data/mockData";
 import { getServiceIcon } from "../../pages/ServicesPage";
+
+const DEFAULT_IT_CATEGORIES = [
+  "Mobile Development",
+  "UI/UX Design",
+  "Cloud & DevOps",
+  "Cybersecurity",
+  "AI & Automation",
+  "IT Consulting",
+];
 
 export function ServicesManagement({
   services = [],
@@ -36,7 +44,7 @@ export function ServicesManagement({
       ? serviceCategories
           .map((c) => (typeof c === "string" ? c : c.name))
           .filter((c) => c !== "Web Development")
-      : SERVICE_CATEGORIES.filter((c) => c !== "Web Development");
+      : DEFAULT_IT_CATEGORIES;
 
   // Filter only general IT services (strictly keeping Web Development 3-tier packages apart)
   const itServices = services.filter((s) => !s.isWebDevPackage);

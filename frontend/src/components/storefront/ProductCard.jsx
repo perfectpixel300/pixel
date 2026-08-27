@@ -1,23 +1,34 @@
 import React from "react";
-import { MessageSquare, ArrowUpRight } from "lucide-react";
+import { MessageSquare, ArrowUpRight, Package } from "lucide-react";
+import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function ProductCard({ product, onViewDetails, onInquire }) {
-  const imageUrl = product.images && product.images.length > 0
-    ? product.images[0]
-    : "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800";
+  const rawImage = product?.images && product.images.length > 0 ? product.images[0] : "";
+  const imageUrl = getOptimizedImageUrl(rawImage, { width: 600 });
 
   return (
     <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col transition-all duration-300 border border-[var(--border-subtle)] hover:shadow-xl group">
       {/* Image Container with zoom */}
       <div
         onClick={() => onViewDetails(product)}
-        className="h-[280px] relative overflow-hidden cursor-pointer bg-[#050505]"
+        className="h-[280px] relative overflow-hidden cursor-pointer bg-[#050505] flex items-center justify-center"
       >
-        <img
-          src={imageUrl}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={product.name}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-[var(--text-muted)] gap-2">
+            <Package size={36} className="opacity-40" />
+            <span className="text-[0.7rem] uppercase tracking-wider font-semibold opacity-60">
+              No Image
+            </span>
+          </div>
+        )}
 
         {/* Top Badges */}
         <div className="absolute top-3 left-3 right-3 flex justify-between items-center">
@@ -28,7 +39,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
         </div>
 
         {/* Quick View Hover overlay indicator */}
-        <div className="absolute bottom-3 right-3 w-7.5 h-7.5 rounded-full bg-black/75 text-white flex items-center justify-center">
+        <div className="absolute bottom-3 right-3 w-7.5 h-7.5 rounded-full bg-black/75 text-white flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
           <ArrowUpRight size={15} />
         </div>
       </div>
@@ -38,7 +49,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
         <div className="flex justify-between items-start gap-2.5">
           <h3
             onClick={() => onViewDetails(product)}
-            className="text-base font-bold m-0 leading-snug cursor-pointer hover:text-zinc-500 transition-colors capitalize"
+            className="text-base font-bold m-0 leading-snug cursor-pointer hover:text-zinc-400 transition-colors capitalize"
           >
             {product.name}
           </h3>

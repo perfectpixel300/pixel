@@ -2,9 +2,11 @@ import React from "react";
 import { ArrowRight } from "lucide-react";
 import { ProductCard } from "./ProductCard";
 
-export function FeaturedSection({ products, onViewDetails, onInquire, onBrowseAll }) {
-  const featuredProducts = products.filter((p) => p.featured);
-  const displayItems = featuredProducts.length > 0 ? featuredProducts.slice(0, 3) : products.slice(0, 3);
+export function FeaturedSection({ products = [], onViewDetails, onInquire, onBrowseAll }) {
+  const featuredProducts = (products || []).filter((p) => p.featured);
+  const displayItems = featuredProducts.length > 0 ? featuredProducts.slice(0, 3) : (products || []).slice(0, 3);
+
+  if (displayItems.length === 0) return null;
 
   return (
     <section className="py-20 border-b border-[var(--border-subtle)]">

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
-export function HeroBannerCarousel({ banners, onCtaClick }) {
+export function HeroBannerCarousel({ banners = [], onCtaClick }) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const activeBanners = banners.filter((b) => b.isActive).sort((a, b) => (a.order || 0) - (b.order || 0));
+  const activeBanners = (banners || [])
+    .filter((b) => b.isActive)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
 
   // Auto advance every 7 seconds if multiple banners
   useEffect(() => {
@@ -18,11 +21,12 @@ export function HeroBannerCarousel({ banners, onCtaClick }) {
   if (activeBanners.length === 0) return null;
 
   const currentBanner = activeBanners[currentSlide % activeBanners.length];
+  const optimizedBgUrl = getOptimizedImageUrl(currentBanner.imageUrl, { width: 1800 });
 
   return (
     <div
       className="relative min-h-[560px] flex items-center bg-cover bg-center border-b border-[var(--border-subtle)] transition-[background-image] duration-500 ease-in-out overflow-hidden"
-      style={{ backgroundImage: `url(${currentBanner.imageUrl})` }}
+      style={{ backgroundImage: `url(${optimizedBgUrl})` }}
     >
       {/* High-Contrast Monochrome Overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/85" />

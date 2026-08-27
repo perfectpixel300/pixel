@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { ArrowLeft, MessageSquare, MessageCircle, ShieldCheck, Check } from "lucide-react";
+import { ArrowLeft, MessageSquare, MessageCircle, Package } from "lucide-react";
+import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 
 export function ProductDetailPage({
   product,
   onBack,
   onInquire,
 }) {
-  const images = product?.images && product.images.length > 0
+  const images = product?.images && Array.isArray(product.images) && product.images.length > 0
     ? product.images
-    : ["https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1000"];
+    : [];
 
   const [activeImgIndex, setActiveImgIndex] = useState(0);
 
@@ -17,6 +18,8 @@ export function ProductDetailPage({
   const atelierWhatsAppNumber = "+9779808950275";
   const whatsAppText = `Hello Pixel Perfect,\nI am inquiring about "${product.name}" (Price: NRs. ${Number(product.indicativePrice).toLocaleString()}). Please advise on availability and bespoke options.`;
   const whatsAppUrl = `https://wa.me/${atelierWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
+
+  const mainImage = images[activeImgIndex] || "";
 
   return (
     <div className="py-12 pb-24">
@@ -35,12 +38,23 @@ export function ProductDetailPage({
           {/* Left Column: Image Gallery */}
           <div className="flex flex-col gap-3.5">
             {/* Main Image */}
-            <div className="rounded-[var(--radius-md)] overflow-hidden h-[360px] sm:h-[460px] lg:h-auto bg-[#050505] border border-[var(--border-subtle)]">
-              <img
-                src={images[activeImgIndex]}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
+            <div className="rounded-[var(--radius-md)] overflow-hidden h-[360px] sm:h-[460px] lg:h-auto min-h-[360px] bg-[#050505] border border-[var(--border-subtle)] flex items-center justify-center">
+              {mainImage ? (
+                <img
+                  src={getOptimizedImageUrl(mainImage, { width: 1200 })}
+                  alt={product.name}
+                  loading="eager"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-[var(--text-muted)] gap-2 py-20">
+                  <Package size={48} className="opacity-40" />
+                  <span className="text-xs uppercase tracking-wider font-semibold opacity-60">
+                    No image available
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Thumbnail Row */}
@@ -51,10 +65,16 @@ export function ProductDetailPage({
                     key={idx}
                     onClick={() => setActiveImgIndex(idx)}
                     className={`w-18 h-18 rounded-[var(--radius-sm)] overflow-hidden cursor-pointer shrink-0 transition-all duration-200 ${
-                      activeImgIndex === idx ? "opacity-100 scale-105" : "opacity-60 hover:opacity-90"
+                      activeImgIndex === idx ? "opacity-100 scale-105 ring-2 ring-white" : "opacity-60 hover:opacity-90"
                     }`}
                   >
-                    <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
+                    <img
+                      src={getOptimizedImageUrl(img, { width: 200 })}
+                      alt={`Thumb ${idx + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 ))}
               </div>

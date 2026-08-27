@@ -25,7 +25,16 @@ import {
   Star,
   ShieldCheck,
 } from "lucide-react";
-import { SERVICE_CATEGORIES } from "../data/mockData";
+import { getOptimizedImageUrl } from "../utils/imageOptimizer";
+
+const DEFAULT_IT_CATEGORIES = [
+  "Mobile Development",
+  "UI/UX Design",
+  "Cloud & DevOps",
+  "Cybersecurity",
+  "AI & Automation",
+  "IT Consulting",
+];
 
 // Helper to map icon string to Lucide React component
 export const getServiceIcon = (iconName, size = 20, className = "") => {
@@ -76,72 +85,9 @@ export function ServicesPage({
   const [activeFaq, setActiveFaq] = useState(null);
 
   // 1. Extract ONLY Web Dev 3-tier packages (Kept apart from other IT services)
-  const rawWebDevPackages = services
+  const webDevPackages = (services || [])
     .filter((s) => s.isWebDevPackage && s.isActive)
     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || (a.price || 0) - (b.price || 0));
-
-  // Fallback defaults if not loaded yet
-  const webDevPackages =
-    rawWebDevPackages.length > 0
-      ? rawWebDevPackages
-      : [
-          {
-            _id: "default-starter",
-            title: "Starter Web Presence",
-            packageTier: "starter",
-            tierBadge: "Essential Plan",
-            price: 0,
-            deliveryTime: "5-7 Days",
-            shortDescription: "High-converting modern responsive web presence for businesses, portfolios, and startups.",
-            features: [
-              "Up to 5 Custom Responsive Pages",
-              "Mobile-First Tailwind Design",
-              "Contact Form & WhatsApp Integration",
-              "On-Page SEO & Speed Optimization",
-              "Domain & Cloudflare SSL Setup",
-              "1 Month Complimentary Support",
-            ],
-            technologies: ["React", "Vite", "Tailwind CSS", "Vercel"],
-          },
-          {
-            _id: "default-pro",
-            title: "Professional Full-Stack App",
-            packageTier: "professional",
-            tierBadge: "Most Popular Plan",
-            price: 0,
-            deliveryTime: "2-3 Weeks",
-            shortDescription: "Custom MERN stack application with admin dashboard, authentication, and Nepali payment gateway.",
-            features: [
-              "Complete MERN Stack Architecture",
-              "Role-Based Authentication (JWT)",
-              "Custom Admin Dashboard & CMS",
-              "eSewa & Khalti Payment Integration",
-              "MongoDB Database Modeling & Indexing",
-              "RESTful API & Cloudinary Asset Storage",
-              "3 Months Dedicated SLA Support",
-            ],
-            technologies: ["React", "Node.js", "Express", "MongoDB", "Tailwind"],
-          },
-          {
-            _id: "default-enterprise",
-            title: "Enterprise SaaS Platform",
-            packageTier: "enterprise",
-            tierBadge: "Enterprise Grade",
-            price: 0,
-            deliveryTime: "4-6 Weeks",
-            shortDescription: "Scalable multi-tenant enterprise system, microservices, advanced analytics, and cloud infrastructure.",
-            features: [
-              "Multi-Tenant SaaS Architecture",
-              "Advanced Analytics & Real-Time Reporting",
-              "High-Concurrency Performance Tuning",
-              "AWS / DigitalOcean Cloud Architecture",
-              "Docker Containerization & CI/CD Pipeline",
-              "OWASP Security & Penetration Hardening",
-              "6 Months 24/7 Priority Support & SLA",
-            ],
-            technologies: ["React", "Node.js", "MongoDB", "Redis", "AWS", "Docker"],
-          },
-        ];
 
   // 2. Filter ONLY Other general IT services (strictly keeping Web Development apart)
   const itCategories =
@@ -149,7 +95,7 @@ export function ServicesPage({
       ? serviceCategories
           .map((c) => (typeof c === "string" ? c : c.name))
           .filter((c) => c !== "Web Development")
-      : SERVICE_CATEGORIES.filter((c) => c !== "Web Development");
+      : DEFAULT_IT_CATEGORIES;
 
   const otherItServices = services.filter((s) => {
     if (s.isWebDevPackage || !s.isActive) return false;
@@ -542,8 +488,10 @@ export function ServicesPage({
                   {service.bannerImage && (
                     <div className="h-36 relative overflow-hidden bg-[var(--bg-sidebar)]">
                       <img
-                        src={service.bannerImage}
+                        src={getOptimizedImageUrl(service.bannerImage, { width: 800 })}
                         alt={service.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/40 to-transparent" />

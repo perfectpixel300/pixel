@@ -36,72 +36,11 @@ export function HomePage({
   };
 
   // Get the 3 Web Dev subscription tiers (ordered)
-  const webDevTiers = services
+  const webDevTiers = (services || [])
     .filter((s) => s.isWebDevPackage && s.isActive)
     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || (a.price || 0) - (b.price || 0));
 
-  // Fallback default tiers if services haven't loaded yet
-  const displayTiers =
-    webDevTiers.length > 0
-      ? webDevTiers
-      : [
-          {
-            _id: "default-starter",
-            title: "Starter Web Presence",
-            packageTier: "starter",
-            tierBadge: "Essential Tier",
-            price: 25000,
-            deliveryTime: "5-7 Days",
-            shortDescription: "High-converting modern responsive web presence for businesses, portfolios, and startups.",
-            features: [
-              "Up to 5 Custom Responsive Pages",
-              "Mobile-First Tailwind Design",
-              "Contact Form & WhatsApp Integration",
-              "On-Page SEO & Speed Optimization",
-              "Domain & Cloudflare SSL Setup",
-              "1 Month Complimentary Support",
-            ],
-            technologies: ["React", "Vite", "Tailwind CSS", "Vercel"],
-          },
-          {
-            _id: "default-pro",
-            title: "Professional Full-Stack App",
-            packageTier: "professional",
-            tierBadge: "Most Popular",
-            price: 55000,
-            deliveryTime: "2-3 Weeks",
-            shortDescription: "Custom MERN stack application with admin dashboard, authentication, and Nepali payment gateway.",
-            features: [
-              "Complete MERN Stack Architecture",
-              "Role-Based Authentication (JWT)",
-              "Custom Admin Dashboard & CMS",
-              "eSewa & Khalti Payment Integration",
-              "MongoDB Database Modeling & Indexing",
-              "RESTful API & Cloudinary Asset Storage",
-              "3 Months Dedicated SLA Support",
-            ],
-            technologies: ["React", "Node.js", "Express", "MongoDB", "Tailwind"],
-          },
-          {
-            _id: "default-enterprise",
-            title: "Enterprise SaaS Platform",
-            packageTier: "enterprise",
-            tierBadge: "Enterprise Grade",
-            price: 120000,
-            deliveryTime: "4-6 Weeks",
-            shortDescription: "Scalable multi-tenant enterprise system, microservices, advanced analytics, and cloud infrastructure.",
-            features: [
-              "Multi-Tenant SaaS Architecture",
-              "Advanced Analytics & Real-Time Reporting",
-              "High-Concurrency Performance Tuning",
-              "AWS / DigitalOcean Cloud Architecture",
-              "Docker Containerization & CI/CD Pipeline",
-              "OWASP Security & Penetration Hardening",
-              "6 Months 24/7 Priority Support & SLA",
-            ],
-            technologies: ["React", "Node.js", "MongoDB", "Redis", "AWS", "Docker"],
-          },
-        ];
+  const displayTiers = webDevTiers;
 
   const handleSubscribePlan = (tier) => {
     const handler = onInquireService || onInquireProduct;
@@ -232,9 +171,10 @@ export function HomePage({
           FEATURED WEB SERVICES AT THE LAST IN THE HOME PAGE
           3 TIER SUBSCRIPTION / PLAN EXPERIENCE (EDITABLE BY ADMIN)
           ========================================================================= */}
-      <section id="featured-web-services" className="py-24 bg-gradient-to-b from-[var(--bg-secondary)] via-[var(--bg-app)] to-[var(--bg-secondary)] border-b border-[var(--border-subtle)] relative overflow-hidden">
-        {/* Subtle decorative glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-white/5 rounded-full blur-[120px] pointer-events-none" />
+      {displayTiers.length > 0 && (
+        <section id="featured-web-services" className="py-24 bg-gradient-to-b from-[var(--bg-secondary)] via-[var(--bg-app)] to-[var(--bg-secondary)] border-b border-[var(--border-subtle)] relative overflow-hidden">
+          {/* Subtle decorative glow */}
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-white/5 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="storefront-container relative z-10">
           {/* Section Header */}
@@ -420,6 +360,7 @@ export function HomePage({
           </div>
         </div>
       </section>
+      )}
 
 
       {/* OTHER ID SERVICES SECTION  */}

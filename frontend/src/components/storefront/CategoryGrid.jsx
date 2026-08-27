@@ -1,9 +1,11 @@
 import React from "react";
-import { ArrowRight } from "lucide-react";
-import { initialMockCategories } from "../../data/mockData";
+import { ArrowRight, Layers } from "lucide-react";
+import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function CategoryGrid({ categories = [], onSelectCategory }) {
-  const displayCategories = categories.length > 0 ? categories : initialMockCategories;
+  if (!categories || categories.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-22 border-b border-[var(--border-subtle)]">
@@ -23,18 +25,26 @@ export function CategoryGrid({ categories = [], onSelectCategory }) {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayCategories.map((cat) => (
+          {categories.map((cat) => (
             <div
               key={cat._id || cat.name}
               onClick={() => onSelectCategory(cat.name)}
-              className="h-[260px] relative rounded-[var(--radius-md)] overflow-hidden cursor-pointer border border-[var(--border-subtle)] group"
+              className="h-[260px] relative rounded-[var(--radius-md)] overflow-hidden cursor-pointer border border-[var(--border-subtle)] bg-[var(--bg-card)] group"
             >
               {/* Background Image */}
-              <img
-                src={cat.imageUrl || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800"}
-                alt={cat.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
+              {cat.imageUrl ? (
+                <img
+                  src={getOptimizedImageUrl(cat.imageUrl, { width: 800 })}
+                  alt={cat.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-[#1c1c1e] to-[#0a0a0b] flex items-center justify-center">
+                  <Layers size={40} className="text-white/20" />
+                </div>
+              )}
 
               {/* Gradient Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/10 p-7 flex flex-col justify-end">
@@ -42,9 +52,11 @@ export function CategoryGrid({ categories = [], onSelectCategory }) {
                   <h3 className="text-xl font-extrabold text-white m-0 mb-1.5">
                     {cat.name}
                   </h3>
-                  <p className="text-[0.8rem] text-white/75 leading-snug m-0">
-                    {cat.description || "Archival tools and artisan supplies."}
-                  </p>
+                  {cat.description && (
+                    <p className="text-[0.8rem] text-white/75 leading-snug m-0 line-clamp-2">
+                      {cat.description}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-1.5 text-white text-[0.775rem] font-bold uppercase tracking-[0.06em] mt-3">

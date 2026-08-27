@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Plus, Edit2, Trash2, Layers, Search, Package } from "lucide-react";
+import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function CategoryManagement({
   categories,
@@ -66,8 +67,12 @@ export function CategoryManagement({
             >
               {/* Cover Image Banner */}
               <div
-                className="h-28 relative bg-cover bg-center"
-                style={{ backgroundImage: `url(${cat.imageUrl || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800"})` }}
+                className="h-28 relative bg-cover bg-center bg-[#18181b]"
+                style={
+                  cat.imageUrl
+                    ? { backgroundImage: `url(${getOptimizedImageUrl(cat.imageUrl, { width: 600 })})` }
+                    : {}
+                }
               >
                 <div className="absolute inset-0 bg-black/55 p-3 flex flex-col justify-between">
                   <span className="badge badge-white self-start text-[0.625rem]">

@@ -1,6 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { X, Plus, Trash2, Code, Globe, Smartphone, Shield, Cloud, Bot, Palette, Terminal, Layers } from "lucide-react";
-import { SERVICE_CATEGORIES } from "../../data/mockData";
+import React, { useState, useEffect, useRef } from "react";
+import { X, Plus, Trash2, UploadCloud, Loader2 } from "lucide-react";
+import { api } from "../../services/api";
+
+const DEFAULT_SERVICE_CATEGORIES = [
+  "Web Development",
+  "Mobile Development",
+  "UI/UX Design",
+  "Cloud & DevOps",
+  "Cybersecurity",
+  "AI & Automation",
+  "IT Consulting",
+];
 
 const ICON_OPTIONS = [
   { label: "Code / Full-Stack", value: "Code" },
@@ -14,17 +24,6 @@ const ICON_OPTIONS = [
   { label: "Layers / Architecture", value: "Layers" },
 ];
 
-const PRESET_SERVICE_IMAGES = [
-  { name: "Code & Screen", url: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop" },
-  { name: "Analytics & Dashboard", url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop" },
-  { name: "Enterprise Server Architecture", url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop" },
-  { name: "Mobile App Wireframing", url: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=1200&auto=format&fit=crop" },
-  { name: "UI/UX Product Design", url: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=80&w=1200&auto=format&fit=crop" },
-  { name: "Cloud & Global Network", url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop" },
-  { name: "Cybersecurity Shield", url: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=1200&auto=format&fit=crop" },
-  { name: "AI Neural Network", url: "https://images.unsplash.com/photo-1677442136019-21780efad99a?q=80&w=1200&auto=format&fit=crop" },
-];
-
 export function ServiceFormModal({
   isOpen,
   onClose,
@@ -33,11 +32,13 @@ export function ServiceFormModal({
   isSubmitting = false,
   serviceCategories = [],
 }) {
+  const fileInputRef = useRef(null);
+
   // Normalize category options
   const categoryOptions =
     serviceCategories && serviceCategories.length > 0
       ? serviceCategories.map((c) => (typeof c === "string" ? c : c.name))
-      : SERVICE_CATEGORIES;
+      : DEFAULT_SERVICE_CATEGORIES;
 
   // Make sure editing service category is in options if not present
   if (editingService?.category && !categoryOptions.includes(editingService.category)) {
@@ -66,6 +67,8 @@ export function ServiceFormModal({
   });
 
   const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     if (editingService) {
@@ -101,7 +104,7 @@ export function ServiceFormModal({
         _id: undefined,
         title: "",
         slug: "",
-        category: "Web Development",
+        category: categoryOptions[0] || "Web Development",
         shortDescription: "",
         description: "",
         price: 25000,
@@ -120,6 +123,7 @@ export function ServiceFormModal({
       });
     }
     setError("");
+    setUploadError("");
   }, [editingService, isOpen]);
 
   if (!isOpen) return null;
@@ -138,6 +142,33 @@ export function ServiceFormModal({
   const handleRemoveFeature = (index) => {
     const updated = formData.features.filter((_, i) => i !== index);
     setFormData({ ...formData, features: updated.length > 0 ? updated : [""] });
+  };
+
+  // Handle Cloudinary Image File Upload for Service Banner
+  const handleFileUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setUploading(true);
+      setUploadError("");
+
+      const res = await api.uploadImage(files[0], "services");
+      if (res.url) {
+        setFormData((prev) => ({
+          ...prev,
+          bannerImage: res.url,
+        }));
+      }
+    } catch (err) {
+      console.error("Service image upload failed:", err);
+      setUploadError(err.message || "Failed to upload service image to Cloudinary.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const handleSubmit = (e) => {
@@ -159,7 +190,13 @@ export function ServiceFormModal({
       setError("Please provide a short summary");
       return;
     }
-    if (formData.price === undefined || formData.price === null || formData.price === "" || isNaN(Number(formData.price)) || Number(formData.price) < 0) {
+    if (
+      formData.price === undefined ||
+      formData.price === null ||
+      formData.price === "" ||
+      isNaN(Number(formData.price)) ||
+      Number(formData.price) < 0
+    ) {
       setError("Please provide a valid non-negative price in NRs.");
       return;
     }
@@ -441,28 +478,39 @@ export function ServiceFormModal({
             </div>
           </div>
 
-          {/* Banner Image URL with Presets */}
+          {/* Cloudinary Banner Image Upload for Service */}
           <div className="form-group !mb-0">
-            <label className="form-label">Banner Image URL (Optional)</label>
-            <input
-              type="url"
-              placeholder="https://images.unsplash.com/photo-..."
-              value={formData.bannerImage}
-              onChange={(e) => setFormData({ ...formData, bannerImage: e.target.value })}
-              className="form-input text-xs mb-2"
-            />
-            {/* Quick preset selector */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1">
-              {PRESET_SERVICE_IMAGES.map((preset, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, bannerImage: preset.url })}
-                  className="badge badge-neutral text-[0.625rem] whitespace-nowrap cursor-pointer hover:bg-[var(--bg-elevated)]"
-                >
-                  {preset.name}
-                </button>
-              ))}
+            <label className="form-label">Banner Image (Cloudinary CDN)</label>
+            {uploadError && (
+              <div className="mb-2 p-2 bg-[var(--color-danger-bg)] text-[var(--color-danger)] rounded-[var(--radius-xs)] text-xs">
+                {uploadError}
+              </div>
+            )}
+            <div className="flex gap-2 items-center">
+              <input
+                type="url"
+                placeholder="Image URL or upload below..."
+                value={formData.bannerImage}
+                onChange={(e) => setFormData({ ...formData, bannerImage: e.target.value })}
+                className="form-input text-xs flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="btn btn-secondary btn-sm text-xs whitespace-nowrap gap-1"
+              >
+                {uploading ? <Loader2 size={12} className="animate-spin" /> : <UploadCloud size={13} />}
+                <span>{uploading ? "Uploading..." : "Upload File"}</span>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+                disabled={uploading}
+              />
             </div>
           </div>
 
@@ -501,12 +549,12 @@ export function ServiceFormModal({
 
           {/* Footer buttons */}
           <div className="modal-footer !p-0 !pt-3 !border-0">
-            <button type="button" onClick={onClose} className="btn btn-secondary btn-sm">
+            <button type="button" onClick={onClose} className="btn btn-secondary btn-sm" disabled={isSubmitting || uploading}>
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || uploading}
               className="btn btn-primary btn-sm"
             >
               {isSubmitting ? "Saving..." : editingService ? "Update Service" : "Create Service"}

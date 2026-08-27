@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Search, Plus, List, LayoutGrid, Star, Edit2, Trash2, Package, Coins } from "lucide-react";
+import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function ProductManagement({
   products = [],
@@ -191,13 +192,20 @@ export function ProductManagement({
               </thead>
               <tbody>
                 {filtered.map((p) => {
-                  const img = p.images && p.images[0] ? p.images[0] : "";
+                  const rawImg = p.images && p.images[0] ? p.images[0] : "";
+                  const img = getOptimizedImageUrl(rawImg, { width: 120 });
                   const totalVal = (Number(p.indicativePrice) || 0) * (p.stock !== undefined ? Number(p.stock) : 0);
                   return (
                     <tr key={p._id} className="border-b border-[var(--border-subtle)]">
                       <td className="py-3 px-3.5">
                         <div className="flex items-center gap-3">
-                          <img src={img} alt={p.name} className="w-10 h-10 rounded-[var(--radius-xs)] object-cover" />
+                          {img ? (
+                            <img src={img} alt={p.name} loading="lazy" decoding="async" className="w-10 h-10 rounded-[var(--radius-xs)] object-cover bg-[var(--bg-app)]" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-[var(--radius-xs)] bg-[var(--bg-app)] flex items-center justify-center text-[var(--text-muted)]">
+                              <Package size={16} />
+                            </div>
+                          )}
                           <div>
                             <div className="font-bold">{p.name}</div>
                             <div className="text-[0.68rem] text-[var(--text-muted)] font-mono">/{p.slug}</div>
@@ -276,11 +284,17 @@ export function ProductManagement({
         /* Grid Mode */
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {filtered.map((p) => {
+            const rawImg = p.images && p.images[0] ? p.images[0] : "";
+            const img = getOptimizedImageUrl(rawImg, { width: 500 });
             const totalVal = (Number(p.indicativePrice) || 0) * (p.stock !== undefined ? Number(p.stock) : 0);
             return (
               <div key={p._id} className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col border border-[var(--border-subtle)]">
-                <div className="h-40 relative">
-                  <img src={p.images && p.images[0] ? p.images[0] : ""} alt={p.name} className="w-full h-full object-cover" />
+                <div className="h-40 relative bg-[#050505] flex items-center justify-center">
+                  {img ? (
+                    <img src={img} alt={p.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  ) : (
+                    <Package size={32} className="text-[var(--text-muted)] opacity-40" />
+                  )}
                   <span className="badge badge-dark absolute top-2 left-2">{p.category}</span>
                   {p.featured && (
                     <span className="badge badge-white absolute top-2 right-2 flex items-center gap-1 text-[0.6rem]">

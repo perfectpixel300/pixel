@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { X, Plus, Trash2, Sparkles, Package } from "lucide-react";
-import { PRESET_IMAGES } from "../../data/mockData";
+import React, { useState, useEffect, useRef } from "react";
+import { X, Plus, Trash2, Package, UploadCloud, Loader2, Image as ImageIcon } from "lucide-react";
+import { api } from "../../services/api";
+import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function ProductFormModal({
   isOpen,
@@ -11,6 +12,7 @@ export function ProductFormModal({
   isSubmitting,
 }) {
   const defaultCategory = categories.length > 0 ? categories[0].name : "Notebooks";
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,7 +21,7 @@ export function ProductFormModal({
     indicativePrice: "",
     stock: 25,
     description: "",
-    images: [""],
+    images: [],
     isAvailable: true,
     featured: false,
     specs: {
@@ -32,7 +34,10 @@ export function ProductFormModal({
   });
 
   const [errors, setErrors] = useState({});
-  const [showPresets, setShowPresets] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [manualUrlInput, setManualUrlInput] = useState("");
+  const [showManualUrl, setShowManualUrl] = useState(false);
 
   useEffect(() => {
     if (editingProduct) {
@@ -43,7 +48,7 @@ export function ProductFormModal({
         indicativePrice: editingProduct.indicativePrice !== undefined ? editingProduct.indicativePrice : "",
         stock: editingProduct.stock !== undefined ? editingProduct.stock : 25,
         description: editingProduct.description || "",
-        images: editingProduct.images && editingProduct.images.length > 0 ? editingProduct.images : [""],
+        images: Array.isArray(editingProduct.images) ? [...editingProduct.images] : [],
         isAvailable: editingProduct.isAvailable !== undefined ? editingProduct.isAvailable : true,
         featured: editingProduct.featured !== undefined ? editingProduct.featured : false,
         specs: {
@@ -62,7 +67,7 @@ export function ProductFormModal({
         indicativePrice: "",
         stock: 25,
         description: "",
-        images: ["https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1000"],
+        images: [],
         isAvailable: true,
         featured: false,
         specs: {
@@ -75,6 +80,9 @@ export function ProductFormModal({
       });
     }
     setErrors({});
+    setUploadError("");
+    setManualUrlInput("");
+    setShowManualUrl(false);
   }, [editingProduct, isOpen, defaultCategory]);
 
   if (!isOpen) return null;
@@ -94,28 +102,59 @@ export function ProductFormModal({
     }));
   };
 
-  const handleImageChange = (index, value) => {
-    const nextImages = [...formData.images];
-    nextImages[index] = value;
-    setFormData({ ...formData, images: nextImages });
+  // Handle Cloudinary Image File Upload
+  const handleFileUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setUploading(true);
+      setUploadError("");
+
+      if (files.length === 1) {
+        const res = await api.uploadImage(files[0], "products");
+        if (res.url) {
+          setFormData((prev) => ({
+            ...prev,
+            images: [...prev.images, res.url],
+          }));
+        }
+      } else {
+        const res = await api.uploadImages(files, "products");
+        if (res.urls && res.urls.length > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            images: [...prev.images, ...res.urls],
+          }));
+        }
+      }
+    } catch (err) {
+      console.error("Cloudinary upload failed:", err);
+      setUploadError(err.message || "Failed to upload image to Cloudinary.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
-  const handleAddImage = () => {
-    setFormData({ ...formData, images: [...formData.images, ""] });
+  const handleAddManualUrl = () => {
+    const trimmed = manualUrlInput.trim();
+    if (!trimmed) return;
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, trimmed],
+    }));
+    setManualUrlInput("");
+    setShowManualUrl(false);
   };
 
   const handleRemoveImage = (index) => {
-    const nextImages = formData.images.filter((_, i) => i !== index);
-    setFormData({ ...formData, images: nextImages.length ? nextImages : [""] });
-  };
-
-  const handleSelectPreset = (presetUrl) => {
-    const filteredImages = formData.images.filter((img) => img.trim().length > 0);
-    setFormData({
-      ...formData,
-      images: [...filteredImages, presetUrl],
-    });
-    setShowPresets(false);
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   const validate = () => {
@@ -133,11 +172,18 @@ export function ProductFormModal({
       errs.description = "Description is required";
     }
 
-    if (formData.indicativePrice === "" || isNaN(Number(formData.indicativePrice)) || Number(formData.indicativePrice) < 0) {
+    if (
+      formData.indicativePrice === "" ||
+      isNaN(Number(formData.indicativePrice)) ||
+      Number(formData.indicativePrice) < 0
+    ) {
       errs.indicativePrice = "Valid positive price in NRs. required";
     }
 
-    if (formData.stock !== "" && (isNaN(Number(formData.stock)) || Number(formData.stock) < 0)) {
+    if (
+      formData.stock !== "" &&
+      (isNaN(Number(formData.stock)) || Number(formData.stock) < 0)
+    ) {
       errs.stock = "Stock must be a non-negative number";
     }
 
@@ -159,7 +205,7 @@ export function ProductFormModal({
       isAvailable: isAvailableVal,
       featured: Boolean(formData.featured),
       currency: "NRs.",
-      images: formData.images.filter((img) => img.trim().length > 0),
+      images: formData.images.filter((img) => img && img.trim().length > 0),
     });
   };
 
@@ -179,7 +225,7 @@ export function ProductFormModal({
                 {editingProduct ? "Edit Atelier Product" : "Create New Catalog Product"}
               </h3>
               <p className="text-[0.7rem] text-[var(--text-muted)] m-0">
-                Manage catalog attributes, pricing in NRs., specifications, and images
+                Manage catalog attributes, pricing in NRs., Cloudinary media, and specifications
               </p>
             </div>
           </div>
@@ -200,7 +246,7 @@ export function ProductFormModal({
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Architect Hardcover Grid Journal"
+                  placeholder="e.g. Architect Hardcover Grid Journal"
                   value={formData.name}
                   onChange={handleNameChange}
                 />
@@ -227,13 +273,15 @@ export function ProductFormModal({
               <div className="form-group">
                 <label className="form-label">
                   Price (NRs.) *
-                  {errors.indicativePrice && <span className="text-[var(--color-danger)] ml-1">{errors.indicativePrice}</span>}
+                  {errors.indicativePrice && (
+                    <span className="text-[var(--color-danger)] ml-1">{errors.indicativePrice}</span>
+                  )}
                 </label>
                 <input
                   type="number"
                   step="1"
                   min="0"
-                  className="form-input"
+                  className="form-input font-mono"
                   placeholder="1650"
                   value={formData.indicativePrice}
                   onChange={(e) => setFormData({ ...formData, indicativePrice: e.target.value })}
@@ -256,7 +304,14 @@ export function ProductFormModal({
                     setFormData((prev) => ({
                       ...prev,
                       stock: val,
-                      isAvailable: val === "" ? prev.isAvailable : num === 0 ? false : (Number(prev.stock) === 0 ? true : prev.isAvailable),
+                      isAvailable:
+                        val === ""
+                          ? prev.isAvailable
+                          : num === 0
+                          ? false
+                          : Number(prev.stock) === 0
+                          ? true
+                          : prev.isAvailable,
                     }));
                   }}
                 />
@@ -266,7 +321,7 @@ export function ProductFormModal({
                 <label className="form-label">URL Slug</label>
                 <input
                   type="text"
-                  className="form-input"
+                  className="form-input font-mono text-xs"
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                 />
@@ -277,7 +332,9 @@ export function ProductFormModal({
             <div className="form-group">
               <label className="form-label">
                 Description *
-                {errors.description && <span className="text-[var(--color-danger)] ml-1">{errors.description}</span>}
+                {errors.description && (
+                  <span className="text-[var(--color-danger)] ml-1">{errors.description}</span>
+                )}
               </label>
               <textarea
                 className="form-textarea"
@@ -288,67 +345,125 @@ export function ProductFormModal({
               />
             </div>
 
-            {/* Image URLs & Presets */}
+            {/* Cloudinary Image Upload Section */}
             <div className="form-group">
-              <div className="flex justify-between items-center mb-1">
-                <label className="form-label !mb-0">Product Images</label>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="form-label !mb-0">
+                  Product Images (Cloudinary CDN)
+                </label>
                 <button
                   type="button"
-                  onClick={() => setShowPresets(!showPresets)}
-                  className="btn btn-secondary btn-sm text-[0.725rem] py-1 px-2 gap-1"
+                  onClick={() => setShowManualUrl(!showManualUrl)}
+                  className="text-[0.725rem] text-[var(--text-muted)] hover:text-white bg-transparent border-0 cursor-pointer"
                 >
-                  <Sparkles size={12} />
-                  <span>Choose Preset</span>
+                  {showManualUrl ? "Hide URL Input" : "+ Add image via URL"}
                 </button>
               </div>
 
-              {showPresets && (
-                <div className="bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] p-2 mb-2.5 grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-40 overflow-y-auto">
-                  {PRESET_IMAGES.map((preset, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => handleSelectPreset(preset.url)}
-                      className="cursor-pointer rounded-[var(--radius-xs)] overflow-hidden"
-                    >
-                      <img src={preset.url} alt={preset.name} className="w-full h-14 object-cover block" />
-                      <div className="text-[0.65rem] p-1 truncate">
-                        {preset.name}
-                      </div>
-                    </div>
-                  ))}
+              {/* Upload error banner */}
+              {uploadError && (
+                <div className="mb-2 p-2 bg-[var(--color-danger-bg)] text-[var(--color-danger)] rounded-[var(--radius-xs)] text-xs">
+                  {uploadError}
                 </div>
               )}
 
-              <div className="flex flex-col gap-1.5">
-                {formData.images.map((imgUrl, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
-                    <input
-                      type="url"
-                      className="form-input flex-1"
-                      placeholder="https://images.unsplash.com/..."
-                      value={imgUrl}
-                      onChange={(e) => handleImageChange(idx, e.target.value)}
-                    />
-                    {formData.images.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(idx)}
-                        className="btn-icon btn-ghost text-[var(--color-danger)]"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    )}
+              {/* Cloudinary Drag & Drop / File Selector Box */}
+              <div
+                onClick={() => !uploading && fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-[var(--radius-sm)] p-5 text-center cursor-pointer transition-all duration-200 ${
+                  uploading
+                    ? "border-[var(--border-bright)] bg-[var(--bg-elevated)]"
+                    : "border-[var(--border-medium)] hover:border-white hover:bg-[var(--bg-elevated)]"
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  disabled={uploading}
+                />
+
+                {uploading ? (
+                  <div className="flex flex-col items-center justify-center gap-2 py-2">
+                    <Loader2 size={24} className="animate-spin text-white" />
+                    <span className="text-xs font-bold text-white">
+                      Uploading and optimizing to Cloudinary...
+                    </span>
                   </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={handleAddImage}
-                  className="btn btn-ghost btn-sm self-start text-[0.725rem] gap-1"
-                >
-                  <Plus size={12} />
-                  <span>Add Another Image</span>
-                </button>
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-1.5">
+                    <div className="w-9 h-9 rounded-full bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center justify-center text-white">
+                      <UploadCloud size={18} />
+                    </div>
+                    <div className="text-xs font-bold text-[var(--text-primary)]">
+                      Click to upload product image(s) to Cloudinary
+                    </div>
+                    <div className="text-[0.7rem] text-[var(--text-muted)]">
+                      Supports JPG, PNG, WEBP, AVIF (Auto-optimized & delivered fast)
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Optional Manual URL Input */}
+              {showManualUrl && (
+                <div className="flex gap-2 mt-2">
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={manualUrlInput}
+                    onChange={(e) => setManualUrlInput(e.target.value)}
+                    className="form-input flex-1 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddManualUrl}
+                    className="btn btn-secondary btn-sm text-xs"
+                  >
+                    Add URL
+                  </button>
+                </div>
+              )}
+
+              {/* Uploaded Images Thumbnails Grid */}
+              {formData.images.length > 0 && (
+                <div className="mt-3">
+                  <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)] tracking-wider mb-1.5">
+                    Uploaded Images ({formData.images.length})
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {formData.images.map((imgUrl, idx) => (
+                      <div
+                        key={idx}
+                        className="relative rounded-[var(--radius-xs)] overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-app)] group h-24"
+                      >
+                        <img
+                          src={getOptimizedImageUrl(imgUrl, { width: 300 })}
+                          alt={`Product preview ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        {idx === 0 && (
+                          <span className="absolute top-1 left-1 badge badge-dark text-[0.6rem] py-0.5 px-1 bg-black/80">
+                            Cover
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx)}
+                          className="absolute top-1 right-1 btn-icon btn-secondary !w-6 !h-6 bg-black/80 text-[var(--color-danger)] opacity-90 hover:opacity-100"
+                          title="Remove image"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Switches */}
@@ -365,10 +480,18 @@ export function ProductFormModal({
                 </label>
                 <div>
                   <div className="text-[0.8rem] font-bold">
-                    {Number(formData.stock) === 0 ? "Out of Stock" : formData.isAvailable ? "In Atelier Stock" : "Out of Stock"}
+                    {Number(formData.stock) === 0
+                      ? "Out of Stock"
+                      : formData.isAvailable
+                      ? "In Atelier Stock"
+                      : "Out of Stock"}
                   </div>
                   <div className="text-[0.68rem] text-[var(--text-muted)]">
-                    {Number(formData.stock) === 0 ? "0 stock units (marked unavailable)" : formData.isAvailable ? "Available for inquiry" : "Unavailable for inquiry"}
+                    {Number(formData.stock) === 0
+                      ? "0 stock units (marked unavailable)"
+                      : formData.isAvailable
+                      ? "Available for inquiry"
+                      : "Unavailable for inquiry"}
                   </div>
                 </div>
               </div>
@@ -397,41 +520,49 @@ export function ProductFormModal({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input
                   type="text"
-                  className="form-input"
+                  className="form-input text-xs"
                   placeholder="Paper (e.g. 120 GSM Munken)"
                   value={formData.specs.paperGsm}
-                  onChange={(e) => setFormData({ ...formData, specs: { ...formData.specs, paperGsm: e.target.value } })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, specs: { ...formData.specs, paperGsm: e.target.value } })
+                  }
                 />
                 <input
                   type="text"
-                  className="form-input"
+                  className="form-input text-xs"
                   placeholder="Binding (e.g. Lay-Flat Smyth Sewn)"
                   value={formData.specs.binding}
-                  onChange={(e) => setFormData({ ...formData, specs: { ...formData.specs, binding: e.target.value } })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, specs: { ...formData.specs, binding: e.target.value } })
+                  }
                 />
                 <input
                   type="text"
-                  className="form-input"
+                  className="form-input text-xs"
                   placeholder="Finish (e.g. Raw Machined Brass)"
                   value={formData.specs.color}
-                  onChange={(e) => setFormData({ ...formData, specs: { ...formData.specs, color: e.target.value } })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, specs: { ...formData.specs, color: e.target.value } })
+                  }
                 />
                 <input
                   type="text"
-                  className="form-input"
+                  className="form-input text-xs"
                   placeholder="Dimensions (e.g. A5 148 x 210 mm)"
                   value={formData.specs.dimensions}
-                  onChange={(e) => setFormData({ ...formData, specs: { ...formData.specs, dimensions: e.target.value } })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, specs: { ...formData.specs, dimensions: e.target.value } })
+                  }
                 />
               </div>
             </div>
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose} disabled={isSubmitting}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose} disabled={isSubmitting || uploading}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting}>
+            <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting || uploading}>
               {isSubmitting ? "Saving..." : editingProduct ? "Update Product" : "Create Product"}
             </button>
           </div>

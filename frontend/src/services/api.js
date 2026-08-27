@@ -1,66 +1,101 @@
-import {
-  initialMockProducts,
-  initialMockBanners,
-  initialMockCategories,
-  initialMockServices,
-  initialMockServiceCategories,
-  initialMockShopStatus,
-} from "../data/mockData";
 import { authService } from "./auth.service";
 
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 class ApiService {
-  constructor() {
-    this.localProducts = this.loadFromStorage("pixel_mock_products", initialMockProducts);
-    this.localBanners = this.loadFromStorage("pixel_mock_banners", initialMockBanners);
-    this.localCategories = this.loadFromStorage("pixel_mock_categories", initialMockCategories);
-    this.localServices = this.loadFromStorage("pixel_mock_services", initialMockServices);
-    this.localServiceCategories = this.loadFromStorage(
-      "pixel_mock_service_categories",
-      initialMockServiceCategories
-    );
-    this.localShopStatus = this.loadFromStorage("pixel_mock_shop_status", initialMockShopStatus);
-    this.localInquiries = this.loadFromStorage("pixel_mock_inquiries", []);
-    this.serverAvailable = null;
-  }
-
-  loadFromStorage(key, fallback) {
-    try {
-      const stored = localStorage.getItem(key);
-      return stored ? JSON.parse(stored) : fallback;
-    } catch {
-      return fallback;
+  getAuthHeaders(isJson = true) {
+    const authHeaders = authService.getAuthHeader();
+    if (isJson) {
+      return {
+        "Content-Type": "application/json",
+        ...authHeaders,
+      };
     }
-  }
-
-  saveToStorage(key, data) {
-    try {
-      localStorage.setItem(key, JSON.stringify(data));
-    } catch (e) {
-      console.warn("Storage write error", e);
-    }
-  }
-
-  getAuthHeaders() {
-    return {
-      "Content-Type": "application/json",
-      ...authService.getAuthHeader(),
-    };
+    return authHeaders;
   }
 
   async checkHealth() {
     try {
-      const res = await fetch(`${API_BASE_URL.replace("/api", "")}/`, {
-        signal: AbortSignal.timeout(1500),
+      const baseUrl = API_BASE_URL.replace("/api", "");
+      const res = await fetch(`${baseUrl}/`, {
+        signal: AbortSignal.timeout(3000),
       });
-      this.serverAvailable = res.ok;
       return res.ok;
     } catch {
-      this.serverAvailable = false;
       return false;
     }
+  }
+
+  /* ==========================================================================
+     IMAGE UPLOADS (CLOUDINARY)
+     ========================================================================== */
+
+  /**
+   * Upload single image to Cloudinary via backend
+   * @param {File|Blob} file - Image file to upload
+   * @param {string} folder - Destination folder (e.g. "products", "categories", "banners")
+   * @returns {Promise<{ success: boolean, url: string, public_id: string }>}
+   */
+  async uploadImage(file, folder = "products") {
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("folder", folder);
+
+    const res = await fetch(`${API_BASE_URL}/upload`, {
+      method: "POST",
+      headers: this.getAuthHeaders(false),
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to upload image to Cloudinary");
+    }
+    return data;
+  }
+
+  /**
+   * Upload multiple images to Cloudinary via backend
+   * @param {FileList|File[]} files - Image files to upload
+   * @param {string} folder - Destination folder
+   * @returns {Promise<{ success: boolean, urls: string[], images: Array }>}
+   */
+  async uploadImages(files, folder = "products") {
+    const formData = new FormData();
+    Array.from(files).forEach((file) => {
+      formData.append("images", file);
+    });
+    formData.append("folder", folder);
+
+    const res = await fetch(`${API_BASE_URL}/upload/multiple`, {
+      method: "POST",
+      headers: this.getAuthHeaders(false),
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to upload images to Cloudinary");
+    }
+    return data;
+  }
+
+  /**
+   * Delete an image from Cloudinary by public ID
+   * @param {string} publicId
+   */
+  async deleteImage(publicId) {
+    const res = await fetch(`${API_BASE_URL}/upload`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(true),
+      body: JSON.stringify({ public_id: publicId }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete image");
+    }
+    return data;
   }
 
   /* ==========================================================================
@@ -72,81 +107,51 @@ class ApiService {
       const res = await fetch(`${API_BASE_URL}/categories`);
       if (res.ok) {
         const data = await res.json();
-        return { categories: data.categories, fromServer: true };
+        return { categories: data.categories || [], fromServer: true };
       }
-    } catch {}
-
-    // Mock fallback
-    return { categories: this.localCategories, fromServer: false };
+      return { categories: [], fromServer: false };
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      return { categories: [], fromServer: false };
+    }
   }
 
   async createCategory(categoryData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/categories`, {
-        method: "POST",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(categoryData),
-      });
-      if (res.ok) {
-        return await res.json();
-      }
-      const err = await res.json();
-      throw new Error(err.message || "Failed to create category");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const newCategory = {
-        _id: "cat-" + Date.now(),
-        ...categoryData,
-        productCount: 0,
-        createdAt: new Date().toISOString(),
-      };
-      this.localCategories.push(newCategory);
-      this.saveToStorage("pixel_mock_categories", this.localCategories);
-      return { success: true, category: newCategory };
+    const res = await fetch(`${API_BASE_URL}/categories`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(categoryData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to create category");
     }
+    return data;
   }
 
   async updateCategory(id, categoryData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(categoryData),
-      });
-      if (res.ok) {
-        return await res.json();
-      }
-      const err = await res.json();
-      throw new Error(err.message || "Failed to update category");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const idx = this.localCategories.findIndex((c) => c._id === id);
-      if (idx !== -1) {
-        this.localCategories[idx] = { ...this.localCategories[idx], ...categoryData };
-        this.saveToStorage("pixel_mock_categories", this.localCategories);
-        return { success: true, category: this.localCategories[idx] };
-      }
-      throw new Error("Category not found");
+    const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(categoryData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update category");
     }
+    return data;
   }
 
   async deleteCategory(id) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
-        method: "DELETE",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) {
-        return await res.json();
-      }
-      const err = await res.json();
-      throw new Error(err.message || "Failed to delete category");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      this.localCategories = this.localCategories.filter((c) => c._id !== id);
-      this.saveToStorage("pixel_mock_categories", this.localCategories);
-      return { success: true, categoryId: id };
+    const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete category");
     }
+    return data;
   }
 
   /* ==========================================================================
@@ -156,148 +161,94 @@ class ApiService {
   async getProducts(params = {}) {
     try {
       const query = new URLSearchParams(params).toString();
-      const res = await fetch(`${API_BASE_URL}/products?${query}`);
+      const res = await fetch(`${API_BASE_URL}/products${query ? `?${query}` : ""}`);
       if (res.ok) {
         const data = await res.json();
-        return { products: data.products, fromServer: true };
+        return {
+          products: data.products || [],
+          count: data.count || 0,
+          total: data.total || 0,
+          fromServer: true,
+        };
       }
-    } catch {}
+      return { products: [], count: 0, total: 0, fromServer: false };
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      return { products: [], count: 0, total: 0, fromServer: false };
+    }
+  }
 
-    // Mock fallback
-    let filtered = [...this.localProducts];
-    if (params.category && params.category !== "All") {
-      filtered = filtered.filter((p) => p.category === params.category);
+  async getProductById(id) {
+    const res = await fetch(`${API_BASE_URL}/products/${id}`);
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to fetch product");
     }
-    if (params.featured === "true") {
-      filtered = filtered.filter((p) => p.featured);
-    }
-    return { products: filtered, fromServer: false };
+    return data;
   }
 
   async createProduct(productData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/products`, {
-        method: "POST",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(productData),
-      });
-      if (res.ok) {
-        return await res.json();
-      }
-      const err = await res.json();
-      throw new Error(err.message || "Failed to create product");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const newProduct = {
-        _id: "prod-" + Date.now(),
-        ...productData,
-        indicativePrice: Number(productData.indicativePrice),
-        currency: "NRs.",
-        createdAt: new Date().toISOString(),
-      };
-      this.localProducts.unshift(newProduct);
-      this.saveToStorage("pixel_mock_products", this.localProducts);
-      return { success: true, product: newProduct };
+    const res = await fetch(`${API_BASE_URL}/products`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(productData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to create product");
     }
+    return data;
   }
 
   async updateProduct(id, productData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/products/${id}`, {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(productData),
-      });
-      if (res.ok) {
-        return await res.json();
-      }
-      const err = await res.json();
-      throw new Error(err.message || "Failed to update product");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const idx = this.localProducts.findIndex((p) => p._id === id);
-      if (idx !== -1) {
-        this.localProducts[idx] = {
-          ...this.localProducts[idx],
-          ...productData,
-          indicativePrice: Number(productData.indicativePrice),
-        };
-        this.saveToStorage("pixel_mock_products", this.localProducts);
-        return { success: true, product: this.localProducts[idx] };
-      }
-      throw new Error("Product not found");
+    const res = await fetch(`${API_BASE_URL}/products/${id}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(productData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update product");
     }
+    return data;
   }
 
   async deleteProduct(id) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/products/${id}`, {
-        method: "DELETE",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) {
-        return await res.json();
-      }
-      const err = await res.json();
-      throw new Error(err.message || "Failed to delete product");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      this.localProducts = this.localProducts.filter((p) => p._id !== id);
-      this.saveToStorage("pixel_mock_products", this.localProducts);
-      return { success: true, productId: id };
+    const res = await fetch(`${API_BASE_URL}/products/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete product");
     }
+    return data;
   }
 
   async toggleProductAvailability(id) {
-    if (!id || id === "undefined" || id === "null") return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/products/${id}/toggle-availability`, {
-        method: "PATCH",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const product = this.localProducts.find((p) => p._id === id);
-        if (product && data.product) {
-          product.isAvailable = data.product.isAvailable;
-          this.saveToStorage("pixel_mock_products", this.localProducts);
-        }
-        return data;
-      }
-    } catch {}
-
-    const product = this.localProducts.find((p) => p._id === id);
-    if (product) {
-      product.isAvailable = !product.isAvailable;
-      this.saveToStorage("pixel_mock_products", this.localProducts);
-      return { success: true, product };
+    if (!id) return;
+    const res = await fetch(`${API_BASE_URL}/products/${id}/toggle-availability`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to toggle availability");
     }
+    return data;
   }
 
   async toggleProductFeatured(id) {
-    if (!id || id === "undefined" || id === "null") return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/products/${id}/toggle-featured`, {
-        method: "PATCH",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const product = this.localProducts.find((p) => p._id === id);
-        if (product && data.product) {
-          product.featured = data.product.featured;
-          this.saveToStorage("pixel_mock_products", this.localProducts);
-        }
-        return data;
-      }
-    } catch {}
-
-    const product = this.localProducts.find((p) => p._id === id);
-    if (product) {
-      product.featured = !product.featured;
-      this.saveToStorage("pixel_mock_products", this.localProducts);
-      return { success: true, product };
+    if (!id) return;
+    const res = await fetch(`${API_BASE_URL}/products/${id}/toggle-featured`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to toggle featured status");
     }
+    return data;
   }
 
   /* ==========================================================================
@@ -309,107 +260,76 @@ class ApiService {
       const res = await fetch(`${API_BASE_URL}/banners`);
       if (res.ok) {
         const data = await res.json();
-        return { banners: data.banners, fromServer: true };
+        return { banners: data.banners || [], fromServer: true };
       }
-    } catch {}
-
-    return { banners: this.localBanners, fromServer: false };
+      return { banners: [], fromServer: false };
+    } catch (error) {
+      console.error("Error fetching banners:", error);
+      return { banners: [], fromServer: false };
+    }
   }
 
   async createBanner(bannerData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/banners`, {
-        method: "POST",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(bannerData),
-      });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.message || "Failed to create banner");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const newBanner = {
-        _id: "banner-" + Date.now(),
-        ...bannerData,
-        order: Number(bannerData.order || this.localBanners.length + 1),
-        createdAt: new Date().toISOString(),
-      };
-      this.localBanners.push(newBanner);
-      this.saveToStorage("pixel_mock_banners", this.localBanners);
-      return { success: true, banner: newBanner };
+    const res = await fetch(`${API_BASE_URL}/banners`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(bannerData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to create banner");
     }
+    return data;
   }
 
   async updateBanner(id, bannerData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/banners/${id}`, {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(bannerData),
-      });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.message || "Failed to update banner");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const idx = this.localBanners.findIndex((b) => b._id === id);
-      if (idx !== -1) {
-        this.localBanners[idx] = { ...this.localBanners[idx], ...bannerData };
-        this.saveToStorage("pixel_mock_banners", this.localBanners);
-        return { success: true, banner: this.localBanners[idx] };
-      }
-      throw new Error("Banner not found");
+    const res = await fetch(`${API_BASE_URL}/banners/${id}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(bannerData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update banner");
     }
+    return data;
   }
 
   async deleteBanner(id) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/banners/${id}`, {
-        method: "DELETE",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      this.localBanners = this.localBanners.filter((b) => b._id !== id);
-      this.saveToStorage("pixel_mock_banners", this.localBanners);
-      return { success: true, bannerId: id };
+    const res = await fetch(`${API_BASE_URL}/banners/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete banner");
     }
+    return data;
   }
 
   async toggleBannerActive(id) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/banners/${id}/toggle`, {
-        method: "PATCH",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) return await res.json();
-    } catch {}
-
-    const banner = this.localBanners.find((b) => b._id === id);
-    if (banner) {
-      banner.isActive = !banner.isActive;
-      this.saveToStorage("pixel_mock_banners", this.localBanners);
-      return { success: true, banner };
+    const res = await fetch(`${API_BASE_URL}/banners/${id}/toggle`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to toggle banner status");
     }
+    return data;
   }
 
   async reorderBanners(orders) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/banners/reorder`, {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify({ orders }),
-      });
-      if (res.ok) return await res.json();
-    } catch {}
-
-    orders.forEach(({ id, order }) => {
-      const b = this.localBanners.find((item) => item._id === id);
-      if (b) b.order = order;
+    const res = await fetch(`${API_BASE_URL}/banners/reorder`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ orders }),
     });
-    this.saveToStorage("pixel_mock_banners", this.localBanners);
-    return { success: true };
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to reorder banners");
+    }
+    return data;
   }
 
   /* ==========================================================================
@@ -419,40 +339,16 @@ class ApiService {
   async getServices(params = {}) {
     try {
       const query = new URLSearchParams(params).toString();
-      const res = await fetch(`${API_BASE_URL}/services?${query}`);
+      const res = await fetch(`${API_BASE_URL}/services${query ? `?${query}` : ""}`);
       if (res.ok) {
         const data = await res.json();
-        return { services: data.services, fromServer: true };
+        return { services: data.services || [], fromServer: true };
       }
-    } catch {}
-
-    // Mock fallback
-    let filtered = [...this.localServices];
-    if (params.category && params.category !== "All") {
-      filtered = filtered.filter((s) => s.category === params.category);
+      return { services: [], fromServer: false };
+    } catch (error) {
+      console.error("Error fetching services:", error);
+      return { services: [], fromServer: false };
     }
-    if (params.isWebDevPackage !== undefined) {
-      const boolVal = params.isWebDevPackage === "true" || params.isWebDevPackage === true;
-      filtered = filtered.filter((s) => Boolean(s.isWebDevPackage) === boolVal);
-    }
-    if (params.isFeatured === "true") {
-      filtered = filtered.filter((s) => s.isFeatured);
-    }
-    if (params.isActive === "true") {
-      filtered = filtered.filter((s) => s.isActive);
-    }
-    if (params.search && params.search.trim()) {
-      const q = params.search.toLowerCase();
-      filtered = filtered.filter(
-        (s) =>
-          s.title?.toLowerCase().includes(q) ||
-          s.shortDescription?.toLowerCase().includes(q) ||
-          s.category?.toLowerCase().includes(q)
-      );
-    }
-
-    filtered.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
-    return { services: filtered, fromServer: false };
   }
 
   async getWebDevPackages() {
@@ -460,182 +356,75 @@ class ApiService {
       const res = await fetch(`${API_BASE_URL}/services/web-development`);
       if (res.ok) {
         const data = await res.json();
-        return { packages: data.packages, fromServer: true };
+        return { packages: data.packages || [], fromServer: true };
       }
-    } catch {}
-
-    const pkgs = this.localServices
-      .filter((s) => s.isWebDevPackage)
-      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || a.price - b.price);
-
-    return { packages: pkgs, fromServer: false };
+      return { packages: [], fromServer: false };
+    } catch (error) {
+      console.error("Error fetching web dev packages:", error);
+      return { packages: [], fromServer: false };
+    }
   }
 
   async createService(serviceData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/services`, {
-        method: "POST",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(serviceData),
-      });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.message || "Failed to create service");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const newService = {
-        _id: "serv-" + Date.now(),
-        ...serviceData,
-        price: Number(serviceData.price),
-        currency: "NRs.",
-        displayOrder: Number(serviceData.displayOrder || this.localServices.length + 1),
-        createdAt: new Date().toISOString(),
-      };
-      this.localServices.push(newService);
-      this.saveToStorage("pixel_mock_services", this.localServices);
-      return { success: true, service: newService };
+    const res = await fetch(`${API_BASE_URL}/services`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(serviceData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to create service");
     }
+    return data;
   }
 
   async updateService(id, serviceData) {
-    if (!id || id === "undefined" || id === "null") {
-      return this.createService(serviceData);
+    const res = await fetch(`${API_BASE_URL}/services/${id}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(serviceData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update service");
     }
-    try {
-      const res = await fetch(`${API_BASE_URL}/services/${id}`, {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(serviceData),
-      });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.message || "Failed to update service");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const idx = this.localServices.findIndex((s) => s._id === id);
-      if (idx !== -1) {
-        this.localServices[idx] = {
-          ...this.localServices[idx],
-          ...serviceData,
-          price: Number(serviceData.price !== undefined ? serviceData.price : this.localServices[idx].price),
-        };
-        this.saveToStorage("pixel_mock_services", this.localServices);
-        return { success: true, service: this.localServices[idx] };
-      }
-      throw new Error("Service not found");
-    }
+    return data;
   }
 
   async deleteService(id) {
-    if (!id || id === "undefined" || id === "null") {
-      return { success: true };
+    const res = await fetch(`${API_BASE_URL}/services/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete service");
     }
-    try {
-      const res = await fetch(`${API_BASE_URL}/services/${id}`, {
-        method: "DELETE",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.message || "Failed to delete service");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      this.localServices = this.localServices.filter((s) => s._id !== id);
-      this.saveToStorage("pixel_mock_services", this.localServices);
-      return { success: true, serviceId: id };
-    }
+    return data;
   }
 
   async toggleServiceActive(id) {
-    if (!id || id === "undefined" || id === "null") return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/services/${id}/toggle-active`, {
-        method: "PATCH",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) return await res.json();
-    } catch {}
-
-    const service = this.localServices.find((s) => s._id === id);
-    if (service) {
-      service.isActive = !service.isActive;
-      this.saveToStorage("pixel_mock_services", this.localServices);
-      return { success: true, service };
+    const res = await fetch(`${API_BASE_URL}/services/${id}/toggle-active`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to toggle service status");
     }
+    return data;
   }
 
   async toggleServiceFeatured(id) {
-    if (!id || id === "undefined" || id === "null") return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/services/${id}/toggle-featured`, {
-        method: "PATCH",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) return await res.json();
-    } catch {}
-
-    const service = this.localServices.find((s) => s._id === id);
-    if (service) {
-      service.isFeatured = !service.isFeatured;
-      this.saveToStorage("pixel_mock_services", this.localServices);
-      return { success: true, service };
+    const res = await fetch(`${API_BASE_URL}/services/${id}/toggle-featured`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to toggle featured status");
     }
-  }
-
-  /* ==========================================================================
-     CONTACT & INQUIRIES API
-     ========================================================================== */
-
-  async submitContact(formData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/contact`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.message || "Failed to submit inquiry");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const newInquiry = {
-        _id: "inq-" + Date.now(),
-        ...formData,
-        status: "unread",
-        createdAt: new Date().toISOString(),
-      };
-      this.localInquiries.unshift(newInquiry);
-      this.saveToStorage("pixel_mock_inquiries", this.localInquiries);
-      return { success: true, inquiry: newInquiry };
-    }
-  }
-
-  async getInquiries() {
-    try {
-      const res = await fetch(`${API_BASE_URL}/contact`, {
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return { inquiries: data.inquiries, fromServer: true };
-      }
-    } catch {}
-
-    return { inquiries: this.localInquiries, fromServer: false };
-  }
-
-  async deleteInquiry(id) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/contact/${id}`, {
-        method: "DELETE",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) return await res.json();
-    } catch {}
-
-    this.localInquiries = this.localInquiries.filter((i) => i._id !== id);
-    this.saveToStorage("pixel_mock_inquiries", this.localInquiries);
-    return { success: true };
+    return data;
   }
 
   /* ==========================================================================
@@ -647,110 +436,55 @@ class ApiService {
       const res = await fetch(`${API_BASE_URL}/service-categories`);
       if (res.ok) {
         const data = await res.json();
-        return { categories: data.categories, fromServer: true };
+        return { categories: data.categories || [], fromServer: true };
       }
-    } catch {}
-
-    // Mock fallback with dynamic counts
-    const countMap = {};
-    this.localServices.forEach((s) => {
-      if (s.category) {
-        countMap[s.category] = (countMap[s.category] || 0) + 1;
-      }
-    });
-
-    const catsWithCount = this.localServiceCategories.map((c) => ({
-      ...c,
-      serviceCount: countMap[c.name] || 0,
-    }));
-
-    return { categories: catsWithCount, fromServer: false };
+      return { categories: [], fromServer: false };
+    } catch (error) {
+      console.error("Error fetching service categories:", error);
+      return { categories: [], fromServer: false };
+    }
   }
 
   async createServiceCategory(categoryData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/service-categories`, {
-        method: "POST",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(categoryData),
-      });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.message || "Failed to create service category");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const newCategory = {
-        _id: "scat-" + Date.now(),
-        ...categoryData,
-        displayOrder: Number(categoryData.displayOrder || this.localServiceCategories.length + 1),
-        serviceCount: 0,
-        createdAt: new Date().toISOString(),
-      };
-      this.localServiceCategories.push(newCategory);
-      this.saveToStorage("pixel_mock_service_categories", this.localServiceCategories);
-      return { success: true, category: newCategory };
+    const res = await fetch(`${API_BASE_URL}/service-categories`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(categoryData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to create service category");
     }
+    return data;
   }
 
   async updateServiceCategory(id, categoryData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/service-categories/${id}`, {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(categoryData),
-      });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.message || "Failed to update service category");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const idx = this.localServiceCategories.findIndex((c) => c._id === id);
-      if (idx !== -1) {
-        const oldName = this.localServiceCategories[idx].name;
-        this.localServiceCategories[idx] = {
-          ...this.localServiceCategories[idx],
-          ...categoryData,
-          displayOrder: Number(categoryData.displayOrder || this.localServiceCategories[idx].displayOrder),
-        };
-        // Cascade rename to local services if name changed
-        if (categoryData.name && categoryData.name !== oldName) {
-          this.localServices.forEach((s) => {
-            if (s.category === oldName) s.category = categoryData.name;
-          });
-          this.saveToStorage("pixel_mock_services", this.localServices);
-        }
-        this.saveToStorage("pixel_mock_service_categories", this.localServiceCategories);
-        return { success: true, category: this.localServiceCategories[idx] };
-      }
-      throw new Error("Service category not found");
+    const res = await fetch(`${API_BASE_URL}/service-categories/${id}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(categoryData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update service category");
     }
+    return data;
   }
 
   async deleteServiceCategory(id) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/service-categories/${id}`, {
-        method: "DELETE",
-        headers: this.getAuthHeaders(),
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      const target = this.localServiceCategories.find((c) => c._id === id);
-      if (target) {
-        // Move local services in this category to General IT
-        this.localServices.forEach((s) => {
-          if (s.category === target.name) s.category = "General IT";
-        });
-        this.saveToStorage("pixel_mock_services", this.localServices);
-      }
-      this.localServiceCategories = this.localServiceCategories.filter((c) => c._id !== id);
-      this.saveToStorage("pixel_mock_service_categories", this.localServiceCategories);
-      return { success: true, categoryId: id };
+    const res = await fetch(`${API_BASE_URL}/service-categories/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete service category");
     }
+    return data;
   }
 
   /* ==========================================================================
-     SHOP STATUS & TIMER API
+     SHOP STATUS & NOTICES API
      ========================================================================== */
 
   async getShopStatus() {
@@ -758,33 +492,71 @@ class ApiService {
       const res = await fetch(`${API_BASE_URL}/shop-status`);
       if (res.ok) {
         const data = await res.json();
-        return { status: data.status, fromServer: true };
+        return { status: data.status || { isOpen: true }, fromServer: true };
       }
-    } catch {}
-
-    return { status: this.localShopStatus, fromServer: false };
+      return { status: { isOpen: true }, fromServer: false };
+    } catch (error) {
+      console.error("Error fetching shop status:", error);
+      return { status: { isOpen: true }, fromServer: false };
+    }
   }
 
   async updateShopStatus(statusData) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/shop-status`, {
-        method: "PUT",
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(statusData),
-      });
-      if (res.ok) return await res.json();
-      const err = await res.json();
-      throw new Error(err.message || "Failed to update shop status");
-    } catch (e) {
-      if (e.message && !e.message.includes("Failed to fetch")) throw e;
-      this.localShopStatus = {
-        ...this.localShopStatus,
-        ...statusData,
-        updatedAt: new Date().toISOString(),
-      };
-      this.saveToStorage("pixel_mock_shop_status", this.localShopStatus);
-      return { success: true, status: this.localShopStatus };
+    const res = await fetch(`${API_BASE_URL}/shop-status`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(statusData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update shop status");
     }
+    return data;
+  }
+
+  /* ==========================================================================
+     CONTACT & INQUIRIES API
+     ========================================================================== */
+
+  async submitContact(formData) {
+    const res = await fetch(`${API_BASE_URL}/contact`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to submit inquiry");
+    }
+    return data;
+  }
+
+  async getInquiries() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/contact`, {
+        headers: this.getAuthHeaders(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return { inquiries: data.inquiries || [], fromServer: true };
+      }
+      return { inquiries: [], fromServer: false };
+    } catch (error) {
+      console.error("Error fetching inquiries:", error);
+      return { inquiries: [], fromServer: false };
+    }
+  }
+
+  async deleteInquiry(id) {
+    const res = await fetch(`${API_BASE_URL}/contact/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete inquiry");
+    }
+    return data;
   }
 
   /* ==========================================================================
@@ -796,38 +568,15 @@ class ApiService {
       const res = await fetch(`${API_BASE_URL}/dashboard/stats`, {
         headers: this.getAuthHeaders(),
       });
-      if (res.ok) return await res.json();
-    } catch {}
-
-    const totalVal = this.localProducts.reduce(
-      (acc, p) => acc + (p.indicativePrice || 0) * (p.stock || 1),
-      0
-    );
-
-    return {
-      products: {
-        total: this.localProducts.length,
-        available: this.localProducts.filter((p) => p.isAvailable).length,
-        totalValue: totalVal,
-      },
-      banners: {
-        total: this.localBanners.length,
-        active: this.localBanners.filter((b) => b.isActive).length,
-      },
-      services: {
-        total: this.localServices.length,
-        active: this.localServices.filter((s) => s.isActive).length,
-        featured: this.localServices.filter((s) => s.isFeatured).length,
-      },
-      inquiries: {
-        total: this.localInquiries.length,
-        unread: this.localInquiries.filter((i) => i.status === "unread").length,
-      },
-    };
+      if (res.ok) {
+        return await res.json();
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      return null;
+    }
   }
-
 }
 
 export const api = new ApiService();
-
-

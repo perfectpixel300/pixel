@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { X, Layers, Sparkles } from "lucide-react";
-import { PRESET_IMAGES } from "../../data/mockData";
+import React, { useState, useEffect, useRef } from "react";
+import { X, Layers, UploadCloud, Loader2, Trash2 } from "lucide-react";
+import { api } from "../../services/api";
+import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function CategoryFormModal({
   isOpen,
@@ -9,6 +10,8 @@ export function CategoryFormModal({
   editingCategory,
   isSubmitting,
 }) {
+  const fileInputRef = useRef(null);
+
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -18,7 +21,9 @@ export function CategoryFormModal({
   });
 
   const [errors, setErrors] = useState({});
-  const [showPresets, setShowPresets] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [showManualUrl, setShowManualUrl] = useState(false);
 
   useEffect(() => {
     if (editingCategory) {
@@ -34,11 +39,13 @@ export function CategoryFormModal({
         name: "",
         slug: "",
         description: "",
-        imageUrl: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=800",
+        imageUrl: "",
         displayOrder: 0,
       });
     }
     setErrors({});
+    setUploadError("");
+    setShowManualUrl(false);
   }, [editingCategory, isOpen]);
 
   if (!isOpen) return null;
@@ -56,6 +63,33 @@ export function CategoryFormModal({
       name: val,
       slug: prev.slug === "" || prev.slug === autoSlug.slice(0, -1) ? autoSlug : prev.slug,
     }));
+  };
+
+  // Handle Cloudinary Image File Upload for Category
+  const handleFileUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setUploading(true);
+      setUploadError("");
+
+      const res = await api.uploadImage(files[0], "categories");
+      if (res.url) {
+        setFormData((prev) => ({
+          ...prev,
+          imageUrl: res.url,
+        }));
+      }
+    } catch (err) {
+      console.error("Category image upload failed:", err);
+      setUploadError(err.message || "Failed to upload category image.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const validate = () => {
@@ -98,7 +132,7 @@ export function CategoryFormModal({
                 {editingCategory ? "Edit Category" : "Add New Category"}
               </h3>
               <p className="text-[0.7rem] text-[var(--text-muted)] m-0">
-                Configure product category attributes and curation
+                Configure product category attributes, Cloudinary cover media, and curation
               </p>
             </div>
           </div>
@@ -128,7 +162,7 @@ export function CategoryFormModal({
                 <label className="form-label">URL Slug</label>
                 <input
                   type="text"
-                  className="form-input"
+                  className="form-input font-mono text-xs"
                   placeholder="e.g. leather-goods"
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
@@ -159,52 +193,119 @@ export function CategoryFormModal({
               />
             </div>
 
+            {/* Cloudinary Category Cover Image Upload */}
             <div className="form-group">
               <div className="flex justify-between items-center mb-1">
-                <label className="form-label !mb-0">Category Cover Image (Optional)</label>
+                <label className="form-label !mb-0">Category Cover Image (Cloudinary CDN)</label>
                 <button
                   type="button"
-                  onClick={() => setShowPresets(!showPresets)}
-                  className="btn btn-secondary btn-sm text-[0.725rem] py-1 px-2 gap-1"
+                  onClick={() => setShowManualUrl(!showManualUrl)}
+                  className="text-[0.725rem] text-[var(--text-muted)] hover:text-white bg-transparent border-0 cursor-pointer"
                 >
-                  <Sparkles size={12} />
-                  <span>Choose Preset</span>
+                  {showManualUrl ? "Hide URL Input" : "+ Paste Image URL"}
                 </button>
               </div>
 
-              {showPresets && (
-                <div className="bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] p-2 mb-2.5 grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-36 overflow-y-auto">
-                  {PRESET_IMAGES.map((preset, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        setFormData({ ...formData, imageUrl: preset.url });
-                        setShowPresets(false);
-                      }}
-                      className="cursor-pointer rounded-[var(--radius-xs)] overflow-hidden"
-                    >
-                      <img src={preset.url} alt={preset.name} className="w-full h-11 object-cover block" />
-                      <div className="text-[0.625rem] p-1 truncate">{preset.name}</div>
-                    </div>
-                  ))}
+              {uploadError && (
+                <div className="mb-2 p-2 bg-[var(--color-danger-bg)] text-[var(--color-danger)] rounded-[var(--radius-xs)] text-xs">
+                  {uploadError}
                 </div>
               )}
 
-              <input
-                type="url"
-                className="form-input"
-                placeholder="https://images.unsplash.com/..."
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-              />
+              {/* Upload Box */}
+              {!formData.imageUrl ? (
+                <div
+                  onClick={() => !uploading && fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-[var(--radius-sm)] p-5 text-center cursor-pointer transition-all duration-200 ${
+                    uploading
+                      ? "border-[var(--border-bright)] bg-[var(--bg-elevated)]"
+                      : "border-[var(--border-medium)] hover:border-white hover:bg-[var(--bg-elevated)]"
+                  }`}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+
+                  {uploading ? (
+                    <div className="flex flex-col items-center justify-center gap-2 py-2">
+                      <Loader2 size={22} className="animate-spin text-white" />
+                      <span className="text-xs font-bold text-white">
+                        Uploading cover to Cloudinary...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-1.5">
+                      <div className="w-8 h-8 rounded-full bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center justify-center text-white">
+                        <UploadCloud size={16} />
+                      </div>
+                      <div className="text-xs font-bold text-[var(--text-primary)]">
+                        Click to upload category cover image
+                      </div>
+                      <div className="text-[0.68rem] text-[var(--text-muted)]">
+                        Auto-optimized format & compression via Cloudinary
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="relative rounded-[var(--radius-sm)] overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-app)] h-32 group">
+                  <img
+                    src={getOptimizedImageUrl(formData.imageUrl, { width: 600 })}
+                    alt="Category Cover Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="btn btn-secondary btn-sm text-xs py-1 px-2.5"
+                    >
+                      Change Image
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, imageUrl: "" }))}
+                      className="btn btn-secondary btn-sm text-xs py-1 px-2 text-[var(--color-danger)]"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </div>
+              )}
+
+              {/* Manual URL Input (Optional) */}
+              {showManualUrl && (
+                <div className="mt-2">
+                  <input
+                    type="url"
+                    className="form-input text-xs"
+                    placeholder="https://..."
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose} disabled={isSubmitting}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose} disabled={isSubmitting || uploading}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting}>
+            <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting || uploading}>
               {isSubmitting ? "Saving..." : editingCategory ? "Update Category" : "Add Category"}
             </button>
           </div>

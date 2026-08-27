@@ -292,7 +292,7 @@ function AppContent() {
             )}
           </main>
 
-          <Footer setActivePage={setActivePage} />
+          <Footer setActivePage={setActivePage} categories={categories} />
         </div>
       ) : (
         /* Protected Admin Studio Layout (Accessed exclusively by visiting /admin) */
