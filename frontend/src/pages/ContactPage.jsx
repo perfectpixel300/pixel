@@ -258,9 +258,14 @@ export function ContactPage() {
                 <MapPin size={18} className="text-[var(--text-primary)] shrink-0 mt-0.5" />
                 <div>
                   <div className="font-semibold text-sm">PixelPerfect Stationery</div>
-                  <div className="text-[0.8rem] text-[var(--text-muted)] mt-0.5">
+                  <a
+                    href="https://maps.app.goo.gl/Ytvdx85tYDftR7kR8?g_st=ac"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[0.8rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] mt-0.5 block transition-colors"
+                  >
                     Mahalaxmi 8, Devisthan, Lalitpur, Nepal
-                  </div>
+                  </a>
                 </div>
               </div>
 

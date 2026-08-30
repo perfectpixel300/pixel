@@ -145,9 +145,14 @@ export function Footer({ setActivePage, categories = [] }) {
 
               <div className="flex items-start gap-2 mt-0.5">
                 <MapPin size={14} className="text-[var(--text-primary)] shrink-0 mt-0.5" />
-                <span className="text-[0.78rem] text-[var(--text-muted)]">
+                <a
+                  href="https://maps.app.goo.gl/Ytvdx85tYDftR7kR8?g_st=ac"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[0.78rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                >
                   J9RH+MP3 Mahalaxmi-08, Devistha 44708
-                </span>
+                </a>
               </div>
             </div>
           </div>
