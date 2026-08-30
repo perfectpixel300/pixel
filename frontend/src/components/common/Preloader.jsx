@@ -51,7 +51,10 @@ export function Preloader({ isLoading }) {
             Pixel Perfect
           </h2>
           <p className="text-[0.625rem] sm:text-[0.6875rem] uppercase tracking-[0.2em] text-zinc-500 font-mono mt-1 m-0">
-            Atelier & IT Engineering
+            Welcome to Pixel Perfect
+          </p>
+          <p className="text-[0.625rem] sm:text-[0.6875rem] uppercase tracking-[0.2em] text-zinc-500 font-mono mt-1 m-0">
+            Stationery, Studio, Gifts and IT 
           </p>
         </div>
 
