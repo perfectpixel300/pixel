@@ -6,6 +6,7 @@ export function AdminHeader({
   activeTab,
   onOpenProductModal,
   onOpenPrintingModal,
+  onOpenPrintingCategoryModal,
   onOpenCategoryModal,
   onOpenServiceCategoryModal,
   onOpenBannerModal,
@@ -26,6 +27,8 @@ export function AdminHeader({
         return "Store Availability & Operating Hours";
       case "printing":
         return "Printing Services & Custom Production (NRs.)";
+      case "printing-categories":
+        return "Printing Categories & Disciplines";
       case "web-tiers":
         return "Web Development Subscription Plans";
       case "services":
@@ -53,6 +56,8 @@ export function AdminHeader({
         return "Store Status";
       case "printing":
         return "Printing";
+      case "printing-categories":
+        return "Print Categories";
       case "web-tiers":
         return "Web Plans";
       case "services":
@@ -120,6 +125,12 @@ export function AdminHeader({
           <button onClick={onOpenPrintingModal} className="btn btn-primary btn-sm gap-1 !px-2.5 sm:!px-3.5 !h-8 sm:!h-9 shadow-xs">
             <Plus size={14} />
             <span className="hidden sm:inline">Add Printing Service</span>
+            <span className="sm:hidden">Add</span>
+          </button>
+        ) : activeTab === "printing-categories" ? (
+          <button onClick={onOpenPrintingCategoryModal} className="btn btn-primary btn-sm gap-1 !px-2.5 sm:!px-3.5 !h-8 sm:!h-9 shadow-xs">
+            <Layers size={14} />
+            <span className="hidden sm:inline">Add Printing Category</span>
             <span className="sm:hidden">Add</span>
           </button>
         ) : activeTab === "web-tiers" ? (

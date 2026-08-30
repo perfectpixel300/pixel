@@ -83,11 +83,15 @@ export function ServiceFormModal({
         description: editingService.description || "",
         price: editingService.price !== undefined ? editingService.price : 25000,
         discountPrice:
-          editingService.discountPrice !== undefined && editingService.discountPrice !== null
+          editingService.discountPrice !== undefined &&
+          editingService.discountPrice !== null &&
+          Number(editingService.discountPrice) > 0
             ? editingService.discountPrice
             : "",
         costPrice:
-          editingService.costPrice !== undefined && editingService.costPrice !== null
+          editingService.costPrice !== undefined &&
+          editingService.costPrice !== null &&
+          Number(editingService.costPrice) > 0
             ? editingService.costPrice
             : "",
         priceType: editingService.priceType || "starting_at",
@@ -233,11 +237,17 @@ export function ServiceFormModal({
       description: formData.description?.trim() || formData.shortDescription.trim(),
       price: Number(formData.price),
       discountPrice:
-        formData.discountPrice !== "" && formData.discountPrice !== null
+        formData.discountPrice !== "" &&
+        formData.discountPrice !== null &&
+        !isNaN(Number(formData.discountPrice)) &&
+        Number(formData.discountPrice) > 0
           ? Number(formData.discountPrice)
           : 0,
       costPrice:
-        formData.costPrice !== "" && formData.costPrice !== null
+        formData.costPrice !== "" &&
+        formData.costPrice !== null &&
+        !isNaN(Number(formData.costPrice)) &&
+        Number(formData.costPrice) > 0
           ? Number(formData.costPrice)
           : 0,
       features: cleanedFeatures,

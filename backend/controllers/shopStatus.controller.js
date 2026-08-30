@@ -6,7 +6,10 @@ const getOrCreateShopStatus = async () => {
   if (!status) {
     status = await ShopStatus.create({
       isOpen: true,
+      status: "open",
       title: "Pixel Perfect is Open",
+      openTitle: "Pixel Perfect is Open & Operating",
+      closedTitle: "We're Currently Closed",
       partialTitle: "Partial Service Availability • Selected Hours",
       closedMessage:
         "We are currently closed for off-hours / maintenance. You can still explore our catalog and submit project inquiries or WhatsApp messages. We will process them immediately once open!",
@@ -18,7 +21,9 @@ const getOrCreateShopStatus = async () => {
       timerTarget: null,
       timerLabel: "Reopening In",
       timerAction: "reopen",
+      showPopupWhenOpen: false,
       showPopupWhenClosed: true,
+      showPopupWhenPartial: true,
       contactPhone: "+977 9845991878",
       contactEmail: "perfectpixel300@gmail.com",
       updatedBy: "Admin",
@@ -54,6 +59,8 @@ exports.updateShopStatus = async (req, res) => {
       isOpen,
       status: reqStatus,
       title,
+      openTitle,
+      closedTitle,
       partialTitle,
       closedMessage,
       partialMessage,
@@ -63,7 +70,9 @@ exports.updateShopStatus = async (req, res) => {
       timerTarget,
       timerLabel,
       timerAction,
+      showPopupWhenOpen,
       showPopupWhenClosed,
+      showPopupWhenPartial,
       contactPhone,
       contactEmail,
     } = req.body;
@@ -82,8 +91,19 @@ exports.updateShopStatus = async (req, res) => {
       status.status = Boolean(isOpen) ? "open" : "closed";
     }
 
-    if (title !== undefined) status.title = title.trim();
+    if (openTitle !== undefined) status.openTitle = openTitle.trim();
+    if (closedTitle !== undefined) status.closedTitle = closedTitle.trim();
     if (partialTitle !== undefined) status.partialTitle = partialTitle.trim();
+    if (title !== undefined) {
+      status.title = title.trim();
+    } else if (status.status === "open" && status.openTitle) {
+      status.title = status.openTitle;
+    } else if (status.status === "closed" && status.closedTitle) {
+      status.title = status.closedTitle;
+    } else if (status.status === "partial" && status.partialTitle) {
+      status.title = status.partialTitle;
+    }
+
     if (closedMessage !== undefined) status.closedMessage = closedMessage.trim();
     if (partialMessage !== undefined) status.partialMessage = partialMessage.trim();
     if (openMessage !== undefined) status.openMessage = openMessage.trim();
@@ -94,8 +114,14 @@ exports.updateShopStatus = async (req, res) => {
     }
     if (timerLabel !== undefined) status.timerLabel = timerLabel.trim();
     if (timerAction !== undefined) status.timerAction = timerAction;
+    if (showPopupWhenOpen !== undefined) {
+      status.showPopupWhenOpen = Boolean(showPopupWhenOpen);
+    }
     if (showPopupWhenClosed !== undefined) {
       status.showPopupWhenClosed = Boolean(showPopupWhenClosed);
+    }
+    if (showPopupWhenPartial !== undefined) {
+      status.showPopupWhenPartial = Boolean(showPopupWhenPartial);
     }
     if (contactPhone !== undefined) status.contactPhone = contactPhone.trim();
     if (contactEmail !== undefined) status.contactEmail = contactEmail.trim();

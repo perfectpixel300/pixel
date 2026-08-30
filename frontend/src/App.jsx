@@ -47,6 +47,7 @@ function AppContent() {
   const [stats, setStats] = useState(null);
   const [products, setProducts] = useState([]);
   const [printingServices, setPrintingServices] = useState([]);
+  const [printingCategories, setPrintingCategories] = useState([]);
   const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
   const [serviceCategories, setServiceCategories] = useState([]);
@@ -116,6 +117,7 @@ function AppContent() {
       const [
         productsRes,
         printingServicesRes,
+        printingCategoriesRes,
         categoriesRes,
         servicesRes,
         serviceCategoriesRes,
@@ -124,6 +126,7 @@ function AppContent() {
       ] = await Promise.all([
         api.getProducts(),
         api.getPrintingServices(),
+        api.getPrintingCategories(),
         api.getCategories(),
         api.getServices(),
         api.getServiceCategories(),
@@ -133,22 +136,33 @@ function AppContent() {
 
       setProducts(productsRes.products || []);
       setPrintingServices(printingServicesRes.printingServices || []);
+      setPrintingCategories(printingCategoriesRes.categories || []);
       setCategories(categoriesRes.categories || []);
       setServices(servicesRes.services || []);
       setServiceCategories(serviceCategoriesRes.categories || []);
       
-      const currentShopStatus = shopStatusRes?.status || { isOpen: true };
+      const currentShopStatus = shopStatusRes?.status || { isOpen: true, status: "open" };
       setShopStatus(currentShopStatus);
       setIsStatusLoading(false);
       setBanners(bannersRes.banners || []);
       setIsLiveBackend(Boolean(productsRes?.fromServer));
 
-      // Check if store is closed and popup should be shown on initial site load
-      if (
-        !currentShopStatus.isOpen &&
-        currentShopStatus.showPopupWhenClosed !== false
-      ) {
-        const isDismissed = sessionStorage.getItem("pixel_closed_modal_dismissed");
+      // Check if popup should be shown on initial site load based on status configuration
+      const curStatus =
+        currentShopStatus.status || (currentShopStatus.isOpen !== false ? "open" : "closed");
+      let shouldShowPopup = false;
+      if (curStatus === "open") {
+        shouldShowPopup = Boolean(currentShopStatus.showPopupWhenOpen);
+      } else if (curStatus === "partial") {
+        shouldShowPopup =
+          currentShopStatus.showPopupWhenPartial !== false &&
+          currentShopStatus.showPopupWhenClosed !== false;
+      } else {
+        shouldShowPopup = currentShopStatus.showPopupWhenClosed !== false;
+      }
+
+      if (shouldShowPopup) {
+        const isDismissed = sessionStorage.getItem(`pixel_status_modal_dismissed_${curStatus}`);
         if (!isDismissed) {
           setShopClosedModalOpen(true);
         }
@@ -192,9 +206,9 @@ function AppContent() {
 
   const onRefreshShopStatus = (newStatus) => {
     setShopStatus(newStatus);
-    if (!newStatus.isOpen && newStatus.showPopupWhenClosed) {
-      sessionStorage.removeItem("pixel_closed_modal_dismissed");
-    }
+    const curStatus = newStatus.status || (newStatus.isOpen !== false ? "open" : "closed");
+    sessionStorage.removeItem(`pixel_status_modal_dismissed_${curStatus}`);
+    sessionStorage.removeItem("pixel_closed_modal_dismissed");
   };
 
   // View single product detail
@@ -210,6 +224,18 @@ function AppContent() {
     setInquiryModalOpen(true);
   };
 
+  // Open printing inquiry modal with pre-filled specs
+  const handleOpenPrintingInquiry = (service) => {
+    setInquiryProduct({
+      name: service.name,
+      indicativePrice: service.indicativePrice,
+      type: "printing",
+      category: service.category,
+      description: service.shortDescription || service.description,
+    });
+    setInquiryModalOpen(true);
+  };
+
   // Search from navbar navigate to products page
   const handleSearchSubmit = (query) => {
     setSearchQuery(query);
@@ -221,7 +247,7 @@ function AppContent() {
   const isAdminView = activePage === "admin";
 
   return (
-    <>
+    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)] relative selection:bg-white selection:text-black">
       {/* Clean Minimal Preloader (shown only on initial first load) */}
       <Preloader isLoading={isInitialLoad} />
 
@@ -247,6 +273,9 @@ function AppContent() {
         isOpen={shopClosedModalOpen}
         onClose={() => {
           setShopClosedModalOpen(false);
+          const curStatus =
+            shopStatus?.status || (shopStatus?.isOpen !== false ? "open" : "closed");
+          sessionStorage.setItem(`pixel_status_modal_dismissed_${curStatus}`, "true");
           sessionStorage.setItem("pixel_closed_modal_dismissed", "true");
         }}
         shopStatus={shopStatus}
@@ -343,6 +372,7 @@ function AppContent() {
             stats={stats}
             products={products}
             printingServices={printingServices}
+            printingCategories={printingCategories}
             categories={categories}
             services={services}
             serviceCategories={serviceCategories}
@@ -363,7 +393,7 @@ function AppContent() {
 
       {/* Floating Scroll-to-Top Button */}
       <ScrollToTop />
-    </>
+    </div>
   );
 }
 

@@ -5,6 +5,7 @@ import { AdminHeader } from "../components/admin/AdminHeader";
 import { DashboardOverview } from "../components/admin/DashboardOverview";
 import { ProductManagement } from "../components/admin/ProductManagement";
 import { PrintingManagement } from "../components/admin/PrintingManagement";
+import { PrintingCategoryManagement } from "../components/admin/PrintingCategoryManagement";
 import { CategoryManagement } from "../components/admin/CategoryManagement";
 import { WebTiersManagement } from "../components/admin/WebTiersManagement";
 import { ServicesManagement } from "../components/admin/ServicesManagement";
@@ -14,6 +15,7 @@ import { BannerManagement } from "../components/admin/BannerManagement";
 import { InquiriesManagement } from "../components/admin/InquiriesManagement";
 import { ProductFormModal } from "../components/admin/ProductFormModal";
 import { PrintingFormModal } from "../components/admin/PrintingFormModal";
+import { PrintingCategoryFormModal } from "../components/admin/PrintingCategoryFormModal";
 import { CategoryFormModal } from "../components/admin/CategoryFormModal";
 import { ServiceCategoryFormModal } from "../components/admin/ServiceCategoryFormModal";
 import { ServiceFormModal } from "../components/admin/ServiceFormModal";
@@ -25,6 +27,7 @@ export function AdminDashboardPage({
   stats = null,
   products = [],
   printingServices = [],
+  printingCategories = [],
   categories = [],
   services = [],
   serviceCategories = [],
@@ -40,13 +43,14 @@ export function AdminDashboardPage({
   toggleTheme,
   isRefreshing = false,
 }) {
-  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'shop-status' | 'printing' | 'web-tiers' | 'services' | 'service-categories' | 'products' | 'categories' | 'banners' | 'inquiries'
+  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'shop-status' | 'printing' | 'printing-categories' | 'web-tiers' | 'services' | 'service-categories' | 'products' | 'categories' | 'banners' | 'inquiries'
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Modals state
   const [productModal, setProductModal] = useState({ isOpen: false, product: null });
   const [printingModal, setPrintingModal] = useState({ isOpen: false, service: null });
+  const [printingCategoryModal, setPrintingCategoryModal] = useState({ isOpen: false, category: null });
   const [categoryModal, setCategoryModal] = useState({ isOpen: false, category: null });
   const [serviceCategoryModal, setServiceCategoryModal] = useState({ isOpen: false, category: null });
   const [serviceModal, setServiceModal] = useState({ isOpen: false, service: null });
@@ -165,6 +169,41 @@ export function AdminDashboardPage({
     } catch (err) {
       showToast("Failed to toggle featured status", "error");
     }
+  };
+
+  // Printing Category CRUD
+  const handleOpenCreatePrintingCategory = () =>
+    setPrintingCategoryModal({ isOpen: true, category: null });
+  const handleOpenEditPrintingCategory = (category) =>
+    setPrintingCategoryModal({ isOpen: true, category });
+
+  const handleSubmitPrintingCategory = async (categoryData) => {
+    try {
+      setIsSubmitting(true);
+      const targetId = printingCategoryModal.category?._id || categoryData._id;
+      if (targetId && targetId !== "undefined") {
+        await api.updatePrintingCategory(targetId, categoryData);
+        showToast(`Printing Category "${categoryData.name}" updated!`);
+      } else {
+        await api.createPrintingCategory(categoryData);
+        showToast(`Printing Category "${categoryData.name}" created!`);
+      }
+      setPrintingCategoryModal({ isOpen: false, category: null });
+      onRefreshData();
+    } catch (err) {
+      showToast(err.message || "Failed to save printing category", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeletePrintingCategoryPrompt = (category) => {
+    setDeleteModal({
+      isOpen: true,
+      type: "printing-category",
+      id: category._id,
+      name: category.name,
+    });
   };
 
   // Service & Web Tier CRUD
@@ -380,6 +419,9 @@ export function AdminDashboardPage({
       } else if (deleteModal.type === "printing-service") {
         await api.deletePrintingService(deleteModal.id);
         showToast("Printing service removed from catalog.");
+      } else if (deleteModal.type === "printing-category") {
+        await api.deletePrintingCategory(deleteModal.id);
+        showToast("Printing Category removed.");
       } else if (deleteModal.type === "category") {
         await api.deleteCategory(deleteModal.id);
         showToast("Product Category removed.");
@@ -413,6 +455,7 @@ export function AdminDashboardPage({
         stats={stats}
         categoriesCount={(categories || []).length}
         printingServicesCount={(printingServices || []).length}
+        printingCategoriesCount={(printingCategories || []).length}
         webTiersCount={webTiersCount}
         servicesCount={itServicesCount}
         serviceCategoriesCount={(serviceCategories || []).length}
@@ -431,6 +474,7 @@ export function AdminDashboardPage({
           activeTab={activeTab}
           onOpenProductModal={handleOpenCreateProduct}
           onOpenPrintingModal={handleOpenCreatePrintingService}
+          onOpenPrintingCategoryModal={handleOpenCreatePrintingCategory}
           onOpenCategoryModal={handleOpenCreateCategory}
           onOpenServiceCategoryModal={handleOpenCreateServiceCategory}
           onOpenServiceModal={() => handleOpenCreateService({ isWebDevPackage: false })}
@@ -477,11 +521,24 @@ export function AdminDashboardPage({
           {activeTab === "printing" && (
             <PrintingManagement
               printingServices={printingServices}
+              printingCategories={printingCategories}
               onOpenCreateModal={handleOpenCreatePrintingService}
               onEditService={handleOpenEditPrintingService}
               onDeleteService={handleDeletePrintingServicePrompt}
               onToggleAvailability={handleTogglePrintingServiceAvailability}
               onToggleFeatured={handleTogglePrintingServiceFeatured}
+              onManageCategories={() => setActiveTab("printing-categories")}
+            />
+          )}
+
+          {activeTab === "printing-categories" && (
+            <PrintingCategoryManagement
+              categories={printingCategories}
+              printingServices={printingServices}
+              onOpenCreateModal={handleOpenCreatePrintingCategory}
+              onEditCategory={handleOpenEditPrintingCategory}
+              onDeleteCategory={handleDeletePrintingCategoryPrompt}
+              onNavigateToPrintingServices={() => setActiveTab("printing")}
             />
           )}
 
@@ -578,6 +635,15 @@ export function AdminDashboardPage({
         onClose={() => setPrintingModal({ isOpen: false, service: null })}
         onSubmit={handleSubmitPrintingService}
         editingService={printingModal.service}
+        printingCategories={printingCategories}
+        isSubmitting={isSubmitting}
+      />
+
+      <PrintingCategoryFormModal
+        isOpen={printingCategoryModal.isOpen}
+        onClose={() => setPrintingCategoryModal({ isOpen: false, category: null })}
+        onSubmit={handleSubmitPrintingCategory}
+        editingCategory={printingCategoryModal.category}
         isSubmitting={isSubmitting}
       />
 

@@ -581,6 +581,62 @@ class ApiService {
   }
 
   /* ==========================================================================
+     PRINTING CATEGORIES API
+     ========================================================================== */
+
+  async getPrintingCategories() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/printing-categories`);
+      if (res.ok) {
+        const data = await res.json();
+        return { categories: data.categories || [], fromServer: true };
+      }
+      return { categories: [], fromServer: false };
+    } catch (error) {
+      console.error("Error fetching printing categories:", error);
+      return { categories: [], fromServer: false };
+    }
+  }
+
+  async createPrintingCategory(categoryData) {
+    const res = await fetch(`${API_BASE_URL}/printing-categories`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(categoryData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to create printing category");
+    }
+    return data;
+  }
+
+  async updatePrintingCategory(id, categoryData) {
+    const res = await fetch(`${API_BASE_URL}/printing-categories/${id}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(categoryData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update printing category");
+    }
+    return data;
+  }
+
+  async deletePrintingCategory(id) {
+    const res = await fetch(`${API_BASE_URL}/printing-categories/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete printing category");
+    }
+    return data;
+  }
+
+  /* ==========================================================================
      SHOP STATUS & NOTICES API
      ========================================================================== */
 

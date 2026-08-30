@@ -28,6 +28,7 @@ export function AdminSidebar({
   servicesCount,
   serviceCategoriesCount = 0,
   printingServicesCount = 0,
+  printingCategoriesCount = 0,
   inquiriesCount,
   shopStatus = { isOpen: true },
   isCollapsed,
@@ -58,6 +59,13 @@ export function AdminSidebar({
       icon: <Printer size={17} />,
       badge: printingServicesCount || 0,
       badgeColor: "success",
+    },
+    {
+      id: "printing-categories",
+      label: "Printing Categories",
+      icon: <Sliders size={17} />,
+      badge: printingCategoriesCount || 0,
+      badgeColor: "neutral",
     },
     {
       id: "web-tiers",

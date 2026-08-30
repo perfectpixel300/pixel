@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   Clock,
-  AlertCircle,
+  CheckCircle2,
   X,
   Phone,
   MessageCircle,
@@ -25,7 +25,10 @@ export function ShopClosedModal({
     isExpired: true,
   });
 
-  const isPartial = shopStatus?.status === "partial";
+  const status = shopStatus?.status || (shopStatus?.isOpen !== false ? "open" : "closed");
+  const isOpenStatus = status === "open";
+  const isPartial = status === "partial";
+  const isClosed = status === "closed";
   const timerTarget = shopStatus?.timerTarget;
   const isTimerEnabled = Boolean(shopStatus?.timerEnabled && timerTarget);
 
@@ -62,7 +65,9 @@ export function ShopClosedModal({
 
   const handleOpenWhatsApp = () => {
     const text = encodeURIComponent(
-      `Hello Pixel Perfect! I saw your store status (${isPartial ? "Partial Services" : "Currently Closed"}), and I'd like to leave an inquiry.`
+      `Hello Pixel Perfect! I saw your store status (${
+        isOpenStatus ? "Shop Open" : isPartial ? "Partial Services" : "Currently Closed"
+      }), and I'd like to leave an inquiry.`
     );
     window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
   };
@@ -87,31 +92,34 @@ export function ShopClosedModal({
         {/* Top Status Ambient Ribbon */}
         <div
           className={`px-5 py-2.5 flex items-center justify-between font-bold text-xs uppercase tracking-wider ${
-            isPartial ? "bg-blue-600 text-white" : "bg-white text-black"
+            isOpenStatus
+              ? "bg-emerald-600 text-white"
+              : isPartial
+              ? "bg-blue-600 text-white"
+              : "bg-red-600 text-white"
           }`}
         >
           <div className="flex items-center gap-2">
             <span
               className={`w-2 h-2 rounded-full ${
-                isPartial ? "bg-white animate-pulse" : "bg-red-600 animate-ping"
+                isOpenStatus
+                  ? "bg-white animate-pulse"
+                  : isPartial
+                  ? "bg-white animate-pulse"
+                  : "bg-white animate-ping"
               } inline-block`}
             />
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isPartial ? "bg-white" : "bg-red-600"
-              } inline-block -ml-4`}
-            />
             <span>
-              {isPartial
+              {isOpenStatus
+                ? "Operating Notice • Shop is Open"
+                : isPartial
                 ? "Service Notice • Partial Availability"
                 : "Store Notice • Currently Closed"}
             </span>
           </div>
           <button
             onClick={onClose}
-            className={`btn-icon !w-6 !h-6 ${
-              isPartial ? "bg-white/20 hover:bg-white/30 text-white" : "bg-black/10 hover:bg-black/20 text-black"
-            } border-0 rounded-full cursor-pointer`}
+            className="btn-icon !w-6 !h-6 bg-white/20 hover:bg-white/30 text-white border-0 rounded-full cursor-pointer"
             title="Dismiss notice"
           >
             <X size={14} />
@@ -124,45 +132,70 @@ export function ShopClosedModal({
           <div className="flex items-start gap-4">
             <div
               className={`w-12 h-12 rounded-full border flex items-center justify-center shrink-0 ${
-                isPartial
+                isOpenStatus
+                  ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
+                  : isPartial
                   ? "bg-blue-500/20 border-blue-500/40 text-blue-400"
-                  : "bg-white/10 border border-white/20 text-white"
+                  : "bg-red-500/20 border-red-500/40 text-red-400"
               }`}
             >
-              {isPartial ? <Info size={24} /> : <Clock size={24} />}
+              {isOpenStatus ? (
+                <CheckCircle2 size={24} />
+              ) : isPartial ? (
+                <Info size={24} />
+              ) : (
+                <Clock size={24} />
+              )}
             </div>
             <div>
               <div
                 className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[0.68rem] font-bold uppercase tracking-wider mb-1.5 ${
-                  isPartial
+                  isOpenStatus
+                    ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
+                    : isPartial
                     ? "bg-blue-500/15 border-blue-500/30 text-blue-300"
-                    : "bg-[var(--bg-input)] border-[var(--border-subtle)] text-[var(--text-muted)]"
+                    : "bg-red-500/15 border-red-500/30 text-red-300"
                 }`}
               >
-                {isPartial ? (
+                {isOpenStatus ? (
+                  <CheckCircle2 size={12} className="text-emerald-400" />
+                ) : isPartial ? (
                   <Info size={12} className="text-blue-400" />
                 ) : (
                   <ShieldAlert size={12} className="text-red-400" />
                 )}
-                <span>{isPartial ? "Selected Services Active" : "Operating Hours Update"}</span>
+                <span>
+                  {isOpenStatus
+                    ? "Storefront Live & Operating"
+                    : isPartial
+                    ? "Selected Services Active"
+                    : "Store Currently Closed"}
+                </span>
               </div>
               <h2 className="text-xl sm:text-2xl font-extrabold m-0 text-[var(--text-primary)] leading-tight">
-                {isPartial
+                {isOpenStatus
+                  ? shopStatus?.openTitle || shopStatus?.title || "Pixel Perfect is Open & Operating"
+                  : isPartial
                   ? shopStatus?.partialTitle || "Partial Service Availability • Selected Hours"
-                  : shopStatus?.title || "We're Currently Closed"}
+                  : shopStatus?.closedTitle || shopStatus?.title || "We're Currently Closed"}
               </h2>
             </div>
           </div>
 
-          {/* Admin Notice Message */}
+          {/* Notice Message */}
           <div
             className={`p-4 rounded-[var(--radius-md)] border text-[0.875rem] leading-relaxed whitespace-pre-line ${
-              isPartial
+              isOpenStatus
+                ? "bg-emerald-500/10 border-emerald-500/25 text-[var(--text-primary)]"
+                : isPartial
                 ? "bg-blue-500/10 border-blue-500/25 text-[var(--text-primary)]"
                 : "bg-[var(--bg-app)] border-[var(--border-subtle)] text-[var(--text-secondary)]"
             }`}
           >
-            {isPartial
+            {isOpenStatus
+              ? shopStatus?.openMessage ||
+                "We are currently open and taking orders and consulting inquiries. Feel free to explore our products and request service quotes!"
+              : isPartial
               ? shopStatus?.partialMessage ||
                 "Some particular services are currently undergoing maintenance or unavailable, while our core stationery catalog and select digital services remain actively operational with their scheduled timings."
               : shopStatus?.closedMessage ||
@@ -173,18 +206,31 @@ export function ShopClosedModal({
           {isTimerEnabled && !timeLeft.isExpired && (
             <div
               className={`rounded-[var(--radius-md)] bg-gradient-to-r border-2 p-4 sm:p-5 flex flex-col items-center text-center shadow-inner ${
-                isPartial
+                isOpenStatus
+                  ? "from-emerald-950/40 via-[var(--bg-card)] to-emerald-950/40 border-emerald-500/40"
+                  : isPartial
                   ? "from-blue-950/40 via-[var(--bg-card)] to-blue-950/40 border-blue-500/40"
                   : "from-[var(--bg-card)] via-[var(--bg-elevated)] to-[var(--bg-card)] border-white/20"
               }`}
             >
               <div
                 className={`text-[0.72rem] font-bold uppercase tracking-[0.12em] flex items-center gap-1.5 mb-3 ${
-                  isPartial ? "text-blue-400" : "text-[var(--text-muted)]"
+                  isOpenStatus
+                    ? "text-emerald-400"
+                    : isPartial
+                    ? "text-blue-400"
+                    : "text-[var(--text-muted)]"
                 }`}
               >
                 <Sparkles size={13} />
-                <span>{shopStatus?.timerLabel || (isPartial ? "Full Services Resume In" : "Reopening In")}</span>
+                <span>
+                  {shopStatus?.timerLabel ||
+                    (isOpenStatus
+                      ? "Next Schedule Window"
+                      : isPartial
+                      ? "Full Services Resume In"
+                      : "Reopening In")}
+                </span>
               </div>
 
               {/* Digital countdown tiles */}
@@ -192,7 +238,11 @@ export function ShopClosedModal({
                 <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
                   <span
                     className={`font-mono text-2xl sm:text-3xl font-extrabold leading-none ${
-                      isPartial ? "text-blue-300" : "text-[var(--text-primary)]"
+                      isOpenStatus
+                        ? "text-emerald-300"
+                        : isPartial
+                        ? "text-blue-300"
+                        : "text-[var(--text-primary)]"
                     }`}
                   >
                     {String(timeLeft.days).padStart(2, "0")}
@@ -205,7 +255,11 @@ export function ShopClosedModal({
                 <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
                   <span
                     className={`font-mono text-2xl sm:text-3xl font-extrabold leading-none ${
-                      isPartial ? "text-blue-300" : "text-[var(--text-primary)]"
+                      isOpenStatus
+                        ? "text-emerald-300"
+                        : isPartial
+                        ? "text-blue-300"
+                        : "text-[var(--text-primary)]"
                     }`}
                   >
                     {String(timeLeft.hours).padStart(2, "0")}
@@ -218,7 +272,11 @@ export function ShopClosedModal({
                 <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
                   <span
                     className={`font-mono text-2xl sm:text-3xl font-extrabold leading-none ${
-                      isPartial ? "text-blue-300" : "text-[var(--text-primary)]"
+                      isOpenStatus
+                        ? "text-emerald-300"
+                        : isPartial
+                        ? "text-blue-300"
+                        : "text-[var(--text-primary)]"
                     }`}
                   >
                     {String(timeLeft.minutes).padStart(2, "0")}
@@ -231,7 +289,11 @@ export function ShopClosedModal({
                 <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
                   <span
                     className={`font-mono text-2xl sm:text-3xl font-extrabold leading-none ${
-                      isPartial ? "text-blue-300" : "text-[var(--text-primary)]"
+                      isOpenStatus
+                        ? "text-emerald-300"
+                        : isPartial
+                        ? "text-blue-300"
+                        : "text-[var(--text-primary)]"
                     }`}
                   >
                     {String(timeLeft.seconds).padStart(2, "0")}
@@ -253,7 +315,7 @@ export function ShopClosedModal({
 
           {/* Quick contact alternatives */}
           <div className="flex items-center justify-between text-xs text-[var(--text-muted)] pt-1 border-t border-[var(--border-subtle)]">
-            <span>Need urgent assistance?</span>
+            <span>Need direct assistance?</span>
             <div className="flex items-center gap-3">
               <button
                 onClick={handleOpenWhatsApp}
@@ -264,7 +326,7 @@ export function ShopClosedModal({
               </button>
               <span>•</span>
               <a
-                href="tel:+9779808950275"
+                href={`tel:${shopStatus?.contactPhone || "+9779845991878"}`}
                 className="text-xs font-semibold text-[var(--text-primary)] hover:underline flex items-center gap-1"
               >
                 <Phone size={13} />
@@ -279,7 +341,13 @@ export function ShopClosedModal({
               onClick={onClose}
               className="btn btn-primary w-full py-3 text-sm font-bold gap-2 justify-center shadow-lg"
             >
-              <span>{isPartial ? "Acknowledge & Browse Available Services" : "Acknowledge & Browse Catalog"}</span>
+              <span>
+                {isOpenStatus
+                  ? "Acknowledge & Start Exploring"
+                  : isPartial
+                  ? "Acknowledge & Browse Available Services"
+                  : "Acknowledge & Browse Catalog"}
+              </span>
               <ArrowRight size={15} />
             </button>
           </div>

@@ -24,6 +24,8 @@ export function ShopStatusManagement({
     status: "open", // 'open' | 'partial' | 'closed'
     isOpen: true,
     title: "Pixel Perfect is Open",
+    openTitle: "Pixel Perfect is Open & Operating",
+    closedTitle: "We're Currently Closed",
     partialTitle: "Partial Service Availability • Selected Hours",
     closedMessage:
       "We are currently closed for off-hours / maintenance. You can still explore our catalog and submit project inquiries or WhatsApp messages. We will process them immediately once open!",
@@ -35,7 +37,9 @@ export function ShopStatusManagement({
     timerTarget: "",
     timerLabel: "Next Window In",
     timerAction: "reopen",
+    showPopupWhenOpen: false,
     showPopupWhenClosed: true,
+    showPopupWhenPartial: true,
     contactPhone: "+977 9845991878",
     contactEmail: "perfectpixel300@gmail.com",
   });
@@ -65,8 +69,15 @@ export function ShopStatusManagement({
         status: currentStatus,
         isOpen: currentStatus !== "closed",
         title: shopStatus.title || "Pixel Perfect is Open",
+        openTitle:
+          shopStatus.openTitle ||
+          (currentStatus === "open" ? shopStatus.title : "Pixel Perfect is Open & Operating"),
+        closedTitle:
+          shopStatus.closedTitle ||
+          (currentStatus === "closed" ? shopStatus.title : "We're Currently Closed"),
         partialTitle:
-          shopStatus.partialTitle || "Partial Service Availability • Selected Hours",
+          shopStatus.partialTitle ||
+          (currentStatus === "partial" ? shopStatus.title : "Partial Service Availability • Selected Hours"),
         closedMessage:
           shopStatus.closedMessage ||
           "We are currently closed for off-hours / maintenance. You can still explore our catalog and submit project inquiries or WhatsApp messages. We will process them immediately once open!",
@@ -83,9 +94,17 @@ export function ShopStatusManagement({
           shopStatus.timerLabel ||
           (currentStatus === "partial" ? "Full Services In" : "Reopening In"),
         timerAction: shopStatus.timerAction || "reopen",
+        showPopupWhenOpen:
+          shopStatus.showPopupWhenOpen !== undefined
+            ? Boolean(shopStatus.showPopupWhenOpen)
+            : false,
         showPopupWhenClosed:
           shopStatus.showPopupWhenClosed !== undefined
             ? Boolean(shopStatus.showPopupWhenClosed)
+            : true,
+        showPopupWhenPartial:
+          shopStatus.showPopupWhenPartial !== undefined
+            ? Boolean(shopStatus.showPopupWhenPartial)
             : true,
         contactPhone: shopStatus.contactPhone || "+977 9845991878",
         contactEmail: shopStatus.contactEmail || "perfectpixel300@gmail.com",
@@ -171,10 +190,34 @@ export function ShopStatusManagement({
     e.preventDefault();
     try {
       setIsSubmitting(true);
+      const activeTitle =
+        formData.status === "open"
+          ? formData.openTitle || "Pixel Perfect is Open"
+          : formData.status === "partial"
+          ? formData.partialTitle || "Partial Service Availability"
+          : formData.closedTitle || "We're Currently Closed";
+
       const payload = {
         ...formData,
         isOpen: formData.status !== "closed",
-        timerTarget: formData.timerTarget ? new Date(formData.timerTarget).toISOString() : null,
+        title: activeTitle,
+        openTitle: (formData.openTitle || "").trim(),
+        closedTitle: (formData.closedTitle || "").trim(),
+        partialTitle: (formData.partialTitle || "").trim(),
+        closedMessage: (formData.closedMessage || "").trim(),
+        partialMessage: (formData.partialMessage || "").trim(),
+        openMessage: (formData.openMessage || "").trim(),
+        bannerNotice: (formData.bannerNotice || "").trim(),
+        timerEnabled: Boolean(formData.timerEnabled),
+        timerTarget:
+          formData.timerEnabled && formData.timerTarget
+            ? new Date(formData.timerTarget).toISOString()
+            : null,
+        showPopupWhenOpen: Boolean(formData.showPopupWhenOpen),
+        showPopupWhenClosed: Boolean(formData.showPopupWhenClosed),
+        showPopupWhenPartial: Boolean(formData.showPopupWhenPartial),
+        contactPhone: (formData.contactPhone || "").trim(),
+        contactEmail: (formData.contactEmail || "").trim(),
       };
       await onUpdateShopStatus(payload);
       showToast(
@@ -184,7 +227,8 @@ export function ShopStatusManagement({
             : formData.status === "partial"
             ? "PARTIAL AVAILABILITY 🔵"
             : "CLOSED 🔴"
-        }`
+        }`,
+        "success"
       );
     } catch (err) {
       showToast(err.message || "Failed to update shop status", "error");
@@ -502,15 +546,71 @@ export function ShopStatusManagement({
           {/* Visitor Notification Messages */}
           <div className="p-6 rounded-[var(--radius-lg)] bg-[var(--bg-card)] border border-[var(--border-medium)] flex flex-col gap-4">
             <h3 className="text-base font-extrabold m-0 text-[var(--text-primary)]">
-              Visitor Notification Messages
+              Visitor Notification Messages & Modals
             </h3>
 
             {/* Dynamic fields based on current status */}
+            {formData.status === "open" && (
+              <div className="flex flex-col gap-4 p-4 rounded-[var(--radius-md)] bg-emerald-500/10 border border-emerald-500/30">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                  <CheckCircle2 size={15} />
+                  <span>Open Storefront Notice & Modal Configuration</span>
+                </div>
+                <div className="form-group !mb-0">
+                  <label className="form-label">Open Notice Headline</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Pixel Perfect is Open & Operating"
+                    value={formData.openTitle}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, openTitle: e.target.value }))}
+                    className="form-input text-xs"
+                  />
+                </div>
+                <div className="form-group !mb-0">
+                  <label className="form-label">Open Status Announcement (Shown to Visitors)</label>
+                  <textarea
+                    rows="2"
+                    placeholder="Message displayed when shop is open and client views status..."
+                    value={formData.openMessage}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, openMessage: e.target.value }))
+                    }
+                    className="form-textarea text-xs !min-h-[60px]"
+                  />
+                </div>
+
+                {/* Show Popup Modal Toggle for Open Status */}
+                <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center justify-between mt-1">
+                  <div>
+                    <div className="text-xs font-bold text-[var(--text-primary)]">
+                      Show Announcement Modal on First Visit (Open Status)
+                    </div>
+                    <div className="text-[0.7rem] text-[var(--text-muted)] mt-0.5">
+                      When enabled, first-time visitors will see the open announcement popup modal immediately upon landing on the website.
+                    </div>
+                  </div>
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={formData.showPopupWhenOpen}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          showPopupWhenOpen: e.target.checked,
+                        }))
+                      }
+                    />
+                    <span className="toggle-slider" />
+                  </label>
+                </div>
+              </div>
+            )}
+
             {formData.status === "partial" && (
               <div className="flex flex-col gap-4 p-4 rounded-[var(--radius-md)] bg-blue-500/10 border border-blue-500/30">
                 <div className="flex items-center gap-2 text-blue-400 font-bold text-xs">
                   <Info size={15} />
-                  <span>Partial Availability Notice Fields</span>
+                  <span>Partial Availability Notice & Modal Configuration</span>
                 </div>
                 <div className="form-group !mb-0">
                   <label className="form-label">Partial Notice Headline</label>
@@ -534,6 +634,31 @@ export function ShopStatusManagement({
                     className="form-textarea text-xs !min-h-[75px]"
                   />
                 </div>
+
+                {/* Show Popup Modal Toggle for Partial Status */}
+                <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center justify-between mt-1">
+                  <div>
+                    <div className="text-xs font-bold text-[var(--text-primary)]">
+                      Show Announcement Modal on First Visit (Partial Status)
+                    </div>
+                    <div className="text-[0.7rem] text-[var(--text-muted)] mt-0.5">
+                      When enabled, first-time visitors will see the partial service announcement popup modal immediately upon opening the website.
+                    </div>
+                  </div>
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={formData.showPopupWhenPartial}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          showPopupWhenPartial: e.target.checked,
+                        }))
+                      }
+                    />
+                    <span className="toggle-slider" />
+                  </label>
+                </div>
               </div>
             )}
 
@@ -541,15 +666,15 @@ export function ShopStatusManagement({
               <div className="flex flex-col gap-4 p-4 rounded-[var(--radius-md)] bg-red-500/10 border border-red-500/30">
                 <div className="flex items-center gap-2 text-red-400 font-bold text-xs">
                   <ShieldAlert size={15} />
-                  <span>Store Closed Notice Fields</span>
+                  <span>Store Closed Notice & Modal Configuration</span>
                 </div>
                 <div className="form-group !mb-0">
                   <label className="form-label">Closed Notice Headline</label>
                   <input
                     type="text"
                     placeholder="e.g. We're Currently Closed / Under Maintenance"
-                    value={formData.title}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                    value={formData.closedTitle}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, closedTitle: e.target.value }))}
                     className="form-input text-xs"
                   />
                 </div>
@@ -565,21 +690,31 @@ export function ShopStatusManagement({
                     className="form-textarea text-xs !min-h-[75px]"
                   />
                 </div>
-              </div>
-            )}
 
-            {formData.status === "open" && (
-              <div className="form-group !mb-0">
-                <label className="form-label">Open Status Announcement (Shown in Popover)</label>
-                <textarea
-                  rows="2"
-                  placeholder="Message displayed when shop is open and client clicks status..."
-                  value={formData.openMessage}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, openMessage: e.target.value }))
-                  }
-                  className="form-textarea text-xs !min-h-[55px]"
-                />
+                {/* Show Popup Modal Toggle for Closed Status */}
+                <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center justify-between mt-1">
+                  <div>
+                    <div className="text-xs font-bold text-[var(--text-primary)]">
+                      Show Announcement Modal on First Visit (Closed Status)
+                    </div>
+                    <div className="text-[0.7rem] text-[var(--text-muted)] mt-0.5">
+                      When enabled, visitors will see the store closed announcement popup modal upon opening the website.
+                    </div>
+                  </div>
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={formData.showPopupWhenClosed}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          showPopupWhenClosed: e.target.checked,
+                        }))
+                      }
+                    />
+                    <span className="toggle-slider" />
+                  </label>
+                </div>
               </div>
             )}
 
@@ -616,31 +751,6 @@ export function ShopStatusManagement({
                   className="form-input text-xs font-mono"
                 />
               </div>
-            </div>
-
-            {/* Show Popup Modal Toggle */}
-            <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-between mt-2">
-              <div>
-                <div className="text-xs font-bold text-[var(--text-primary)]">
-                  Show Automatic Announcement Modal on Initial Page Load
-                </div>
-                <div className="text-[0.7rem] text-[var(--text-muted)] mt-0.5">
-                  When enabled, visitors will see the full announcement popup instantly upon opening the site if closed or partial.
-                </div>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={formData.showPopupWhenClosed}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      showPopupWhenClosed: e.target.checked,
-                    }))
-                  }
-                />
-                <span className="toggle-slider" />
-              </label>
             </div>
           </div>
 
@@ -756,10 +866,10 @@ export function ShopStatusManagement({
                     </span>
                     <h4 className="text-sm font-extrabold m-0 leading-tight">
                       {formData.status === "partial"
-                        ? formData.partialTitle || "Partial Service Availability"
+                        ? formData.partialTitle || "Partial Service Availability • Selected Hours"
                         : formData.status === "closed"
-                        ? formData.title || "We're Currently Closed"
-                        : formData.title || "Pixel Perfect is Open"}
+                        ? formData.closedTitle || "We're Currently Closed"
+                        : formData.openTitle || "Pixel Perfect is Open & Operating"}
                     </h4>
                   </div>
                 </div>
@@ -812,7 +922,11 @@ export function ShopStatusManagement({
                   type="button"
                   className="btn btn-primary btn-sm w-full font-bold text-xs py-2"
                 >
-                  Acknowledge & Browse Catalog
+                  {formData.status === "open"
+                    ? "Acknowledge & Start Exploring"
+                    : formData.status === "partial"
+                    ? "Acknowledge & Browse Available Services"
+                    : "Acknowledge & Browse Catalog"}
                 </button>
               </div>
             ) : (

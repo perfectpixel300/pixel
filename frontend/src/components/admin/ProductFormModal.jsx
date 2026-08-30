@@ -49,10 +49,17 @@ export function ProductFormModal({
         category: editingProduct.category || defaultCategory,
         indicativePrice: editingProduct.indicativePrice !== undefined ? editingProduct.indicativePrice : "",
         discountPrice:
-          editingProduct.discountPrice !== undefined && editingProduct.discountPrice !== 0
+          editingProduct.discountPrice !== undefined &&
+          editingProduct.discountPrice !== null &&
+          Number(editingProduct.discountPrice) > 0
             ? editingProduct.discountPrice
             : "",
-        costPrice: editingProduct.costPrice !== undefined ? editingProduct.costPrice : "",
+        costPrice:
+          editingProduct.costPrice !== undefined &&
+          editingProduct.costPrice !== null &&
+          Number(editingProduct.costPrice) > 0
+            ? editingProduct.costPrice
+            : "",
         stock: editingProduct.stock !== undefined ? editingProduct.stock : 25,
         description: editingProduct.description || "",
         images: Array.isArray(editingProduct.images) ? [...editingProduct.images] : [],
@@ -223,8 +230,20 @@ export function ProductFormModal({
     onSubmit({
       ...formData,
       indicativePrice: Number(formData.indicativePrice),
-      discountPrice: formData.discountPrice !== "" ? Number(formData.discountPrice) : 0,
-      costPrice: formData.costPrice !== "" ? Number(formData.costPrice) : 0,
+      discountPrice:
+        formData.discountPrice !== "" &&
+        formData.discountPrice !== null &&
+        !isNaN(Number(formData.discountPrice)) &&
+        Number(formData.discountPrice) > 0
+          ? Number(formData.discountPrice)
+          : 0,
+      costPrice:
+        formData.costPrice !== "" &&
+        formData.costPrice !== null &&
+        !isNaN(Number(formData.costPrice)) &&
+        Number(formData.costPrice) > 0
+          ? Number(formData.costPrice)
+          : 0,
       stock: stockNum,
       isAvailable: isAvailableVal,
       featured: Boolean(formData.featured),
@@ -507,14 +526,14 @@ export function ProductFormModal({
                           loading="lazy"
                         />
                         {idx === 0 && (
-                          <span className="absolute top-1 left-1 badge badge-dark text-[0.6rem] py-0.5 px-1 bg-black/80">
+                          <span className="absolute top-1 left-1 badge badge-dark backdrop-blur-sm text-[0.6rem] py-0.5 px-1.5 shadow-sm">
                             Cover
                           </span>
                         )}
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(idx)}
-                          className="absolute top-1 right-1 btn-icon btn-secondary !w-6 !h-6 bg-black/80 text-[var(--color-danger)] opacity-90 hover:opacity-100"
+                          className="absolute top-1 right-1 btn-icon btn-secondary !w-6 !h-6 text-[var(--color-danger)] shadow-sm"
                           title="Remove image"
                         >
                           <Trash2 size={12} />

@@ -14,11 +14,13 @@ const DEFAULT_PRINTING_CATEGORIES = [
 
 export function PrintingManagement({
   printingServices = [],
+  printingCategories = [],
   onOpenCreateModal,
   onEditService,
   onDeleteService,
   onToggleAvailability,
   onToggleFeatured,
+  onManageCategories,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -26,9 +28,10 @@ export function PrintingManagement({
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [viewMode, setViewMode] = useState("table");
 
-  // Derive all unique categories from existing services and defaults
+  // Derive all unique categories from printingCategories, existing services and defaults
   const allCategories = Array.from(
     new Set([
+      ...(printingCategories || []).map((c) => (typeof c === "string" ? c : c.name)).filter(Boolean),
       ...DEFAULT_PRINTING_CATEGORIES,
       ...printingServices.map((s) => s.category).filter(Boolean),
     ])
@@ -238,6 +241,18 @@ export function PrintingManagement({
               <LayoutGrid size={14} />
             </button>
           </div>
+
+          {onManageCategories && (
+            <button
+              onClick={onManageCategories}
+              className="btn btn-secondary btn-sm gap-1.5"
+              title="Manage printing categories"
+            >
+              <Layers size={13} />
+              <span className="hidden sm:inline">Manage Categories</span>
+              <span className="sm:hidden">Categories</span>
+            </button>
+          )}
 
           <button onClick={onOpenCreateModal} className="btn btn-primary btn-sm gap-1.5">
             <Plus size={13} />
@@ -449,7 +464,7 @@ export function PrintingManagement({
                       SPECIAL PRICE
                     </span>
                   )}
-                  <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-xs text-white text-[0.625rem] px-2 py-0.5 rounded font-mono flex items-center gap-1">
+                  <div className="absolute bottom-2 right-2 badge badge-dark backdrop-blur-sm text-[0.625rem] px-2 py-0.5 rounded font-mono flex items-center gap-1">
                     <Clock size={10} />
                     <span>{s.turnaroundTime || "24-48h"}</span>
                   </div>

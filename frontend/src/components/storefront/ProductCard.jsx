@@ -5,16 +5,11 @@ import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 export function ProductCard({ product, onViewDetails, onInquire }) {
   const rawImage = product?.images && product.images.length > 0 ? product.images[0] : "";
   const imageUrl = getOptimizedImageUrl(rawImage, { width: 600 });
-  const hasDiscount =
-    product?.discountPrice &&
-    Number(product.discountPrice) > 0 &&
-    Number(product.discountPrice) < Number(product.indicativePrice);
+  const regPrice = Number(product?.indicativePrice || product?.price) || 0;
+  const discPrice = Number(product?.discountPrice) || 0;
+  const hasDiscount = Boolean(discPrice > 0 && regPrice > 0 && discPrice < regPrice);
   const discountPercent = hasDiscount
-    ? Math.round(
-        ((Number(product.indicativePrice) - Number(product.discountPrice)) /
-          Number(product.indicativePrice)) *
-          100
-      )
+    ? Math.round(((regPrice - discPrice) / regPrice) * 100)
     : 0;
 
   return (
@@ -47,7 +42,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
             {product.category}
           </span>
           <div className="flex items-center gap-1">
-            {hasDiscount && (
+            {hasDiscount && discountPercent > 0 && (
               <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 shadow-sm">
                 {discountPercent}% OFF
               </span>
@@ -80,15 +75,15 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
             {hasDiscount ? (
               <>
                 <span className="font-bold font-mono text-xs sm:text-[0.95rem] whitespace-nowrap text-emerald-400">
-                  NRs. {Number(product.discountPrice).toLocaleString()}
+                  NRs. {discPrice.toLocaleString()}
                 </span>
                 <span className="text-[0.625rem] sm:text-[0.7rem] text-[var(--text-muted)] line-through font-mono">
-                  NRs. {Number(product.indicativePrice).toLocaleString()}
+                  NRs. {regPrice.toLocaleString()}
                 </span>
               </>
             ) : (
               <span className="font-bold font-mono text-xs sm:text-[0.95rem] whitespace-nowrap text-[var(--text-primary)]">
-                NRs. {Number(product.indicativePrice).toLocaleString()}
+                NRs. {regPrice.toLocaleString()}
               </span>
             )}
           </div>

@@ -239,10 +239,10 @@ export function PrintingPage({
                     ) : (
                       <Printer size={40} className="text-[var(--text-muted)] opacity-30" />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/30 to-transparent opacity-80" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent opacity-80 pointer-events-none" />
 
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
-                      <span className="badge badge-dark text-[0.625rem] bg-black/80 backdrop-blur-xs">
+                      <span className="badge badge-dark text-[0.625rem] backdrop-blur-sm shadow-sm">
                         {service.category}
                       </span>
                       {hasDiscount && (
@@ -261,7 +261,7 @@ export function PrintingPage({
                       </div>
                     )}
 
-                    <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-xs text-white text-[0.65rem] px-2.5 py-1 rounded-[var(--radius-xs)] font-mono flex items-center gap-1.5 border border-white/10">
+                    <div className="absolute bottom-3 right-3 badge badge-dark backdrop-blur-sm text-[0.65rem] px-2.5 py-1 rounded-[var(--radius-xs)] font-mono flex items-center gap-1.5 shadow-sm">
                       <Clock size={11} />
                       <span>{service.turnaroundTime || "24-48 Hours"}</span>
                     </div>

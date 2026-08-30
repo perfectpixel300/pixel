@@ -24,6 +24,7 @@ import { HeroBannerCarousel } from "../components/storefront/HeroBannerCarousel"
 import { FeaturedSection } from "../components/storefront/FeaturedSection";
 import { CategoryGrid } from "../components/storefront/CategoryGrid";
 import { ProductCard } from "../components/storefront/ProductCard";
+import { WebTierCard } from "../components/storefront/WebTierCard";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
 import { getServiceIcon } from "./ServicesPage";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
@@ -232,10 +233,10 @@ export function HomePage({
                         ) : (
                           <Printer size={36} className="text-[var(--text-muted)] opacity-30" />
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/30 to-transparent opacity-80" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent opacity-80 pointer-events-none" />
 
                         <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
-                          <span className="badge badge-dark text-[0.625rem] bg-black/80 backdrop-blur-xs">
+                          <span className="badge badge-dark text-[0.625rem] backdrop-blur-sm shadow-sm">
                             {service.category}
                           </span>
                           {hasDiscount && (
@@ -254,7 +255,7 @@ export function HomePage({
                           </div>
                         )}
 
-                        <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-xs text-white text-[0.65rem] px-2 py-0.5 rounded font-mono flex items-center gap-1">
+                        <div className="absolute bottom-3 right-3 badge badge-dark backdrop-blur-sm text-[0.65rem] px-2 py-0.5 rounded font-mono flex items-center gap-1 shadow-sm">
                           <Clock size={11} />
                           <span>{service.turnaroundTime || "24-48h"}</span>
                         </div>
@@ -514,129 +515,14 @@ export function HomePage({
 
           {/* 3 Symmetrical Tier Subscription Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch mb-14">
-            {displayTiers.map((tier) => {
-              const isPro = tier.packageTier === "professional";
-              const isEnterprise = tier.packageTier === "enterprise";
-
-              return (
-                <div
-                  key={tier._id}
-                  className={`relative rounded-[var(--radius-lg)] flex flex-col p-6 sm:p-8 h-full transition-all duration-300 ${
-                    isPro
-                      ? "bg-[var(--bg-elevated)] border-2 border-[var(--text-primary)] shadow-[var(--shadow-xl)]"
-                      : "bg-[var(--bg-card)] border border-[var(--border-medium)] hover:border-[var(--border-bright)] shadow-sm"
-                  }`}
-                >
-                  {/* Top Badge & Delivery Timeline (Symmetrical Header) */}
-                  <div className="flex justify-between items-center gap-2 h-7 mb-4">
-                    <span
-                      className={`badge text-[0.675rem] px-3 py-1 ${
-                        isPro
-                          ? "badge-white font-extrabold shadow-sm"
-                          : isEnterprise
-                          ? "bg-[var(--btn-primary-bg)]/15 text-[var(--text-primary)] font-bold border border-[var(--border-medium)]"
-                          : "badge-neutral font-semibold"
-                      }`}
-                    >
-                      {tier.tierBadge || (isPro ? "Most Popular Plan" : isEnterprise ? "Enterprise Tier" : "Starter Plan")}
-                    </span>
-
-                    <div className="flex items-center gap-1.5 text-[0.725rem] text-[var(--text-muted)] font-mono">
-                      <Clock size={13} />
-                      <span>{tier.deliveryTime || "1-2 Weeks"}</span>
-                    </div>
-                  </div>
-
-                  {/* Title & Symmetrical Tagline */}
-                  <div>
-                    <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[var(--text-primary)] m-0 leading-tight">
-                      {tier.title}
-                    </h3>
-                    <p className="text-[0.825rem] sm:text-[0.85rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2 h-[42px] m-0">
-                      {tier.shortDescription}
-                    </p>
-                  </div>
-
-                  {/* Symmetrical Price Block in NRs. */}
-                  <div className="my-5 p-4 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-center">
-                    <span className="text-[0.675rem] uppercase font-bold tracking-wider text-[var(--text-muted)]">
-                      {tier.priceType === "hourly" ? "Hourly Rate" : "Package Investment"}
-                    </span>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className="font-mono text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] tracking-tight">
-                        NRs. {Number(tier.price).toLocaleString()}
-                      </span>
-                      <span className="text-[0.75rem] text-[var(--text-muted)] font-mono">
-                        NPR
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Feature Checklist */}
-                  <div className="flex-1 flex flex-col gap-2.5 mb-6">
-                    <span className="text-[0.725rem] uppercase font-bold tracking-[0.1em] text-[var(--text-muted)] flex items-center gap-1.5 mb-1">
-                      <Sparkles size={12} className="text-[var(--text-primary)]" />
-                      <span>Included Features & Capabilities:</span>
-                    </span>
-
-                    <div className="flex flex-col gap-2.5 flex-1">
-                      {tier.features && tier.features.length > 0 ? (
-                        tier.features.map((feat, idx) => (
-                          <div key={idx} className="flex items-start gap-2.5 text-[0.825rem] text-[var(--text-primary)]">
-                            <CheckCircle2
-                              size={15}
-                              className="shrink-0 mt-0.5 text-[var(--text-primary)] opacity-90"
-                            />
-                            <span className="leading-snug">{feat}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-xs text-[var(--text-muted)]">Full-stack digital deliverables included</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Symmetrical Tech Stack Badges */}
-                  <div className="min-h-[38px] flex flex-wrap items-center gap-1.5 pt-3 mb-5 border-t border-[var(--border-subtle)]">
-                    {tier.technologies && tier.technologies.length > 0 ? (
-                      tier.technologies.map((tech, idx) => (
-                        <span
-                          key={idx}
-                          className="text-[0.675rem] font-mono px-2.5 py-0.5 rounded bg-[var(--bg-input)] text-[var(--text-secondary)] border border-[var(--border-subtle)]"
-                        >
-                          {tech}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-[0.675rem] font-mono text-[var(--text-muted)]">MERN Stack Architecture</span>
-                    )}
-                  </div>
-
-                  {/* Action Buttons Anchored to Bottom */}
-                  <div className="flex flex-col gap-2.5 mt-auto pt-2">
-                    <button
-                      onClick={() => handleSubscribePlan(tier)}
-                      className={`btn w-full py-3.5 gap-2 font-bold text-[0.875rem] !rounded-[var(--radius-sm)] transition-all ${
-                        isPro
-                          ? "btn-primary shadow-md hover:shadow-lg"
-                          : "btn-secondary hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
-                      }`}
-                    >
-                      <span>Subscribe to This Plan</span>
-                      <ArrowRight size={15} />
-                    </button>
-
-                    <button
-                      onClick={() => handleOpenWhatsAppTier(tier)}
-                      className="btn btn-ghost btn-sm text-[0.75rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1.5"
-                    >
-                      <MessageCircle size={13} />
-                      <span>Inquire via WhatsApp</span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+            {displayTiers.map((tier) => (
+              <WebTierCard
+                key={tier._id}
+                tier={tier}
+                onSubscribe={handleSubscribePlan}
+                onWhatsApp={(title, price) => handleOpenWhatsAppTier(tier)}
+              />
+            ))}
           </div>
 
           {/* Bottom Trust & Assurance Footer */}
@@ -721,125 +607,154 @@ export function HomePage({
 
             {/* Grid of Other IT Services */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {otherItServices.map((service) => (
-                <div
-                  key={service._id}
-                  className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-md)] overflow-hidden flex flex-col transition-all duration-200 hover:shadow-[var(--shadow-md)] group"
-                >
-                  {/* Top image or banner if available */}
-                  {service.bannerImage && (
-                    <div className="h-36 relative overflow-hidden bg-[var(--bg-sidebar)]">
-                      <img
-                        src={getOptimizedImageUrl(service.bannerImage, { width: 800 })}
-                        alt={service.title}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/40 to-transparent" />
-                      <div className="absolute top-3 left-3">
-                        <span className="badge badge-dark text-[0.625rem]">
-                          {service.category}
-                        </span>
-                      </div>
-                      {service.isFeatured && (
-                        <div className="absolute top-3 right-3">
-                          <span className="badge badge-white text-[0.6rem] gap-1">
-                            <Star size={10} fill="currentColor" />
-                            <span>Featured</span>
+              {otherItServices.map((service) => {
+                const regPrice = Number(service.price) || 0;
+                const discPrice = Number(service.discountPrice) || 0;
+                const hasDiscount = Boolean(discPrice > 0 && discPrice < regPrice);
+                const discountPercent = hasDiscount
+                  ? Math.round(((regPrice - discPrice) / regPrice) * 100)
+                  : 0;
+                const activePrice = hasDiscount ? discPrice : regPrice;
+
+                return (
+                  <div
+                    key={service._id}
+                    className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-md)] overflow-hidden flex flex-col transition-all duration-200 hover:shadow-[var(--shadow-md)] group"
+                  >
+                    {/* Top image or banner if available */}
+                    {service.bannerImage && (
+                      <div className="h-36 relative overflow-hidden bg-[var(--bg-sidebar)]">
+                        <img
+                          src={getOptimizedImageUrl(service.bannerImage, { width: 800 })}
+                          alt={service.title}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/40 to-transparent" />
+                        <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
+                          <span className="badge badge-dark text-[0.625rem]">
+                            {service.category}
                           </span>
+                          {hasDiscount && (
+                            <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] px-1.5 py-0.5 shadow-sm">
+                              {discountPercent}% OFF
+                            </span>
+                          )}
+                        </div>
+                        {service.isFeatured && (
+                          <div className="absolute top-3 right-3">
+                            <span className="badge badge-white text-[0.6rem] gap-1">
+                              <Star size={10} fill="currentColor" />
+                              <span>Featured</span>
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Body Content */}
+                    <div className="p-5 sm:p-6 flex flex-col flex-1 gap-3">
+                      {!service.bannerImage && (
+                        <div className="flex justify-between items-center">
+                          <div className="w-9 h-9 rounded-[var(--radius-xs)] bg-[var(--bg-elevated)] text-[var(--text-primary)] flex items-center justify-center">
+                            {getServiceIcon(service.icon, 18)}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {hasDiscount && (
+                              <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] px-1.5 py-0.5 shadow-sm">
+                                {discountPercent}% OFF
+                              </span>
+                            )}
+                            <span className="badge badge-neutral text-[0.625rem]">
+                              {service.category}
+                            </span>
+                          </div>
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {/* Body Content */}
-                  <div className="p-5 sm:p-6 flex flex-col flex-1 gap-3">
-                    {!service.bannerImage && (
-                      <div className="flex justify-between items-center">
-                        <div className="w-9 h-9 rounded-[var(--radius-xs)] bg-[var(--bg-elevated)] text-[var(--text-primary)] flex items-center justify-center">
-                          {getServiceIcon(service.icon, 18)}
-                        </div>
-                        <span className="badge badge-neutral text-[0.625rem]">
-                          {service.category}
-                        </span>
-                      </div>
-                    )}
-
-                    <div>
-                      <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug">
-                        {service.title}
-                      </h3>
-                      <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2">
-                        {service.shortDescription}
-                      </p>
-                    </div>
-
-                    {/* Pricing in NPr & Delivery Time */}
-                    <div className="pt-2 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
                       <div>
-                        <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
-                          {service.priceType === "hourly"
-                            ? "Hourly Rate"
-                            : service.priceType === "fixed"
-                            ? "Fixed Investment"
-                            : "Starting From"}
-                        </span>
-                        <span className="font-mono text-base font-bold text-[var(--text-primary)]">
-                          NRs. {Number(service.price).toLocaleString()}
-                        </span>
+                        <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug">
+                          {service.title}
+                        </h3>
+                        <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2">
+                          {service.shortDescription}
+                        </p>
                       </div>
 
-                      <div className="text-right">
-                        <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
-                          Timeline
-                        </span>
-                        <span className="text-xs text-[var(--text-secondary)] font-mono">
-                          {service.deliveryTime || "1-2 Weeks"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Features Snippet (Top 3) */}
-                    {service.features && service.features.length > 0 && (
-                      <div className="flex flex-col gap-1.5 pt-2">
-                        {service.features.slice(0, 3).map((feat, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                            <CheckCircle2 size={12} className="text-white shrink-0" />
-                            <span className="truncate">{feat}</span>
+                      {/* Pricing in NPr & Delivery Time */}
+                      <div className="pt-2 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
+                        <div>
+                          <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
+                            {service.priceType === "hourly"
+                              ? "Hourly Rate"
+                              : service.priceType === "fixed"
+                              ? "Fixed Investment"
+                              : "Starting From"}
+                          </span>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className={`font-mono text-base font-bold ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
+                              NRs. {activePrice.toLocaleString()}
+                            </span>
+                            {hasDiscount && (
+                              <span className="font-mono text-xs text-[var(--text-muted)] line-through">
+                                NRs. {regPrice.toLocaleString()}
+                              </span>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        </div>
 
-                    {/* Actions */}
-                    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--border-subtle)]">
-                      <button
-                        onClick={() => setSelectedServiceDetail(service)}
-                        className="btn btn-secondary btn-sm text-[0.75rem]"
-                      >
-                        View Details
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (onInquireService) {
-                            onInquireService({
-                              name: service.title,
-                              indicativePrice: service.price,
-                              type: "service",
-                              category: service.category,
-                              description: service.shortDescription || service.description,
-                            });
-                          }
-                        }}
-                        className="btn btn-primary btn-sm text-[0.75rem]"
-                      >
-                        Inquire
-                      </button>
+                        <div className="text-right">
+                          <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
+                            Timeline
+                          </span>
+                          <span className="text-xs text-[var(--text-secondary)] font-mono">
+                            {service.deliveryTime || "1-2 Weeks"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Features Snippet (Top 3) */}
+                      {service.features && service.features.length > 0 && (
+                        <div className="flex flex-col gap-1.5 pt-2">
+                          {service.features.slice(0, 3).map((feat, idx) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                              <CheckCircle2 size={12} className="text-white shrink-0" />
+                              <span className="truncate">{feat}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--border-subtle)]">
+                        <button
+                          onClick={() => setSelectedServiceDetail(service)}
+                          className="btn btn-secondary btn-sm text-[0.75rem]"
+                        >
+                          View Details
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (onInquireService) {
+                              onInquireService({
+                                name: service.title,
+                                indicativePrice: activePrice,
+                                type: "service",
+                                category: service.category,
+                                description: service.shortDescription || service.description,
+                              });
+                            }
+                          }}
+                          className="btn btn-primary btn-sm text-[0.75rem]"
+                        >
+                          Inquire
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -914,9 +829,30 @@ export function HomePage({
                   <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
                     Investment
                   </span>
-                  <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
-                    NRs. {Number(selectedServiceDetail.price).toLocaleString()}
-                  </span>
+                  {selectedServiceDetail.discountPrice &&
+                  Number(selectedServiceDetail.discountPrice) > 0 &&
+                  Number(selectedServiceDetail.discountPrice) < Number(selectedServiceDetail.price) ? (
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-mono text-xl font-extrabold text-emerald-400">
+                        NRs. {Number(selectedServiceDetail.discountPrice).toLocaleString()}
+                      </span>
+                      <span className="font-mono text-xs text-[var(--text-muted)] line-through">
+                        NRs. {Number(selectedServiceDetail.price).toLocaleString()}
+                      </span>
+                      <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] px-1.5 py-0.2 shadow-sm">
+                        {Math.round(
+                          ((Number(selectedServiceDetail.price) - Number(selectedServiceDetail.discountPrice)) /
+                            Number(selectedServiceDetail.price)) *
+                            100
+                        )}
+                        % OFF
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
+                      NRs. {Number(selectedServiceDetail.price).toLocaleString()}
+                    </span>
+                  )}
                 </div>
                 <div className="text-right">
                   <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">

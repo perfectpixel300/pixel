@@ -531,7 +531,7 @@ export function Navbar({
                       <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                         <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
-                          Storefront Live & Operating
+                          {shopStatus?.openTitle || "Storefront Live & Operating"}
                         </span>
                       </div>
                       <p className="text-xs text-[var(--text-secondary)] leading-relaxed m-0">

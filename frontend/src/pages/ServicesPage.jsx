@@ -28,6 +28,7 @@ import {
   Info,
 } from "lucide-react";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
+import { WebTierCard } from "../components/storefront/WebTierCard";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 
 const DEFAULT_IT_CATEGORIES = [
@@ -241,148 +242,14 @@ export function ServicesPage({
 
             {/* 3 Symmetrical Categories / Tiers Pricing Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mt-8 sm:mt-10 relative z-10 items-stretch">
-              {webDevPackages.map((pkg) => {
-                const isPro = pkg.packageTier === "professional";
-                const isEnterprise = pkg.packageTier === "enterprise";
-                const hasDiscount =
-                  pkg.discountPrice &&
-                  Number(pkg.discountPrice) > 0 &&
-                  Number(pkg.discountPrice) < Number(pkg.price);
-                const discountPercent = hasDiscount
-                  ? Math.round(((Number(pkg.price) - Number(pkg.discountPrice)) / Number(pkg.price)) * 100)
-                  : 0;
-                const activePrice = hasDiscount ? Number(pkg.discountPrice) : Number(pkg.price);
-
-                return (
-                  <div
-                    key={pkg._id}
-                    className={`relative rounded-[var(--radius-lg)] flex flex-col p-6 sm:p-8 h-full transition-all duration-300 ${
-                      isPro
-                        ? "bg-[var(--bg-elevated)] border-2 border-[var(--text-primary)] shadow-[var(--shadow-xl)]"
-                        : "bg-[var(--bg-card)] border border-[var(--border-medium)] hover:border-[var(--border-bright)] shadow-sm"
-                    }`}
-                  >
-                    {/* Top Tier Badge & Delivery Timeline (Symmetrical Header) */}
-                    <div className="flex justify-between items-center gap-2 h-7 mb-4">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span
-                          className={`badge text-[0.675rem] px-3 py-1 ${
-                            isPro
-                              ? "badge-white font-extrabold shadow-sm"
-                              : isEnterprise
-                              ? "bg-[var(--btn-primary-bg)]/15 text-[var(--text-primary)] font-bold border border-[var(--border-medium)]"
-                              : "badge-neutral font-semibold"
-                          }`}
-                        >
-                          {pkg.tierBadge || (isPro ? "Most Popular Plan" : isEnterprise ? "Enterprise Tier" : "Starter Plan")}
-                        </span>
-                        {hasDiscount && (
-                          <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.65rem] px-2 py-0.5 shadow-sm">
-                            {discountPercent}% OFF
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1.5 text-[0.725rem] text-[var(--text-muted)] font-mono">
-                        <Clock size={13} />
-                        <span>{pkg.deliveryTime || "1-2 Weeks"}</span>
-                      </div>
-                    </div>
-
-                    {/* Title & Symmetrical Tagline */}
-                    <div>
-                      <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight m-0 text-[var(--text-primary)] leading-tight">
-                        {pkg.title}
-                      </h3>
-                      <p className="text-[0.825rem] sm:text-[0.85rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2 h-[42px] m-0">
-                        {pkg.shortDescription}
-                      </p>
-                    </div>
-
-                    {/* Symmetrical Price Block in NRs. */}
-                    <div className="my-5 p-4 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-center">
-                      <span className="text-[0.675rem] uppercase font-bold tracking-wider text-[var(--text-muted)]">
-                        {pkg.priceType === "starting_at" ? "Starting From" : pkg.priceType === "hourly" ? "Hourly Rate" : "Package Investment"}
-                      </span>
-                      <div className="flex items-baseline gap-2 mt-1">
-                        <span className={`font-mono text-3xl sm:text-4xl font-extrabold tracking-tight ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
-                          NRs. {activePrice.toLocaleString()}
-                        </span>
-                        {hasDiscount && (
-                          <span className="font-mono text-sm text-[var(--text-muted)] line-through">
-                            NRs. {Number(pkg.price).toLocaleString()}
-                          </span>
-                        )}
-                        <span className="text-[0.75rem] text-[var(--text-muted)] font-mono">
-                          NPR
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Features Checklist */}
-                    <div className="flex-1 flex flex-col gap-2.5 mb-6">
-                      <span className="text-[0.725rem] uppercase font-bold tracking-[0.1em] text-[var(--text-muted)] flex items-center gap-1.5 mb-1">
-                        <Sparkles size={12} className="text-[var(--text-primary)]" />
-                        <span>Included Deliverables & Features:</span>
-                      </span>
-                      <div className="flex flex-col gap-2.5 flex-1">
-                        {pkg.features && pkg.features.length > 0 ? (
-                          pkg.features.map((feat, idx) => (
-                            <div key={idx} className="flex items-start gap-2.5 text-[0.825rem] text-[var(--text-primary)]">
-                              <CheckCircle2
-                                size={15}
-                                className="shrink-0 mt-0.5 text-[var(--text-primary)] opacity-90"
-                              />
-                              <span className="leading-snug">{feat}</span>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-xs text-[var(--text-muted)]">Full-stack custom features included</div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Symmetrical Tech Stack Badges */}
-                    <div className="min-h-[38px] flex flex-wrap items-center gap-1.5 pt-3 mb-5 border-t border-[var(--border-subtle)]">
-                      {pkg.technologies && pkg.technologies.length > 0 ? (
-                        pkg.technologies.map((tech, idx) => (
-                          <span
-                            key={idx}
-                            className="text-[0.675rem] font-mono px-2.5 py-0.5 rounded bg-[var(--bg-input)] text-[var(--text-secondary)] border border-[var(--border-subtle)]"
-                          >
-                            {tech}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-[0.675rem] font-mono text-[var(--text-muted)]">MERN Stack Architecture</span>
-                      )}
-                    </div>
-
-                    {/* Action Buttons Anchored to Bottom */}
-                    <div className="flex flex-col gap-2.5 mt-auto pt-2">
-                      <button
-                        onClick={() => handleSubscribePlan(pkg)}
-                        className={`btn w-full py-3.5 gap-2 font-bold text-[0.875rem] !rounded-[var(--radius-sm)] transition-all ${
-                          isPro
-                            ? "btn-primary shadow-md hover:shadow-lg"
-                            : "btn-secondary hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
-                        }`}
-                      >
-                        <span>Subscribe to This Plan</span>
-                        <ArrowRight size={15} />
-                      </button>
-
-                      <button
-                        onClick={() => handleOpenWhatsApp(pkg.title, pkg.price)}
-                        className="btn btn-ghost btn-sm text-[0.75rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1.5"
-                      >
-                        <MessageCircle size={13} />
-                        <span>Inquire via WhatsApp</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+              {webDevPackages.map((pkg) => (
+                <WebTierCard
+                  key={pkg._id}
+                  tier={pkg}
+                  onSubscribe={handleSubscribePlan}
+                  onWhatsApp={(title, price) => handleOpenWhatsApp(title, price)}
+                />
+              ))}
             </div>
 
             {/* Custom Scope Footer Banner */}

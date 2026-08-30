@@ -17,14 +17,22 @@ export function PrintingFormModal({
   onClose,
   onSubmit,
   editingService,
+  printingCategories = [],
   isSubmitting,
 }) {
   const fileInputRef = useRef(null);
 
+  const availableCategories = Array.from(
+    new Set([
+      ...(printingCategories || []).map((c) => (typeof c === "string" ? c : c.name)).filter(Boolean),
+      ...DEFAULT_CATEGORIES,
+    ])
+  );
+
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
-    category: DEFAULT_CATEGORIES[0],
+    category: availableCategories[0] || DEFAULT_CATEGORIES[0],
     customCategory: "",
     shortDescription: "",
     description: "",
@@ -57,22 +65,29 @@ export function PrintingFormModal({
 
   useEffect(() => {
     if (editingService) {
-      const isKnownCategory = DEFAULT_CATEGORIES.includes(editingService.category);
+      const isKnownCategory = availableCategories.includes(editingService.category);
       setIsCustomCategory(!isKnownCategory && Boolean(editingService.category));
 
       setFormData({
         name: editingService.name || "",
         slug: editingService.slug || "",
-        category: isKnownCategory ? editingService.category : "Custom",
+        category: isKnownCategory ? editingService.category : (editingService.category || availableCategories[0]),
         customCategory: isKnownCategory ? "" : editingService.category || "",
         shortDescription: editingService.shortDescription || "",
         description: editingService.description || "",
         indicativePrice: editingService.indicativePrice !== undefined ? editingService.indicativePrice : "",
         discountPrice:
-          editingService.discountPrice !== undefined && editingService.discountPrice !== 0
+          editingService.discountPrice !== undefined &&
+          editingService.discountPrice !== null &&
+          Number(editingService.discountPrice) > 0
             ? editingService.discountPrice
             : "",
-        costPrice: editingService.costPrice !== undefined ? editingService.costPrice : "",
+        costPrice:
+          editingService.costPrice !== undefined &&
+          editingService.costPrice !== null &&
+          Number(editingService.costPrice) > 0
+            ? editingService.costPrice
+            : "",
         priceUnit: editingService.priceUnit || "per page",
         turnaroundTime: editingService.turnaroundTime || "24-48 Hours",
         minOrderQuantity: editingService.minOrderQuantity !== undefined ? editingService.minOrderQuantity : 1,
@@ -248,8 +263,20 @@ export function PrintingFormModal({
       category: resolvedCategory,
       shortDescription: formData.shortDescription || formData.description.slice(0, 160),
       indicativePrice: Number(formData.indicativePrice),
-      discountPrice: formData.discountPrice !== "" ? Number(formData.discountPrice) : 0,
-      costPrice: formData.costPrice !== "" ? Number(formData.costPrice) : 0,
+      discountPrice:
+        formData.discountPrice !== "" &&
+        formData.discountPrice !== null &&
+        !isNaN(Number(formData.discountPrice)) &&
+        Number(formData.discountPrice) > 0
+          ? Number(formData.discountPrice)
+          : 0,
+      costPrice:
+        formData.costPrice !== "" &&
+        formData.costPrice !== null &&
+        !isNaN(Number(formData.costPrice)) &&
+        Number(formData.costPrice) > 0
+          ? Number(formData.costPrice)
+          : 0,
       minOrderQuantity: Number(formData.minOrderQuantity) || 1,
       isAvailable: Boolean(formData.isAvailable),
       featured: Boolean(formData.featured),
@@ -315,7 +342,7 @@ export function PrintingFormModal({
                     }
                   }}
                 >
-                  {DEFAULT_CATEGORIES.map((cat) => (
+                  {availableCategories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>
@@ -621,14 +648,14 @@ export function PrintingFormModal({
                           loading="lazy"
                         />
                         {idx === 0 && (
-                          <span className="absolute top-1 left-1 badge badge-dark text-[0.6rem] py-0.5 px-1 bg-black/80">
+                          <span className="absolute top-1 left-1 badge badge-dark backdrop-blur-sm text-[0.6rem] py-0.5 px-1.5 shadow-sm">
                             Cover
                           </span>
                         )}
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(idx)}
-                          className="absolute top-1 right-1 btn-icon btn-secondary !w-6 !h-6 bg-black/80 text-[var(--color-danger)] opacity-90 hover:opacity-100"
+                          className="absolute top-1 right-1 btn-icon btn-secondary !w-6 !h-6 text-[var(--color-danger)] shadow-sm"
                           title="Remove image"
                         >
                           <Trash2 size={12} />

@@ -16,10 +16,20 @@ const shopStatusSchema = new mongoose.Schema(
       trim: true,
       default: "Pixel Perfect is Open",
     },
+    openTitle: {
+      type: String,
+      trim: true,
+      default: "Pixel Perfect is Open & Operating",
+    },
+    closedTitle: {
+      type: String,
+      trim: true,
+      default: "We're Currently Closed",
+    },
     partialTitle: {
       type: String,
       trim: true,
-      default: "Partial Service Availability",
+      default: "Partial Service Availability • Selected Hours",
     },
     closedMessage: {
       type: String,
@@ -61,7 +71,15 @@ const shopStatusSchema = new mongoose.Schema(
       enum: ["reopen", "close", "custom"],
       default: "reopen",
     },
+    showPopupWhenOpen: {
+      type: Boolean,
+      default: false,
+    },
     showPopupWhenClosed: {
+      type: Boolean,
+      default: true,
+    },
+    showPopupWhenPartial: {
       type: Boolean,
       default: true,
     },

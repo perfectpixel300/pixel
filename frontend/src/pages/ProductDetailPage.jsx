@@ -15,17 +15,12 @@ export function ProductDetailPage({
 
   if (!product) return null;
 
-  const hasDiscount =
-    product.discountPrice &&
-    Number(product.discountPrice) > 0 &&
-    Number(product.discountPrice) < Number(product.indicativePrice);
-  const effectivePrice = hasDiscount ? Number(product.discountPrice) : Number(product.indicativePrice);
+  const regPrice = Number(product.indicativePrice || product.price) || 0;
+  const discPrice = Number(product.discountPrice) || 0;
+  const hasDiscount = Boolean(discPrice > 0 && regPrice > 0 && discPrice < regPrice);
+  const effectivePrice = hasDiscount ? discPrice : regPrice;
   const discountPercent = hasDiscount
-    ? Math.round(
-        ((Number(product.indicativePrice) - Number(product.discountPrice)) /
-          Number(product.indicativePrice)) *
-          100
-      )
+    ? Math.round(((regPrice - discPrice) / regPrice) * 100)
     : 0;
 
   const supportWhatsAppNumber = "+9779808950275";
