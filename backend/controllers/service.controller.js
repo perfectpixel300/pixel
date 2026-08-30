@@ -150,6 +150,8 @@ exports.createService = async (req, res) => {
       shortDescription,
       description,
       price,
+      discountPrice = 0,
+      costPrice = 0,
       priceType = "starting_at",
       deliveryTime = "1-2 Weeks",
       icon = "Code",
@@ -187,6 +189,8 @@ exports.createService = async (req, res) => {
       shortDescription: shortDescription.trim(),
       description: description ? description.trim() : shortDescription.trim(),
       price: Number(price),
+      discountPrice: discountPrice !== undefined ? Number(discountPrice) : 0,
+      costPrice: costPrice !== undefined ? Number(costPrice) : 0,
       priceType,
       currency: "NRs.",
       deliveryTime: deliveryTime ? deliveryTime.trim() : "1-2 Weeks",
@@ -238,6 +242,8 @@ exports.updateService = async (req, res) => {
       shortDescription,
       description,
       price,
+      discountPrice,
+      costPrice,
       priceType,
       deliveryTime,
       icon,
@@ -288,6 +294,8 @@ exports.updateService = async (req, res) => {
     service.shortDescription = shortDescription !== undefined ? shortDescription.trim() : service.shortDescription;
     service.description = description !== undefined ? description.trim() : service.description;
     service.price = price !== undefined ? Number(price) : service.price;
+    if (discountPrice !== undefined) service.discountPrice = Number(discountPrice) || 0;
+    if (costPrice !== undefined) service.costPrice = Number(costPrice) || 0;
     service.priceType = priceType !== undefined ? priceType : service.priceType;
     service.deliveryTime = deliveryTime !== undefined ? deliveryTime.trim() : service.deliveryTime;
     service.icon = icon !== undefined ? icon.trim() : service.icon;

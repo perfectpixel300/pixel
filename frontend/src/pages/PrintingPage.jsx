@@ -212,6 +212,13 @@ export function PrintingPage({
                 service.discountPrice &&
                 Number(service.discountPrice) > 0 &&
                 Number(service.discountPrice) < Number(service.indicativePrice);
+              const discountPercent = hasDiscount
+                ? Math.round(
+                    ((Number(service.indicativePrice) - Number(service.discountPrice)) /
+                      Number(service.indicativePrice)) *
+                      100
+                  )
+                : 0;
               const activePrice = hasDiscount ? Number(service.discountPrice) : Number(service.indicativePrice);
 
               return (
@@ -239,8 +246,8 @@ export function PrintingPage({
                         {service.category}
                       </span>
                       {hasDiscount && (
-                        <span className="badge badge-emerald bg-emerald-500 text-white text-[0.6rem] font-bold">
-                          SPECIAL
+                        <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 shadow-sm">
+                          {discountPercent}% OFF
                         </span>
                       )}
                     </div>
@@ -278,7 +285,7 @@ export function PrintingPage({
                           Investment ({service.priceUnit || "per page"})
                         </span>
                         <div className="flex items-baseline gap-2 mt-0.5">
-                          <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
+                          <span className={`font-mono text-xl font-extrabold ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
                             NRs. {activePrice.toLocaleString()}
                           </span>
                           {hasDiscount && (

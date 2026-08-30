@@ -52,6 +52,8 @@ export function ServiceFormModal({
     shortDescription: "",
     description: "",
     price: 25000,
+    discountPrice: "",
+    costPrice: "",
     priceType: "starting_at",
     deliveryTime: "1-2 Weeks",
     icon: "Code",
@@ -80,6 +82,14 @@ export function ServiceFormModal({
         shortDescription: editingService.shortDescription || "",
         description: editingService.description || "",
         price: editingService.price !== undefined ? editingService.price : 25000,
+        discountPrice:
+          editingService.discountPrice !== undefined && editingService.discountPrice !== null
+            ? editingService.discountPrice
+            : "",
+        costPrice:
+          editingService.costPrice !== undefined && editingService.costPrice !== null
+            ? editingService.costPrice
+            : "",
         priceType: editingService.priceType || "starting_at",
         deliveryTime: editingService.deliveryTime || "1-2 Weeks",
         icon: editingService.icon || "Code",
@@ -108,6 +118,8 @@ export function ServiceFormModal({
         shortDescription: "",
         description: "",
         price: 25000,
+        discountPrice: "",
+        costPrice: "",
         priceType: "starting_at",
         deliveryTime: "1-2 Weeks",
         icon: "Code",
@@ -191,13 +203,14 @@ export function ServiceFormModal({
       return;
     }
     if (
-      formData.price === undefined ||
-      formData.price === null ||
-      formData.price === "" ||
-      isNaN(Number(formData.price)) ||
-      Number(formData.price) < 0
+      formData.discountPrice !== "" &&
+      formData.discountPrice !== null &&
+      formData.discountPrice !== undefined &&
+      !isNaN(Number(formData.discountPrice)) &&
+      Number(formData.discountPrice) > 0 &&
+      Number(formData.discountPrice) >= Number(formData.price)
     ) {
-      setError("Please provide a valid non-negative price in NRs.");
+      setError("Discount price must be less than the regular price in NRs.");
       return;
     }
 
@@ -219,6 +232,14 @@ export function ServiceFormModal({
       shortDescription: formData.shortDescription.trim(),
       description: formData.description?.trim() || formData.shortDescription.trim(),
       price: Number(formData.price),
+      discountPrice:
+        formData.discountPrice !== "" && formData.discountPrice !== null
+          ? Number(formData.discountPrice)
+          : 0,
+      costPrice:
+        formData.costPrice !== "" && formData.costPrice !== null
+          ? Number(formData.costPrice)
+          : 0,
       features: cleanedFeatures,
       technologies: techArray,
       isWebDevPackage: Boolean(formData.isWebDevPackage),
@@ -228,6 +249,17 @@ export function ServiceFormModal({
 
     onSubmit(payload);
   };
+
+  const priceNum = Number(formData.price) || 0;
+  const discountNum = Number(formData.discountPrice) || 0;
+  const costNum = Number(formData.costPrice) || 0;
+  const hasDiscount = discountNum > 0 && discountNum < priceNum;
+  const effectivePrice = hasDiscount ? discountNum : priceNum;
+  const discountPercent = hasDiscount
+    ? Math.round(((priceNum - discountNum) / priceNum) * 100)
+    : 0;
+  const profit = effectivePrice - costNum;
+  const marginPercent = effectivePrice > 0 ? ((profit / effectivePrice) * 100).toFixed(1) : 0;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -346,10 +378,10 @@ export function ServiceFormModal({
             </div>
           </div>
 
-          {/* Price (NRs.), Price Type & Turnaround Time */}
+          {/* Pricing Row: Regular Price, Discount Price, Cost Price */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="form-group !mb-0">
-              <label className="form-label">Price in NRs. *</label>
+              <label className="form-label">Regular Price (NRs.) *</label>
               <input
                 type="number"
                 step="any"
@@ -362,6 +394,42 @@ export function ServiceFormModal({
               />
             </div>
 
+            <div className="form-group !mb-0">
+              <div className="flex justify-between items-center">
+                <label className="form-label !mb-0">Discount Price (NRs.)</label>
+                {hasDiscount && (
+                  <span className="text-[0.625rem] font-mono font-bold text-emerald-400">
+                    {discountPercent}% OFF
+                  </span>
+                )}
+              </div>
+              <input
+                type="number"
+                step="any"
+                min="0"
+                placeholder="Optional (e.g. 45000)"
+                value={formData.discountPrice}
+                onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
+                className="form-input font-mono text-xs border-emerald-500/40 focus:border-emerald-500"
+              />
+            </div>
+
+            <div className="form-group !mb-0">
+              <label className="form-label">Cost Price (Admin Only)</label>
+              <input
+                type="number"
+                step="any"
+                min="0"
+                placeholder="Optional (e.g. 20000)"
+                value={formData.costPrice}
+                onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                className="form-input font-mono text-xs"
+              />
+            </div>
+          </div>
+
+          {/* Price Type & Estimated Delivery */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="form-group !mb-0">
               <label className="form-label">Price Type</label>
               <select
@@ -386,6 +454,30 @@ export function ServiceFormModal({
                 className="form-input text-xs"
               />
             </div>
+          </div>
+
+          {/* Live Pricing Preview Box */}
+          <div className="p-3 rounded-[var(--radius-sm)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-2 text-xs font-mono">
+            <div className="flex items-center gap-2">
+              <span className="text-[var(--text-muted)]">Selling Price:</span>
+              <span className={`font-bold ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
+                NRs. {effectivePrice.toLocaleString()}
+              </span>
+              {hasDiscount && (
+                <span className="text-[var(--text-muted)] line-through text-[0.7rem]">
+                  NRs. {priceNum.toLocaleString()}
+                </span>
+              )}
+            </div>
+
+            {costNum > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[var(--text-muted)]">Expected Profit:</span>
+                <span className={`font-bold ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  {profit >= 0 ? "+" : ""}NRs. {profit.toLocaleString()} ({marginPercent}%)
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Short Summary */}

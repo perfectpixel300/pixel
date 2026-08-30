@@ -79,6 +79,17 @@ export function WebTiersManagement({
             const isPro = pkg.packageTier === "professional";
             const isEnterprise = pkg.packageTier === "enterprise";
 
+            const hasDiscount =
+              pkg.discountPrice &&
+              Number(pkg.discountPrice) > 0 &&
+              Number(pkg.discountPrice) < Number(pkg.price);
+            const discountPercent = hasDiscount
+              ? Math.round(((Number(pkg.price) - Number(pkg.discountPrice)) / Number(pkg.price)) * 100)
+              : 0;
+            const activePrice = hasDiscount ? Number(pkg.discountPrice) : Number(pkg.price);
+            const cost = Number(pkg.costPrice || 0);
+            const profit = activePrice - cost;
+
             return (
               <div
                 key={pkg._id}
@@ -90,17 +101,24 @@ export function WebTiersManagement({
               >
                 {/* Header info */}
                 <div className="flex justify-between items-center gap-2 h-7 mb-4">
-                  <span
-                    className={`badge text-[0.65rem] px-2.5 py-1 ${
-                      isPro
-                        ? "badge-white font-extrabold"
-                        : isEnterprise
-                        ? "bg-[var(--btn-primary-bg)]/15 text-[var(--text-primary)] font-bold border border-[var(--border-medium)]"
-                        : "badge-neutral font-semibold"
-                    }`}
-                  >
-                    {pkg.tierBadge || (isPro ? "Most Popular" : isEnterprise ? "Enterprise Grade" : "Starter Plan")}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span
+                      className={`badge text-[0.65rem] px-2.5 py-1 ${
+                        isPro
+                          ? "badge-white font-extrabold"
+                          : isEnterprise
+                          ? "bg-[var(--btn-primary-bg)]/15 text-[var(--text-primary)] font-bold border border-[var(--border-medium)]"
+                          : "badge-neutral font-semibold"
+                      }`}
+                    >
+                      {pkg.tierBadge || (isPro ? "Most Popular" : isEnterprise ? "Enterprise Grade" : "Starter Plan")}
+                    </span>
+                    {hasDiscount && (
+                      <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.65rem] px-2 py-0.5">
+                        {discountPercent}% OFF
+                      </span>
+                    )}
+                  </div>
 
                   <button
                     onClick={() => onToggleActive(pkg._id)}
@@ -127,9 +145,16 @@ export function WebTiersManagement({
                     <span className="text-[0.65rem] uppercase font-bold text-[var(--text-muted)] block">
                       Package Investment
                     </span>
-                    <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
-                      NRs. {Number(pkg.price).toLocaleString()}
-                    </span>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`font-mono text-xl font-extrabold ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
+                        NRs. {activePrice.toLocaleString()}
+                      </span>
+                      {hasDiscount && (
+                        <span className="text-xs font-mono text-[var(--text-muted)] line-through">
+                          NRs. {Number(pkg.price).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="text-right">
                     <span className="text-[0.65rem] uppercase font-bold text-[var(--text-muted)] block">

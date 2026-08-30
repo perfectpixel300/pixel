@@ -244,6 +244,14 @@ export function ServicesPage({
               {webDevPackages.map((pkg) => {
                 const isPro = pkg.packageTier === "professional";
                 const isEnterprise = pkg.packageTier === "enterprise";
+                const hasDiscount =
+                  pkg.discountPrice &&
+                  Number(pkg.discountPrice) > 0 &&
+                  Number(pkg.discountPrice) < Number(pkg.price);
+                const discountPercent = hasDiscount
+                  ? Math.round(((Number(pkg.price) - Number(pkg.discountPrice)) / Number(pkg.price)) * 100)
+                  : 0;
+                const activePrice = hasDiscount ? Number(pkg.discountPrice) : Number(pkg.price);
 
                 return (
                   <div
@@ -256,17 +264,24 @@ export function ServicesPage({
                   >
                     {/* Top Tier Badge & Delivery Timeline (Symmetrical Header) */}
                     <div className="flex justify-between items-center gap-2 h-7 mb-4">
-                      <span
-                        className={`badge text-[0.675rem] px-3 py-1 ${
-                          isPro
-                            ? "badge-white font-extrabold shadow-sm"
-                            : isEnterprise
-                            ? "bg-[var(--btn-primary-bg)]/15 text-[var(--text-primary)] font-bold border border-[var(--border-medium)]"
-                            : "badge-neutral font-semibold"
-                        }`}
-                      >
-                        {pkg.tierBadge || (isPro ? "Most Popular Plan" : isEnterprise ? "Enterprise Tier" : "Starter Plan")}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span
+                          className={`badge text-[0.675rem] px-3 py-1 ${
+                            isPro
+                              ? "badge-white font-extrabold shadow-sm"
+                              : isEnterprise
+                              ? "bg-[var(--btn-primary-bg)]/15 text-[var(--text-primary)] font-bold border border-[var(--border-medium)]"
+                              : "badge-neutral font-semibold"
+                          }`}
+                        >
+                          {pkg.tierBadge || (isPro ? "Most Popular Plan" : isEnterprise ? "Enterprise Tier" : "Starter Plan")}
+                        </span>
+                        {hasDiscount && (
+                          <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.65rem] px-2 py-0.5 shadow-sm">
+                            {discountPercent}% OFF
+                          </span>
+                        )}
+                      </div>
 
                       <div className="flex items-center gap-1.5 text-[0.725rem] text-[var(--text-muted)] font-mono">
                         <Clock size={13} />
@@ -290,9 +305,14 @@ export function ServicesPage({
                         {pkg.priceType === "starting_at" ? "Starting From" : pkg.priceType === "hourly" ? "Hourly Rate" : "Package Investment"}
                       </span>
                       <div className="flex items-baseline gap-2 mt-1">
-                        <span className="font-mono text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] tracking-tight">
-                          NRs. {Number(pkg.price).toLocaleString()}
+                        <span className={`font-mono text-3xl sm:text-4xl font-extrabold tracking-tight ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
+                          NRs. {activePrice.toLocaleString()}
                         </span>
+                        {hasDiscount && (
+                          <span className="font-mono text-sm text-[var(--text-muted)] line-through">
+                            NRs. {Number(pkg.price).toLocaleString()}
+                          </span>
+                        )}
                         <span className="text-[0.75rem] text-[var(--text-muted)] font-mono">
                           NPR
                         </span>
@@ -473,120 +493,160 @@ export function ServicesPage({
                 }}
                 className="btn btn-secondary btn-sm mt-4"
               >
-                Reset Filters
+Reset Filters
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {otherItServices.map((service) => (
-                <div
-                  key={service._id}
-                  className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-md)] overflow-hidden flex flex-col transition-all duration-200 hover:shadow-[var(--shadow-md)] group"
-                >
-                  {/* Top image or banner if available */}
-                  {service.bannerImage && (
-                    <div className="h-36 relative overflow-hidden bg-[var(--bg-sidebar)]">
-                      <img
-                        src={getOptimizedImageUrl(service.bannerImage, { width: 800 })}
-                        alt={service.title}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/40 to-transparent" />
-                      <div className="absolute top-3 left-3">
-                        <span className="badge badge-dark text-[0.625rem]">
-                          {service.category}
-                        </span>
-                      </div>
-                      {service.isFeatured && (
-                        <div className="absolute top-3 right-3">
-                          <span className="badge badge-white text-[0.6rem] gap-1">
-                            <Star size={10} fill="currentColor" />
-                            <span>Featured</span>
+              {otherItServices.map((service) => {
+                const hasDiscount =
+                  service.discountPrice &&
+                  Number(service.discountPrice) > 0 &&
+                  Number(service.discountPrice) < Number(service.price);
+                const discountPercent = hasDiscount
+                  ? Math.round(((Number(service.price) - Number(service.discountPrice)) / Number(service.price)) * 100)
+                  : 0;
+                const activePrice = hasDiscount ? Number(service.discountPrice) : Number(service.price);
+
+                return (
+                  <div
+                    key={service._id}
+                    className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-md)] overflow-hidden flex flex-col transition-all duration-200 hover:shadow-[var(--shadow-md)] group"
+                  >
+                    {/* Top image or banner if available */}
+                    {service.bannerImage && (
+                      <div className="h-36 relative overflow-hidden bg-[var(--bg-sidebar)]">
+                        <img
+                          src={getOptimizedImageUrl(service.bannerImage, { width: 800 })}
+                          alt={service.title}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/40 to-transparent" />
+                        <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
+                          <span className="badge badge-dark text-[0.625rem]">
+                            {service.category}
                           </span>
+                          {hasDiscount && (
+                            <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] px-1.5 py-0.5 shadow-sm">
+                              {discountPercent}% OFF
+                            </span>
+                          )}
+                        </div>
+                        {service.isFeatured && (
+                          <div className="absolute top-3 right-3">
+                            <span className="badge badge-white text-[0.6rem] gap-1">
+                              <Star size={10} fill="currentColor" />
+                              <span>Featured</span>
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Body Content */}
+                    <div className="p-5 sm:p-6 flex flex-col flex-1 gap-3">
+                      {!service.bannerImage && (
+                        <div className="flex justify-between items-center">
+                          <div className="w-9 h-9 rounded-[var(--radius-xs)] bg-[var(--bg-elevated)] text-[var(--text-primary)] flex items-center justify-center">
+                            {getServiceIcon(service.icon, 18)}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {hasDiscount && (
+                              <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] px-1.5 py-0.5 shadow-sm">
+                                {discountPercent}% OFF
+                              </span>
+                            )}
+                            <span className="badge badge-neutral text-[0.625rem]">
+                              {service.category}
+                            </span>
+                          </div>
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {/* Body Content */}
-                  <div className="p-5 sm:p-6 flex flex-col flex-1 gap-3">
-                    {!service.bannerImage && (
-                      <div className="flex justify-between items-center">
-                        <div className="w-9 h-9 rounded-[var(--radius-xs)] bg-[var(--bg-elevated)] text-[var(--text-primary)] flex items-center justify-center">
-                          {getServiceIcon(service.icon, 18)}
-                        </div>
-                        <span className="badge badge-neutral text-[0.625rem]">
-                          {service.category}
-                        </span>
-                      </div>
-                    )}
-
-                    <div>
-                      <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug">
-                        {service.title}
-                      </h3>
-                      <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2">
-                        {service.shortDescription}
-                      </p>
-                    </div>
-
-                    {/* Pricing in NPr & Delivery Time */}
-                    <div className="pt-2 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
                       <div>
-                        <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
-                          {service.priceType === "hourly"
-                            ? "Hourly Rate"
-                            : service.priceType === "fixed"
-                            ? "Fixed Investment"
-                            : "Starting From"}
-                        </span>
-                        <span className="font-mono text-base font-bold text-[var(--text-primary)]">
-                          NRs. {Number(service.price).toLocaleString()}
-                        </span>
+                        <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug">
+                          {service.title}
+                        </h3>
+                        <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2">
+                          {service.shortDescription}
+                        </p>
                       </div>
 
-                      <div className="text-right">
-                        <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
-                          Timeline
-                        </span>
-                        <span className="text-xs text-[var(--text-secondary)] font-mono">
-                          {service.deliveryTime || "1-2 Weeks"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Features Snippet (Top 3) */}
-                    {service.features && service.features.length > 0 && (
-                      <div className="flex flex-col gap-1.5 pt-2">
-                        {service.features.slice(0, 3).map((feat, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                            <CheckCircle2 size={12} className="text-white shrink-0" />
-                            <span className="truncate">{feat}</span>
+                      {/* Pricing in NPr & Delivery Time */}
+                      <div className="pt-2 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
+                        <div>
+                          <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
+                            {service.priceType === "hourly"
+                              ? "Hourly Rate"
+                              : service.priceType === "fixed"
+                              ? "Fixed Investment"
+                              : "Starting From"}
+                          </span>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className={`font-mono text-base font-bold ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
+                              NRs. {activePrice.toLocaleString()}
+                            </span>
+                            {hasDiscount && (
+                              <span className="font-mono text-xs text-[var(--text-muted)] line-through">
+                                NRs. {Number(service.price).toLocaleString()}
+                              </span>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        </div>
 
-                    {/* Actions */}
-                    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--border-subtle)]">
-                      <button
-                        onClick={() => setSelectedServiceDetail(service)}
-                        className="btn btn-secondary btn-sm text-[0.75rem]"
-                      >
-                        View Details
-                      </button>
-                      <button
-                        onClick={() => handleSubscribePlan(service)}
-                        className="btn btn-primary btn-sm text-[0.75rem]"
-                      >
-                        Inquire
-                      </button>
+                        <div className="text-right">
+                          <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
+                            Timeline
+                          </span>
+                          <span className="text-xs text-[var(--text-secondary)] font-mono">
+                            {service.deliveryTime || "1-2 Weeks"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Features Snippet (Top 3) */}
+                      {service.features && service.features.length > 0 && (
+                        <div className="flex flex-col gap-1.5 pt-2">
+                          {service.features.slice(0, 3).map((feat, idx) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                              <CheckCircle2 size={12} className="text-white shrink-0" />
+                              <span className="truncate">{feat}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--border-subtle)]">
+                        <button
+                          onClick={() => setSelectedServiceDetail(service)}
+                          className="btn btn-secondary btn-sm text-[0.75rem]"
+                        >
+                          View Details
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (onInquireService) {
+                              onInquireService({
+                                name: service.title,
+                                indicativePrice: activePrice,
+                                type: "service",
+                                category: service.category || "IT Service",
+                                description: service.shortDescription || service.description,
+                              });
+                            }
+                          }}
+                          className="btn btn-primary btn-sm text-[0.75rem]"
+                        >
+                          Inquire
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
@@ -762,9 +822,30 @@ export function ServicesPage({
                   <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
                     Investment
                   </span>
-                  <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
-                    NRs. {Number(selectedServiceDetail.price).toLocaleString()}
-                  </span>
+                  {selectedServiceDetail.discountPrice &&
+                  Number(selectedServiceDetail.discountPrice) > 0 &&
+                  Number(selectedServiceDetail.discountPrice) < Number(selectedServiceDetail.price) ? (
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-mono text-xl font-extrabold text-emerald-400">
+                        NRs. {Number(selectedServiceDetail.discountPrice).toLocaleString()}
+                      </span>
+                      <span className="font-mono text-xs text-[var(--text-muted)] line-through">
+                        NRs. {Number(selectedServiceDetail.price).toLocaleString()}
+                      </span>
+                      <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] px-1.5 py-0.2 shadow-sm">
+                        {Math.round(
+                          ((Number(selectedServiceDetail.price) - Number(selectedServiceDetail.discountPrice)) /
+                            Number(selectedServiceDetail.price)) *
+                            100
+                        )}
+                        % OFF
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
+                      NRs. {Number(selectedServiceDetail.price).toLocaleString()}
+                    </span>
+                  )}
                 </div>
                 <div className="text-right">
                   <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">

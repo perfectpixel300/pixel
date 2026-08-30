@@ -38,6 +38,16 @@ const serviceSchema = new mongoose.Schema(
       required: [true, "Service price in NRs is required"],
       min: [0, "Price cannot be negative"],
     },
+    discountPrice: {
+      type: Number,
+      default: 0,
+      min: [0, "Discount price cannot be negative"],
+    },
+    costPrice: {
+      type: Number,
+      default: 0,
+      min: [0, "Cost price cannot be negative"],
+    },
     priceType: {
       type: String,
       enum: ["starting_at", "fixed", "hourly", "custom_quote"],
