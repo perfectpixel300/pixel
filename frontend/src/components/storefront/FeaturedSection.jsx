@@ -137,7 +137,7 @@ export function FeaturedSection({ products = [], onViewDetails, onInquire, onBro
                   className={`w-9 h-9 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[var(--text-primary)] flex items-center justify-center transition-all ${
                     currentIndex === 0
                       ? "opacity-30 cursor-not-allowed"
-                      : "hover:bg-white hover:text-black cursor-pointer shadow-md"
+                      : "hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] hover:border-transparent cursor-pointer shadow-md"
                   }`}
                   aria-label="Previous featured product"
                 >
@@ -149,7 +149,7 @@ export function FeaturedSection({ products = [], onViewDetails, onInquire, onBro
                   className={`w-9 h-9 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[var(--text-primary)] flex items-center justify-center transition-all ${
                     currentIndex >= maxIndex
                       ? "opacity-30 cursor-not-allowed"
-                      : "hover:bg-white hover:text-black cursor-pointer shadow-md"
+                      : "hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] hover:border-transparent cursor-pointer shadow-md"
                   }`}
                   aria-label="Next featured product"
                 >
@@ -209,8 +209,8 @@ export function FeaturedSection({ products = [], onViewDetails, onInquire, onBro
                   onClick={() => setCurrentIndex(idx)}
                   className={`h-1.5 rounded-full transition-all duration-300 border-none p-0 cursor-pointer ${
                     currentIndex === idx
-                      ? "w-7 bg-white"
-                      : "w-2 bg-zinc-700 hover:bg-zinc-500"
+                      ? "w-7 bg-[var(--text-primary)]"
+                      : "w-2 bg-[var(--border-bright)] hover:bg-[var(--text-secondary)] opacity-60 hover:opacity-100"
                   }`}
                   aria-label={`Go to slide ${idx + 1}`}
                 />
