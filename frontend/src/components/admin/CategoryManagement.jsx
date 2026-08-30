@@ -144,6 +144,7 @@ export function CategoryManagement({
               0
             );
             const profit = val - cost;
+            const margin = val > 0 ? ((profit / val) * 100).toFixed(1) : 0;
 
             return (
               <div
@@ -186,7 +187,12 @@ export function CategoryManagement({
                       <span className="text-zinc-300">NRs. {cost.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center text-emerald-400 font-bold border-t border-[var(--border-subtle)] pt-1 mt-0.5">
-                      <span>Profit:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span>Profit:</span>
+                        <span className="text-[0.625rem] px-1.5 py-0.2 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono">
+                          {margin}%
+                        </span>
+                      </div>
                       <span>+NRs. {profit.toLocaleString()}</span>
                     </div>
                   </div>
