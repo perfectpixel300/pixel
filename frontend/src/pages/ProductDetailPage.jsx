@@ -15,8 +15,21 @@ export function ProductDetailPage({
 
   if (!product) return null;
 
+  const hasDiscount =
+    product.discountPrice &&
+    Number(product.discountPrice) > 0 &&
+    Number(product.discountPrice) < Number(product.indicativePrice);
+  const effectivePrice = hasDiscount ? Number(product.discountPrice) : Number(product.indicativePrice);
+  const discountPercent = hasDiscount
+    ? Math.round(
+        ((Number(product.indicativePrice) - Number(product.discountPrice)) /
+          Number(product.indicativePrice)) *
+          100
+      )
+    : 0;
+
   const atelierWhatsAppNumber = "+9779808950275";
-  const whatsAppText = `Hello Pixel Perfect,\nI am inquiring about "${product.name}" (Price: NRs. ${Number(product.indicativePrice).toLocaleString()}). Please advise on availability and bespoke options.`;
+  const whatsAppText = `Hello Pixel Perfect,\nI am inquiring about "${product.name}" (Price: NRs. ${effectivePrice.toLocaleString()}). Please advise on availability and bespoke options.`;
   const whatsAppUrl = `https://wa.me/${atelierWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
 
   const mainImage = images[activeImgIndex] || "";
@@ -84,7 +97,7 @@ export function ProductDetailPage({
           {/* Right Column: Product Info & Specs */}
           <div className="flex flex-col gap-6">
             <div>
-              <div className="flex gap-2 mb-2.5 flex-wrap">
+              <div className="flex gap-2 mb-2.5 flex-wrap items-center">
                 <span className="badge badge-dark">{product.category}</span>
                 <span
                   className={`badge ${
@@ -97,6 +110,11 @@ export function ProductDetailPage({
                     ? "Available"
                     : "Out of Stock"}
                 </span>
+                {hasDiscount && (
+                  <span className="badge bg-emerald-500 text-white font-mono font-bold">
+                    {discountPercent}% OFF
+                  </span>
+                )}
                 {product.featured && <span className="badge badge-white">Featured Object</span>}
               </div>
 
@@ -104,9 +122,20 @@ export function ProductDetailPage({
                 {product.name}
               </h1>
 
-              <div className="text-2xl font-bold font-mono text-[var(--text-primary)]">
-                NRs. {Number(product.indicativePrice).toLocaleString()}
-              </div>
+              {hasDiscount ? (
+                <div className="flex items-baseline gap-3 mt-2">
+                  <span className="text-3xl font-extrabold font-mono text-emerald-400">
+                    NRs. {effectivePrice.toLocaleString()}
+                  </span>
+                  <span className="text-lg font-mono text-[var(--text-muted)] line-through">
+                    NRs. {Number(product.indicativePrice).toLocaleString()}
+                  </span>
+                </div>
+              ) : (
+                <div className="text-2xl font-bold font-mono text-[var(--text-primary)]">
+                  NRs. {Number(product.indicativePrice).toLocaleString()}
+                </div>
+              )}
             </div>
 
             {/* Description */}

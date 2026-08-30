@@ -32,6 +32,11 @@ const productSchema = new mongoose.Schema(
       required: [true, "Indicative price in NRs is required"],
       min: [0, "Price must be a positive number"],
     },
+    discountPrice: {
+      type: Number,
+      default: 0,
+      min: [0, "Discount price cannot be negative"],
+    },
     costPrice: {
       type: Number,
       default: 0,

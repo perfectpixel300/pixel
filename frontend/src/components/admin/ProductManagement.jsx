@@ -17,8 +17,15 @@ export function ProductManagement({
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [viewMode, setViewMode] = useState("table");
 
+  const getEffectivePrice = (p) => {
+    if (p?.discountPrice && Number(p.discountPrice) > 0 && Number(p.discountPrice) < Number(p.indicativePrice)) {
+      return Number(p.discountPrice);
+    }
+    return Number(p?.indicativePrice) || 0;
+  };
+
   const totalInventoryPrice = products.reduce(
-    (acc, p) => acc + (Number(p?.indicativePrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
+    (acc, p) => acc + getEffectivePrice(p) * (p?.stock !== undefined ? Number(p.stock) : 0),
     0
   );
   const totalCostPrice = products.reduce(
@@ -60,8 +67,8 @@ export function ProductManagement({
       return true;
     })
     .sort((a, b) => {
-      if (sortBy === "price_asc") return (a.indicativePrice || 0) - (b.indicativePrice || 0);
-      if (sortBy === "price_desc") return (b.indicativePrice || 0) - (a.indicativePrice || 0);
+      if (sortBy === "price_asc") return getEffectivePrice(a) - getEffectivePrice(b);
+      if (sortBy === "price_desc") return getEffectivePrice(b) - getEffectivePrice(a);
       if (sortBy === "name_asc") return (a.name || "").localeCompare(b.name || "");
       if (sortBy === "name_desc") return (b.name || "").localeCompare(a.name || "");
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
@@ -299,9 +306,12 @@ export function ProductManagement({
                   const rawImg = p.images && p.images[0] ? p.images[0] : "";
                   const img = getOptimizedImageUrl(rawImg, { width: 120 });
                   const stockNum = p.stock !== undefined ? Number(p.stock) : 0;
-                  const totalVal = (Number(p.indicativePrice) || 0) * stockNum;
+                  const hasDiscount = p.discountPrice && Number(p.discountPrice) > 0 && Number(p.discountPrice) < Number(p.indicativePrice);
+                  const effectivePrice = getEffectivePrice(p);
+                  const totalVal = effectivePrice * stockNum;
                   const totalCost = (Number(p.costPrice) || 0) * stockNum;
                   const profit = totalVal - totalCost;
+
                   return (
                     <tr key={p._id} className="border-b border-[var(--border-subtle)]">
                       <td className="py-3 px-3.5">
@@ -323,7 +333,18 @@ export function ProductManagement({
                         <span className="badge badge-neutral">{p.category}</span>
                       </td>
                       <td className="py-3 px-3.5 font-bold font-mono">
-                        NRs. {Number(p.indicativePrice).toLocaleString()}
+                        {hasDiscount ? (
+                          <div className="flex flex-col">
+                            <span className="text-emerald-400 font-bold">
+                              NRs. {Number(p.discountPrice).toLocaleString()}
+                            </span>
+                            <span className="text-[0.65rem] text-[var(--text-muted)] line-through">
+                              NRs. {Number(p.indicativePrice).toLocaleString()}
+                            </span>
+                          </div>
+                        ) : (
+                          <span>NRs. {Number(p.indicativePrice).toLocaleString()}</span>
+                        )}
                       </td>
                       <td className="py-3 px-3.5 font-mono text-zinc-400">
                         NRs. {Number(p.costPrice || 0).toLocaleString()}
@@ -403,9 +424,12 @@ export function ProductManagement({
             const rawImg = p.images && p.images[0] ? p.images[0] : "";
             const img = getOptimizedImageUrl(rawImg, { width: 500 });
             const stockNum = p.stock !== undefined ? Number(p.stock) : 0;
-            const totalVal = (Number(p.indicativePrice) || 0) * stockNum;
+            const hasDiscount = p.discountPrice && Number(p.discountPrice) > 0 && Number(p.discountPrice) < Number(p.indicativePrice);
+            const effectivePrice = getEffectivePrice(p);
+            const totalVal = effectivePrice * stockNum;
             const totalCost = (Number(p.costPrice) || 0) * stockNum;
             const profit = totalVal - totalCost;
+
             return (
               <div key={p._id} className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col border border-[var(--border-subtle)]">
                 <div className="h-40 relative bg-[#050505] flex items-center justify-center">
@@ -421,11 +445,31 @@ export function ProductManagement({
                       <span>Featured</span>
                     </span>
                   )}
+                  {hasDiscount && (
+                    <span className="badge badge-emerald bg-emerald-500/90 text-white absolute bottom-2 left-2 text-[0.6rem] font-bold">
+                      SALE
+                    </span>
+                  )}
                 </div>
                 <div className="p-4 flex flex-col gap-1.5 flex-1">
                   <div className="flex justify-between items-start">
                     <h4 className="text-sm font-bold m-0">{p.name}</h4>
-                    <span className="font-bold font-mono text-sm">NRs. {Number(p.indicativePrice).toLocaleString()}</span>
+                    <div className="flex flex-col items-end">
+                      {hasDiscount ? (
+                        <>
+                          <span className="font-bold font-mono text-sm text-emerald-400">
+                            NRs. {Number(p.discountPrice).toLocaleString()}
+                          </span>
+                          <span className="text-[0.65rem] text-[var(--text-muted)] line-through font-mono">
+                            NRs. {Number(p.indicativePrice).toLocaleString()}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="font-bold font-mono text-sm">
+                          NRs. {Number(p.indicativePrice).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between items-center text-[0.72rem] text-[var(--text-muted)] font-mono">
                     <span>Cost: NRs. {Number(p.costPrice || 0).toLocaleString()}</span>

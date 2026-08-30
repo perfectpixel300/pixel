@@ -19,6 +19,7 @@ export function ProductFormModal({
     slug: "",
     category: defaultCategory,
     indicativePrice: "",
+    discountPrice: "",
     costPrice: "",
     stock: 25,
     description: "",
@@ -47,6 +48,10 @@ export function ProductFormModal({
         slug: editingProduct.slug || "",
         category: editingProduct.category || defaultCategory,
         indicativePrice: editingProduct.indicativePrice !== undefined ? editingProduct.indicativePrice : "",
+        discountPrice:
+          editingProduct.discountPrice !== undefined && editingProduct.discountPrice !== 0
+            ? editingProduct.discountPrice
+            : "",
         costPrice: editingProduct.costPrice !== undefined ? editingProduct.costPrice : "",
         stock: editingProduct.stock !== undefined ? editingProduct.stock : 25,
         description: editingProduct.description || "",
@@ -67,6 +72,7 @@ export function ProductFormModal({
         slug: "",
         category: defaultCategory,
         indicativePrice: "",
+        discountPrice: "",
         costPrice: "",
         stock: 25,
         description: "",
@@ -184,6 +190,19 @@ export function ProductFormModal({
     }
 
     if (
+      formData.discountPrice !== "" &&
+      (isNaN(Number(formData.discountPrice)) || Number(formData.discountPrice) < 0)
+    ) {
+      errs.discountPrice = "Discount price must be a positive number";
+    } else if (
+      formData.discountPrice !== "" &&
+      formData.indicativePrice !== "" &&
+      Number(formData.discountPrice) >= Number(formData.indicativePrice)
+    ) {
+      errs.discountPrice = "Discount price must be lower than regular selling price";
+    }
+
+    if (
       formData.stock !== "" &&
       (isNaN(Number(formData.stock)) || Number(formData.stock) < 0)
     ) {
@@ -204,6 +223,8 @@ export function ProductFormModal({
     onSubmit({
       ...formData,
       indicativePrice: Number(formData.indicativePrice),
+      discountPrice: formData.discountPrice !== "" ? Number(formData.discountPrice) : 0,
+      costPrice: formData.costPrice !== "" ? Number(formData.costPrice) : 0,
       stock: stockNum,
       isAvailable: isAvailableVal,
       featured: Boolean(formData.featured),
@@ -271,11 +292,11 @@ export function ProductFormModal({
               </div>
             </div>
 
-            {/* Price (NRs.), Cost Price (NRs.), Stock, Slug */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {/* Price (NRs.), Discount Price (NRs.), Cost Price (NRs.) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div className="form-group">
                 <label className="form-label">
-                  Selling Price (NRs.) *
+                  Regular Price (NRs.) *
                   {errors.indicativePrice && (
                     <span className="text-[var(--color-danger)] ml-1">{errors.indicativePrice}</span>
                   )}
@@ -293,6 +314,24 @@ export function ProductFormModal({
 
               <div className="form-group">
                 <label className="form-label">
+                  Discount Price (NRs.)
+                  {errors.discountPrice && (
+                    <span className="text-[var(--color-danger)] ml-1">{errors.discountPrice}</span>
+                  )}
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  className="form-input font-mono border-emerald-500/40 focus:border-emerald-500"
+                  placeholder="Optional (e.g. 1350)"
+                  value={formData.discountPrice}
+                  onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
                   Cost Price (Admin Only)
                 </label>
                 <input
@@ -305,7 +344,10 @@ export function ProductFormModal({
                   onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
                 />
               </div>
+            </div>
 
+            {/* Stock, Slug */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div className="form-group">
                 <label className="form-label">
                   Stock Units

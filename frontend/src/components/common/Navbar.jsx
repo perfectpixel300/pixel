@@ -656,9 +656,20 @@ export function Navbar({
                           <span className="badge badge-neutral text-[0.55rem]">
                             {product.category}
                           </span>
-                          <span className="font-mono text-[0.7rem] text-[var(--text-secondary)] font-semibold">
-                            NRs. {Number(product.indicativePrice).toLocaleString()}
-                          </span>
+                          {product.discountPrice && Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.indicativePrice) ? (
+                            <div className="flex items-center gap-1 font-mono text-[0.7rem]">
+                              <span className="text-emerald-400 font-bold">
+                                NRs. {Number(product.discountPrice).toLocaleString()}
+                              </span>
+                              <span className="text-[var(--text-muted)] line-through text-[0.6rem]">
+                                NRs. {Number(product.indicativePrice).toLocaleString()}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="font-mono text-[0.7rem] text-[var(--text-secondary)] font-semibold">
+                              NRs. {Number(product.indicativePrice).toLocaleString()}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <ArrowRight size={12} className="text-[var(--text-muted)] shrink-0" />

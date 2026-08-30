@@ -51,8 +51,13 @@ export function ProductsPage({
       return true;
     })
     .sort((a, b) => {
-      if (sortBy === "price_asc") return (a.indicativePrice || 0) - (b.indicativePrice || 0);
-      if (sortBy === "price_desc") return (b.indicativePrice || 0) - (a.indicativePrice || 0);
+      const getEffectivePrice = (p) =>
+        p.discountPrice && Number(p.discountPrice) > 0 && Number(p.discountPrice) < Number(p.indicativePrice)
+          ? Number(p.discountPrice)
+          : Number(p.indicativePrice) || 0;
+
+      if (sortBy === "price_asc") return getEffectivePrice(a) - getEffectivePrice(b);
+      if (sortBy === "price_desc") return getEffectivePrice(b) - getEffectivePrice(a);
       if (sortBy === "name_asc") return (a.name || "").localeCompare(b.name || "");
       if (sortBy === "name_desc") return (b.name || "").localeCompare(a.name || "");
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);

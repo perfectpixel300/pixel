@@ -132,6 +132,7 @@ exports.createProduct = async (req, res) => {
       category,
       description,
       indicativePrice,
+      discountPrice,
       costPrice,
       images,
       isAvailable,
@@ -165,6 +166,7 @@ exports.createProduct = async (req, res) => {
       category,
       description,
       indicativePrice: Number(indicativePrice),
+      discountPrice: discountPrice !== undefined && discountPrice !== "" ? Number(discountPrice) : 0,
       costPrice: costPrice !== undefined && costPrice !== "" ? Number(costPrice) : 0,
       images: Array.isArray(images) ? images.filter((img) => img && img.trim()) : [],
       isAvailable: isAvailableVal,
@@ -200,6 +202,7 @@ exports.updateProduct = async (req, res) => {
       category,
       description,
       indicativePrice,
+      discountPrice,
       costPrice,
       images,
       isAvailable,
@@ -237,6 +240,9 @@ exports.updateProduct = async (req, res) => {
     product.category = category !== undefined ? category : product.category;
     product.description = description !== undefined ? description : product.description;
     product.indicativePrice = indicativePrice !== undefined ? Number(indicativePrice) : product.indicativePrice;
+    if (discountPrice !== undefined) {
+      product.discountPrice = discountPrice === "" ? 0 : Number(discountPrice);
+    }
     if (costPrice !== undefined && costPrice !== "") {
       product.costPrice = Number(costPrice);
     }

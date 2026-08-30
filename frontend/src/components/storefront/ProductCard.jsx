@@ -5,6 +5,17 @@ import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 export function ProductCard({ product, onViewDetails, onInquire }) {
   const rawImage = product?.images && product.images.length > 0 ? product.images[0] : "";
   const imageUrl = getOptimizedImageUrl(rawImage, { width: 600 });
+  const hasDiscount =
+    product?.discountPrice &&
+    Number(product.discountPrice) > 0 &&
+    Number(product.discountPrice) < Number(product.indicativePrice);
+  const discountPercent = hasDiscount
+    ? Math.round(
+        ((Number(product.indicativePrice) - Number(product.discountPrice)) /
+          Number(product.indicativePrice)) *
+          100
+      )
+    : 0;
 
   return (
     <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col h-full transition-all duration-300 border border-[var(--border-subtle)] hover:shadow-xl group">
@@ -35,11 +46,18 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
           <span className="badge badge-dark backdrop-blur-sm text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 truncate max-w-[110px]">
             {product.category}
           </span>
-          {product.featured && (
-            <span className="badge badge-white text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1">
-              Featured
-            </span>
-          )}
+          <div className="flex items-center gap-1">
+            {hasDiscount && (
+              <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 shadow-sm">
+                {discountPercent}% OFF
+              </span>
+            )}
+            {product.featured && (
+              <span className="badge badge-white text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1">
+                Featured
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Quick View Hover overlay indicator */}
@@ -58,9 +76,22 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
           >
             {product.name}
           </h3>
-          <span className="font-bold font-mono text-xs sm:text-[0.95rem] whitespace-nowrap text-[var(--text-primary)] shrink-0">
-            NRs. {Number(product.indicativePrice).toLocaleString()}
-          </span>
+          <div className="flex flex-col items-start sm:items-end shrink-0">
+            {hasDiscount ? (
+              <>
+                <span className="font-bold font-mono text-xs sm:text-[0.95rem] whitespace-nowrap text-emerald-400">
+                  NRs. {Number(product.discountPrice).toLocaleString()}
+                </span>
+                <span className="text-[0.625rem] sm:text-[0.7rem] text-[var(--text-muted)] line-through font-mono">
+                  NRs. {Number(product.indicativePrice).toLocaleString()}
+                </span>
+              </>
+            ) : (
+              <span className="font-bold font-mono text-xs sm:text-[0.95rem] whitespace-nowrap text-[var(--text-primary)]">
+                NRs. {Number(product.indicativePrice).toLocaleString()}
+              </span>
+            )}
+          </div>
         </div>
 
         <p className="text-[0.7rem] sm:text-[0.8rem] text-[var(--text-secondary)] leading-relaxed m-0 line-clamp-2 min-h-[30px] sm:min-h-[38px]">
