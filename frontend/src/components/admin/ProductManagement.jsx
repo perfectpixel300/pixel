@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Search, Plus, List, LayoutGrid, Star, Edit2, Trash2, Package, Coins, TrendingUp } from "lucide-react";
+import { CategoryDropdown } from "../common/CategoryDropdown";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function ProductManagement({
@@ -135,29 +136,6 @@ export function ProductManagement({
         </div>
       </div>
 
-      {/* Category Filter Pills */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        <button
-          onClick={() => setSelectedCategory("All")}
-          className={`btn btn-sm !rounded-full ${selectedCategory === "All" ? "btn-primary" : "btn-secondary"}`}
-        >
-          All ({products.length})
-        </button>
-        {categories.map((cat) => {
-          const count = products.filter((p) => p.category === cat.name).length;
-          return (
-            <button
-              key={cat._id || cat.name}
-              onClick={() => setSelectedCategory(cat.name)}
-              className={`btn btn-sm !rounded-full whitespace-nowrap ${selectedCategory === cat.name ? "btn-primary" : "btn-secondary"}`}
-            >
-              <span>{cat.name}</span>
-              <span className="opacity-65 text-[0.68rem]">({count})</span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Toolbar */}
       <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-3.5 flex items-center justify-between flex-wrap gap-3 border border-[var(--border-subtle)]">
         <div className="flex items-center gap-2.5 flex-wrap">
@@ -171,6 +149,21 @@ export function ProductManagement({
               className="form-input !pl-8 text-xs py-2 px-2.5"
             />
           </div>
+
+          {/* Minimal Category Dropdown */}
+          <CategoryDropdown
+            categories={categories.map((cat) => ({
+              id: cat._id || cat.name,
+              name: cat.name,
+              count: products.filter((p) => p.category === cat.name).length,
+            }))}
+            selectedCategory={selectedCategory}
+            onSelectCategory={(catName) => setSelectedCategory(catName)}
+            totalCount={products.length}
+            label="Category"
+            allLabel="All Categories"
+            size="sm"
+          />
 
           {/* Quick Stock Status Filter Pills */}
           <div className="flex items-center gap-1 bg-[var(--bg-input)] p-0.5 rounded-[var(--radius-xs)] border border-[var(--border-subtle)]">

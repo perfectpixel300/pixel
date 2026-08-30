@@ -31,7 +31,7 @@ export function PrintingFormModal({
     indicativePrice: "",
     discountPrice: "",
     costPrice: "",
-    priceUnit: "per piece",
+    priceUnit: "per page",
     turnaroundTime: "24-48 Hours",
     minOrderQuantity: 1,
     images: [],
@@ -73,7 +73,7 @@ export function PrintingFormModal({
             ? editingService.discountPrice
             : "",
         costPrice: editingService.costPrice !== undefined ? editingService.costPrice : "",
-        priceUnit: editingService.priceUnit || "per piece",
+        priceUnit: editingService.priceUnit || "per page",
         turnaroundTime: editingService.turnaroundTime || "24-48 Hours",
         minOrderQuantity: editingService.minOrderQuantity !== undefined ? editingService.minOrderQuantity : 1,
         images: Array.isArray(editingService.images) ? [...editingService.images] : [],
@@ -101,7 +101,7 @@ export function PrintingFormModal({
         indicativePrice: "",
         discountPrice: "",
         costPrice: "",
-        priceUnit: "per piece",
+        priceUnit: "per page",
         turnaroundTime: "24-48 Hours",
         minOrderQuantity: 1,
         images: [],
@@ -338,7 +338,7 @@ export function PrintingFormModal({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div className="form-group">
                 <label className="form-label">
-                  Regular Price (NRs.) *
+                  Selling Price (NRs.) *
                   {errors.indicativePrice && (
                     <span className="text-[var(--color-danger)] ml-1">{errors.indicativePrice}</span>
                   )}
@@ -348,7 +348,7 @@ export function PrintingFormModal({
                   step="any"
                   min="0"
                   className="form-input font-mono"
-                  placeholder="e.g. 2800"
+                  placeholder="e.g. 5"
                   value={formData.indicativePrice}
                   onChange={(e) => setFormData({ ...formData, indicativePrice: e.target.value })}
                 />
@@ -366,25 +366,69 @@ export function PrintingFormModal({
                   step="any"
                   min="0"
                   className="form-input font-mono border-emerald-500/40 focus:border-emerald-500"
-                  placeholder="Optional (e.g. 2450)"
+                  placeholder="Optional (e.g. 4)"
                   value={formData.discountPrice}
                   onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Cost Price (Admin Only)</label>
+                <label className="form-label">Cost Price / Unit (Admin Only)</label>
                 <input
                   type="number"
                   step="any"
                   min="0"
                   className="form-input font-mono"
-                  placeholder="e.g. 1200"
+                  placeholder="e.g. 2"
                   value={formData.costPrice}
                   onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
                 />
               </div>
             </div>
+
+            {/* Live Profit & Margin Preview Bar */}
+            {(() => {
+              const regPrice = Number(formData.indicativePrice) || 0;
+              const discPrice = Number(formData.discountPrice) || 0;
+              const effectiveSelling = discPrice > 0 && discPrice < regPrice ? discPrice : regPrice;
+              const cost = Number(formData.costPrice) || 0;
+              const profit = effectiveSelling - cost;
+              const margin = effectiveSelling > 0 ? ((profit / effectiveSelling) * 100).toFixed(1) : 0;
+              const unitText = formData.priceUnit || "per page";
+
+              return (
+                <div className="mb-4 p-3 rounded-[var(--radius-sm)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-4 flex-wrap text-xs font-mono">
+                    <div>
+                      <span className="text-[var(--text-muted)] block text-[0.65rem] uppercase">Selling Rate:</span>
+                      <span className="font-bold text-[var(--text-primary)]">
+                        NRs. {effectiveSelling.toLocaleString()} / {unitText}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[var(--text-muted)] block text-[0.65rem] uppercase">Unit Cost:</span>
+                      <span className="font-bold text-[var(--text-secondary)]">
+                        NRs. {cost.toLocaleString()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[var(--text-muted)] block text-[0.65rem] uppercase">Expected Profit / Unit:</span>
+                      <span className={`font-bold ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        {profit >= 0 ? "+" : ""}NRs. {profit.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[var(--text-muted)] block text-[0.65rem] uppercase">Profit Margin:</span>
+                    <span className={`font-mono text-xs font-extrabold px-2 py-0.5 rounded ${
+                      Number(margin) >= 0 ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30" : "bg-red-500/10 text-red-400 border border-red-500/30"
+                    }`}>
+                      {margin}%
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Price Unit, Turnaround, Min Order */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
@@ -393,10 +437,26 @@ export function PrintingFormModal({
                 <input
                   type="text"
                   className="form-input text-xs"
-                  placeholder="e.g. per piece, per sq. ft., per 100 cards"
+                  placeholder="e.g. per page, per copy, per sheet"
                   value={formData.priceUnit}
                   onChange={(e) => setFormData({ ...formData, priceUnit: e.target.value })}
                 />
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {["per page", "per copy", "per sheet", "per piece", "per sq. ft.", "per 100 units"].map((unit) => (
+                    <button
+                      key={unit}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, priceUnit: unit })}
+                      className={`text-[0.625rem] px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+                        formData.priceUnit === unit
+                          ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] border-transparent font-bold"
+                          : "bg-[var(--bg-input)] text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-primary)]"
+                      }`}
+                    >
+                      {unit}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="form-group">

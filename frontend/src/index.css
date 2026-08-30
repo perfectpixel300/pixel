@@ -499,6 +499,16 @@ input, textarea, select {
       padding: 2rem;
     }
   }
+
+  /* Hide Scrollbar Utilities */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
 }
 
 @keyframes fadeIn {

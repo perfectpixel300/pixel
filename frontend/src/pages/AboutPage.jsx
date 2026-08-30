@@ -8,13 +8,13 @@ export function AboutPage({ onNavigate }) {
         {/* Header */}
         <div className="mb-14 text-center">
           <span className="text-[0.75rem] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
-            The Atelier
+            About Us
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mt-2 tracking-[-0.03em]">
             The Pixel Perfect Story
           </h1>
           <p className="text-[var(--text-secondary)] text-base sm:text-lg mt-3 max-w-[680px] mx-auto leading-relaxed">
-            Crafting tactile sanctuaries of thought through precision metals, sustainable fibers, and timeless analog stationery.
+            Crafting premium stationery, desk accessories, and modern technology solutions.
           </p>
         </div>
 

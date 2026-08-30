@@ -23,7 +23,7 @@ exports.submitContact = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Thank you for your message. The Pixel Perfect atelier will respond shortly.",
+      message: "Thank you for your message. The Pixel Perfect team will respond shortly.",
       inquiry,
     });
   } catch (error) {

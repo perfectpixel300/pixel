@@ -246,7 +246,7 @@ export function ProductFormModal({
             </div>
             <div>
               <h3 className="text-base font-bold m-0">
-                {editingProduct ? "Edit Atelier Product" : "Create New Catalog Product"}
+                {editingProduct ? "Edit Product" : "Create New Product"}
               </h3>
               <p className="text-[0.7rem] text-[var(--text-muted)] m-0">
                 Manage catalog attributes, pricing in NRs., Cloudinary media, and specifications
@@ -543,7 +543,7 @@ export function ProductFormModal({
                     {Number(formData.stock) === 0
                       ? "Out of Stock"
                       : formData.isAvailable
-                      ? "In Atelier Stock"
+                      ? "In Stock"
                       : "Out of Stock"}
                   </div>
                   <div className="text-[0.68rem] text-[var(--text-muted)]">

@@ -62,7 +62,7 @@ export function ShopClosedModal({
 
   const handleOpenWhatsApp = () => {
     const text = encodeURIComponent(
-      `Hello Pixel Perfect Atelier! I saw your store status (${isPartial ? "Partial Services" : "Currently Closed"}), and I'd like to leave an inquiry.`
+      `Hello Pixel Perfect! I saw your store status (${isPartial ? "Partial Services" : "Currently Closed"}), and I'd like to leave an inquiry.`
     );
     window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
   };

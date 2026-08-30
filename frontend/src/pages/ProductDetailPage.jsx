@@ -28,9 +28,9 @@ export function ProductDetailPage({
       )
     : 0;
 
-  const atelierWhatsAppNumber = "+9779808950275";
-  const whatsAppText = `Hello Pixel Perfect,\nI am inquiring about "${product.name}" (Price: NRs. ${effectivePrice.toLocaleString()}). Please advise on availability and bespoke options.`;
-  const whatsAppUrl = `https://wa.me/${atelierWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
+  const supportWhatsAppNumber = "+9779808950275";
+  const whatsAppText = `Hello Pixel Perfect,\nI am inquiring about "${product.name}" (Price: NRs. ${effectivePrice.toLocaleString()}). Please advise on availability.`;
+  const whatsAppUrl = `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
 
   const mainImage = images[activeImgIndex] || "";
 

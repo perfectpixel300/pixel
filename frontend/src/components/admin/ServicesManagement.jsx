@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Layers,
 } from "lucide-react";
+import { CategoryDropdown } from "../common/CategoryDropdown";
 import { getServiceIcon } from "../../pages/ServicesPage";
 
 const DEFAULT_IT_CATEGORIES = [
@@ -72,34 +73,6 @@ export function ServicesManagement({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Category Pills Bar */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        <button
-          onClick={() => setSelectedCategory("All")}
-          className={`btn btn-sm !rounded-full ${
-            selectedCategory === "All" ? "btn-primary" : "btn-secondary"
-          }`}
-        >
-          All IT Disciplines ({itServices.length})
-        </button>
-
-        {itCategories.map((cat) => {
-          const count = itServices.filter((s) => s.category === cat).length;
-          return (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`btn btn-sm !rounded-full whitespace-nowrap ${
-                selectedCategory === cat ? "btn-primary" : "btn-secondary"
-              }`}
-            >
-              <span>{cat}</span>
-              <span className="opacity-65 text-[0.68rem]">({count})</span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Toolbar */}
       <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-3.5 flex items-center justify-between flex-wrap gap-3 border border-[var(--border-subtle)]">
         <div className="flex items-center gap-2.5 flex-wrap">
@@ -116,6 +89,21 @@ export function ServicesManagement({
               className="form-input !pl-8 text-xs py-2 px-2.5"
             />
           </div>
+
+          {/* Minimal Category Dropdown */}
+          <CategoryDropdown
+            categories={itCategories.map((cat) => ({
+              id: cat,
+              name: cat,
+              count: itServices.filter((s) => s.category === cat).length,
+            }))}
+            selectedCategory={selectedCategory}
+            onSelectCategory={(catName) => setSelectedCategory(catName)}
+            totalCount={itServices.length}
+            label="IT Discipline"
+            allLabel="All IT Disciplines"
+            size="sm"
+          />
 
           <select
             value={sortBy}

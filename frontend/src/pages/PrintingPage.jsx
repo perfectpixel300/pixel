@@ -17,6 +17,7 @@ import {
   Info,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
+import { CategoryDropdown } from "../components/common/CategoryDropdown";
 
 const DEFAULT_PRINTING_CATEGORIES = [
   "Fine Art & Giclée",
@@ -67,7 +68,7 @@ export function PrintingPage({
 
   const handleOpenWhatsApp = (title, price, priceUnit) => {
     const text = encodeURIComponent(
-      `Hello Pixel Perfect Atelier! I am interested in inquiring about your "${title}" printing service (${price ? `NRs. ${Number(price).toLocaleString()} ${priceUnit || ""}` : "Custom Quote"}). Could you please guide me on file preparation and turnaround?`
+      `Hello Pixel Perfect! I am interested in inquiring about your "${title}" printing service (${price ? `NRs. ${Number(price).toLocaleString()} ${priceUnit || ""}` : "Custom Quote"}). Could you please guide me on file preparation and turnaround?`
     );
     window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
   };
@@ -79,7 +80,7 @@ export function PrintingPage({
         indicativePrice: service.discountPrice && Number(service.discountPrice) > 0 ? service.discountPrice : service.indicativePrice,
         type: "service",
         category: service.category || "Printing Service",
-        description: `Inquiry for ${service.name} (${service.priceUnit || "per piece"}). Estimated turnaround: ${service.turnaroundTime || "24-48 Hours"}.`,
+        description: `Inquiry for ${service.name} (${service.priceUnit || "per page"}). Estimated turnaround: ${service.turnaroundTime || "24-48 Hours"}.`,
       });
     }
   };
@@ -93,16 +94,16 @@ export function PrintingPage({
         <div className="text-center max-w-[840px] mx-auto mb-16 sm:mb-20">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[0.725rem] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)] mb-4">
             <Printer size={14} />
-            <span>Fine Art & Commercial Printing Atelier</span>
+            <span>Commercial & Custom Printing Services</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-[-0.04em] leading-[1.12] text-[var(--text-primary)]">
-            Precision Printmaking & Archival Production
+            Professional Printing & Production
           </h1>
 
           <p className="text-[0.975rem] sm:text-[1.075rem] text-[var(--text-secondary)] leading-relaxed mt-4 max-w-[720px] mx-auto">
-            Museum-grade 12-color giclée reproductions, precision CAD architectural blueprints, heated foil-stamped
-            hardcover binding, and luxury packaging — engineered with tactile permanence in Nepal.
+            High-resolution photo prints, architectural blueprints, hardcover bookbinding, document copies,
+            and custom packaging in Nepal.
           </p>
 
           {/* Quick Pillars */}
@@ -138,62 +139,48 @@ export function PrintingPage({
               Explore Printing Capabilities
             </h2>
             <p className="text-[0.875rem] text-[var(--text-secondary)] mt-1 max-w-[560px]">
-              Select a discipline or search by print media, resolution, paper GSM, or application.
+              Select a category or search by print media, resolution, paper type, or application.
             </p>
           </div>
 
-          {/* Search Input */}
-          <div className="relative w-full md:w-80">
-            <Search
-              size={14}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+          {/* Search & Category Dropdown */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="relative w-full sm:w-64">
+              <Search
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+              />
+              <input
+                type="text"
+                placeholder="Search photo prints, blueprints..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="form-input !pl-8.5 !pr-8 text-xs py-2 bg-[var(--bg-input)] rounded-[var(--radius-xs)] border border-[var(--border-subtle)] focus:border-[var(--border-bright)]"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-0 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            <CategoryDropdown
+              categories={allCategories.map((cat) => ({
+                id: cat,
+                name: cat,
+                count: printingServices.filter((s) => s.category === cat && s.isAvailable !== false).length,
+              }))}
+              selectedCategory={selectedCategory}
+              onSelectCategory={(catName) => setSelectedCategory(catName)}
+              totalCount={printingServices.filter((s) => s.isAvailable !== false).length}
+              label="Discipline"
+              allLabel="All Categories"
             />
-            <input
-              type="text"
-              placeholder="Search giclée, blueprints, foil, boxes..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="form-input !pl-9.5 !pr-8 text-xs py-2.5 bg-[var(--bg-input)] rounded-full border border-[var(--border-subtle)] focus:border-[var(--border-bright)]"
-            />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-0 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
-              >
-                <X size={13} />
-              </button>
-            )}
           </div>
-        </div>
-
-        {/* Category Filter Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-3 mb-10 border-b border-[var(--border-subtle)]">
-          <button
-            onClick={() => setSelectedCategory("All")}
-            className={`btn btn-sm !rounded-full whitespace-nowrap ${
-              selectedCategory === "All" ? "btn-primary" : "btn-secondary"
-            }`}
-          >
-            All Services ({printingServices.length})
-          </button>
-
-          {allCategories.map((cat) => {
-            const count = printingServices.filter((s) => s.category === cat && s.isAvailable !== false).length;
-            const isSelected = selectedCategory === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`btn btn-sm !rounded-full whitespace-nowrap ${
-                  isSelected ? "btn-primary" : "btn-secondary"
-                }`}
-              >
-                <span>{cat}</span>
-                <span className="opacity-65 text-[0.675rem]">({count})</span>
-              </button>
-            );
-          })}
         </div>
 
         {/* =========================================================================
@@ -288,7 +275,7 @@ export function PrintingPage({
                     <div className="p-3 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-baseline justify-between mt-auto">
                       <div>
                         <span className="text-[0.625rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
-                          Investment ({service.priceUnit || "per piece"})
+                          Investment ({service.priceUnit || "per page"})
                         </span>
                         <div className="flex items-baseline gap-2 mt-0.5">
                           <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
@@ -364,10 +351,10 @@ export function PrintingPage({
               Material Integrity & Archival Standards
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-[-0.03em] mt-1 text-[var(--text-primary)]">
-              Atelier Printmaking Specifications
+              Printing Specifications & Quality Standards
             </h2>
             <p className="text-[0.875rem] text-[var(--text-secondary)] mt-2">
-              Every print is crafted with acid-free substrates, pigment chemistry, and calibrated color workflows.
+              Every print is crafted with high-quality paper, premium inks, and calibrated color workflows.
             </p>
           </div>
 

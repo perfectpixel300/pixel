@@ -51,7 +51,7 @@ const printingServiceSchema = new mongoose.Schema(
     priceUnit: {
       type: String,
       trim: true,
-      default: "per piece", // e.g. "per piece", "per sq. ft.", "per page", "per 100 units", "starting from"
+      default: "per page", // e.g. "per page", "per copy", "per piece", "per sq. ft.", "per sheet"
     },
     currency: {
       type: String,

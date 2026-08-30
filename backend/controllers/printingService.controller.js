@@ -180,7 +180,7 @@ exports.createPrintingService = async (req, res) => {
       indicativePrice: Number(indicativePrice),
       discountPrice: discountPrice !== undefined && discountPrice !== "" ? Number(discountPrice) : 0,
       costPrice: costPrice !== undefined && costPrice !== "" ? Number(costPrice) : 0,
-      priceUnit: priceUnit || "per piece",
+      priceUnit: priceUnit || "per page",
       images: Array.isArray(images) ? images.filter((img) => img && img.trim()) : [],
       isAvailable: isAvailableVal,
       featured: featured !== undefined ? Boolean(featured) : false,

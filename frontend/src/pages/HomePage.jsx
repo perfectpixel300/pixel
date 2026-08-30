@@ -24,6 +24,7 @@ import { HeroBannerCarousel } from "../components/storefront/HeroBannerCarousel"
 import { FeaturedSection } from "../components/storefront/FeaturedSection";
 import { CategoryGrid } from "../components/storefront/CategoryGrid";
 import { ProductCard } from "../components/storefront/ProductCard";
+import { CategoryDropdown } from "../components/common/CategoryDropdown";
 import { getServiceIcon } from "./ServicesPage";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 
@@ -44,8 +45,13 @@ export function HomePage({
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
-
-  const displayPrintingServices = (printingServices || []).filter((s) => s.isAvailable !== false);
+  const featuredPrinting = (printingServices || []).filter(
+    (s) => (s.featured || s.isFeatured) && s.isAvailable !== false
+  );
+  const displayPrintingServices =
+    featuredPrinting.length > 0
+      ? featuredPrinting
+      : (printingServices || []).filter((s) => s.isAvailable !== false);
 
   const handleCategoryClick = (category) => {
     onSelectCategory(category);
@@ -129,29 +135,202 @@ export function HomePage({
         }}
       />
 
-      {/* Atelier Philosophy Banner */}
+      {/* Our Design Philosophy Banner */}
       <section className="py-18 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)]">
         <div className="storefront-container text-center max-w-[800px] mx-auto">
           <span className="text-[0.75rem] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
-            Atelier Philosophy
+            Our Philosophy
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight mt-2.5 tracking-[-0.03em]">
-            "Friction for the mind. Tactile permanence in a fleeting digital world."
+            "Quality materials, thoughtful design, and tools built to last."
           </h2>
           <p className="text-[0.95rem] text-[var(--text-secondary)] leading-relaxed mt-4">
-            Pixel Perfect designs and produces archival stationery, precision-machined solid brass writing instruments,
-            and vegetable-tanned leather desk objects for deep focus and contemplative ritual.
+            Pixel Perfect designs and delivers premium stationery, solid writing instruments,
+            leather desk accessories, and modern digital services.
           </p>
         </div>
       </section>
 
-      {/* Curated Highlights Section */}
+      {/* Curated Highlights Section (Featured Products) */}
       <FeaturedSection
         products={products}
         onViewDetails={onViewProduct}
         onInquire={onInquireProduct}
         onBrowseAll={() => onNavigate("products")}
       />
+
+      {/* =========================================================================
+          FEATURED PRINTING SERVICES SECTION (BELOW FEATURED PRODUCTS)
+          ========================================================================= */}
+      {displayPrintingServices && displayPrintingServices.length > 0 && (
+        <section id="home-featured-printing" className="py-20 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)] relative overflow-hidden">
+          <div className="storefront-container relative z-10">
+            {/* Section Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[0.7rem] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)] mb-3">
+                  <Printer size={13} />
+                  <span>Spotlight • Featured Printing Services</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.03em] text-[var(--text-primary)]">
+                  Custom Printing & Document Services
+                </h2>
+                <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[640px]">
+                  High-resolution photo prints, architectural blueprints, bookbinding, document copies, and custom packaging.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  onNavigate("printing");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="btn btn-secondary gap-1.5 self-start md:self-auto"
+              >
+                <span>View All Printing Services</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {/* Grid of Featured Printing Services */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 sm:gap-7">
+              {displayPrintingServices
+                .slice(0, 6)
+                .map((service) => {
+                  const rawImg = service.images && service.images[0] ? service.images[0] : "";
+                  const img = getOptimizedImageUrl(rawImg, { width: 800 });
+                  const hasDiscount =
+                    service.discountPrice &&
+                    Number(service.discountPrice) > 0 &&
+                    Number(service.discountPrice) < Number(service.indicativePrice);
+                  const activePrice = hasDiscount
+                    ? Number(service.discountPrice)
+                    : Number(service.indicativePrice);
+
+                  return (
+                    <div
+                      key={service._id}
+                      className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-lg)] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-lg)] group"
+                    >
+                      {/* Image Preview */}
+                      <div className="h-48 relative overflow-hidden bg-[var(--bg-sidebar)] flex items-center justify-center">
+                        {img ? (
+                          <img
+                            src={img}
+                            alt={service.name}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <Printer size={36} className="text-[var(--text-muted)] opacity-30" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/30 to-transparent opacity-80" />
+
+                        <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
+                          <span className="badge badge-dark text-[0.625rem] bg-black/80 backdrop-blur-xs">
+                            {service.category}
+                          </span>
+                          {hasDiscount && (
+                            <span className="badge badge-emerald bg-emerald-500 text-white text-[0.6rem] font-bold">
+                              SPECIAL
+                            </span>
+                          )}
+                        </div>
+
+                        {(service.featured || service.isFeatured) && (
+                          <div className="absolute top-3 right-3">
+                            <span className="badge badge-white text-[0.6rem] gap-1 shadow-sm">
+                              <Star size={10} fill="currentColor" />
+                              <span>Featured</span>
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-xs text-white text-[0.65rem] px-2 py-0.5 rounded font-mono flex items-center gap-1">
+                          <Clock size={11} />
+                          <span>{service.turnaroundTime || "24-48h"}</span>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-5 sm:p-6 flex flex-col flex-1 gap-3">
+                        <div>
+                          <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug">
+                            {service.name}
+                          </h3>
+                          <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-1.5 line-clamp-2">
+                            {service.shortDescription || service.description}
+                          </p>
+                        </div>
+
+                        {/* Price Display */}
+                        <div className="pt-3 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
+                          <div>
+                            <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider block font-bold">
+                              Investment ({service.priceUnit || "per page"})
+                            </span>
+                            <div className="flex items-baseline gap-1.5 mt-0.5">
+                              <span className="font-mono text-lg font-extrabold text-[var(--text-primary)]">
+                                NRs. {activePrice.toLocaleString()}
+                              </span>
+                              {hasDiscount && (
+                                <span className="font-mono text-xs text-[var(--text-muted)] line-through">
+                                  NRs. {Number(service.indicativePrice).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {service.specs?.paperGsm && (
+                            <div className="text-right">
+                              <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider block font-bold">
+                                Media
+                              </span>
+                              <span className="text-xs font-mono text-[var(--text-secondary)] truncate max-w-[120px] block">
+                                {service.specs.paperGsm.split(" ")[0]} GSM
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--border-subtle)]">
+                          <button
+                            onClick={() => {
+                              onNavigate("printing");
+                              window.scrollTo({ top: 0, behavior: "smooth" });
+                            }}
+                            className="btn btn-secondary btn-sm text-[0.75rem]"
+                          >
+                            Details
+                          </button>
+                          <button
+                            onClick={() => {
+                              const handler = onInquirePrinting || onInquireProduct;
+                              if (handler) {
+                                handler({
+                                  name: service.name,
+                                  indicativePrice: activePrice,
+                                  type: "service",
+                                  category: service.category || "Printing Service",
+                                  description: service.shortDescription || service.description,
+                                });
+                              }
+                            }}
+                            className="btn btn-primary btn-sm text-[0.75rem]"
+                          >
+                            Inquire
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Disciplines Category Grid */}
       <CategoryGrid
@@ -161,12 +340,11 @@ export function HomePage({
 
       {/* =========================================================================
           PRODUCTS SECTION WITH PAGINATION
-          (POSITIONED AT END OF STOREFRONT CATALOG, ABOVE IT SERVICES)
           ========================================================================= */}
       <section id="home-products-section" className="py-22 border-b border-[var(--border-subtle)] bg-[var(--bg-app)]">
         <div className="storefront-container">
-          {/* Section Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          {/* Section Header with Category Dropdown */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 pb-6 border-b border-[var(--border-subtle)]">
             <div>
               <span className="text-[0.75rem] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
                 Complete Catalog
@@ -175,57 +353,39 @@ export function HomePage({
                 All Products
               </h2>
               <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[620px]">
-                Explore our full archival stationery collection, CNC-machined writing instruments, and desk organizers.
+                Explore our full stationery collection, machined writing instruments, and desk organizers.
               </p>
             </div>
 
-            <button
-              onClick={() => {
-                onNavigate("products");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className="btn btn-secondary gap-1.5 self-start md:self-auto"
-            >
-              <span>Open Catalog Page</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-
-          {/* Category Filter Pills */}
-          {categories && categories.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-3 mb-10 border-b border-[var(--border-subtle)]">
-              <button
-                onClick={() => {
-                  setSelectedHomeCategory("All");
+            <div className="flex items-center gap-3 flex-wrap self-start md:self-auto">
+              <CategoryDropdown
+                categories={categories.map((cat) => ({
+                  id: cat._id || cat.name,
+                  name: cat.name,
+                  count: products.filter((p) => p.category === cat.name).length,
+                }))}
+                selectedCategory={selectedHomeCategory}
+                onSelectCategory={(catName) => {
+                  setSelectedHomeCategory(catName);
                   setCurrentPage(1);
                 }}
-                className={`btn btn-sm !rounded-full whitespace-nowrap ${
-                  selectedHomeCategory === "All" ? "btn-primary" : "btn-secondary"
-                }`}
+                totalCount={products.length}
+                label="Category"
+                allLabel="All Categories"
+              />
+
+              <button
+                onClick={() => {
+                  onNavigate("products");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="btn btn-secondary gap-1.5"
               >
-                All Items ({products.length})
+                <span>View Full Catalog</span>
+                <ArrowRight size={14} />
               </button>
-              {categories.map((cat) => {
-                const count = products.filter((p) => p.category === cat.name).length;
-                const isSelected = selectedHomeCategory === cat.name;
-                return (
-                  <button
-                    key={cat._id || cat.name}
-                    onClick={() => {
-                      setSelectedHomeCategory(cat.name);
-                      setCurrentPage(1);
-                    }}
-                    className={`btn btn-sm !rounded-full whitespace-nowrap ${
-                      isSelected ? "btn-primary" : "btn-secondary"
-                    }`}
-                  >
-                    <span>{cat.name}</span>
-                    <span className="opacity-70 text-[0.7rem]">({count})</span>
-                  </button>
-                );
-              })}
             </div>
-          )}
+          </div>
 
           {/* 2-Column Mobile & 4-Column Desktop Product Grid */}
           {paginatedProducts.length === 0 ? (
@@ -319,170 +479,6 @@ export function HomePage({
       </section>
 
       {/* =========================================================================
-          PRINTING SERVICES SECTION BELOW THE PRODUCTS SECTION
-          ========================================================================= */}
-      {displayPrintingServices && displayPrintingServices.length > 0 && (
-        <section id="home-printing-section" className="py-24 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)] relative overflow-hidden">
-          <div className="storefront-container relative z-10">
-            {/* Section Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[0.7rem] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)] mb-3">
-                  <Printer size={13} />
-                  <span>Archival & Commercial Printing Atelier</span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.03em] text-[var(--text-primary)]">
-                  Fine Art Giclée & Custom Printmaking
-                </h2>
-                <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[640px]">
-                  Museum-grade 12-color Lucia PRO pigment prints, architectural CAD blueprints, Smyth-sewn hardcover binding, and luxury metallic foil stamping.
-                </p>
-              </div>
-
-              <button
-                onClick={() => {
-                  onNavigate("printing");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                className="btn btn-secondary gap-1.5 self-start md:self-auto"
-              >
-                <span>Explore Full Print Atelier</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
-
-            {/* Grid of Printing Services */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-              {displayPrintingServices
-                .slice(0, 6)
-                .map((service) => {
-                  const rawImg = service.images && service.images[0] ? service.images[0] : "";
-                  const img = getOptimizedImageUrl(rawImg, { width: 800 });
-                  const hasDiscount =
-                    service.discountPrice &&
-                    Number(service.discountPrice) > 0 &&
-                    Number(service.discountPrice) < Number(service.indicativePrice);
-                  const activePrice = hasDiscount
-                    ? Number(service.discountPrice)
-                    : Number(service.indicativePrice);
-
-                  return (
-                    <div
-                      key={service._id}
-                      className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-lg)] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-lg)] group"
-                    >
-                      {/* Image Preview */}
-                      <div className="h-48 relative overflow-hidden bg-[var(--bg-sidebar)] flex items-center justify-center">
-                        {img ? (
-                          <img
-                            src={img}
-                            alt={service.name}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                        ) : (
-                          <Printer size={36} className="text-[var(--text-muted)] opacity-30" />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/30 to-transparent opacity-80" />
-
-                        <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                          <span className="badge badge-dark text-[0.625rem] bg-black/80">
-                            {service.category}
-                          </span>
-                          {hasDiscount && (
-                            <span className="badge badge-emerald bg-emerald-500 text-white text-[0.6rem] font-bold">
-                              SPECIAL
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-xs text-white text-[0.65rem] px-2 py-0.5 rounded font-mono flex items-center gap-1">
-                          <Clock size={11} />
-                          <span>{service.turnaroundTime || "24-48h"}</span>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-5 flex flex-col flex-1 gap-3">
-                        <div>
-                          <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug">
-                            {service.name}
-                          </h3>
-                          <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-1.5 line-clamp-2">
-                            {service.shortDescription || service.description}
-                          </p>
-                        </div>
-
-                        {/* Price Display */}
-                        <div className="pt-2 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
-                          <div>
-                            <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider block font-bold">
-                              Investment ({service.priceUnit || "per piece"})
-                            </span>
-                            <div className="flex items-baseline gap-1.5 mt-0.5">
-                              <span className="font-mono text-lg font-extrabold text-[var(--text-primary)]">
-                                NRs. {activePrice.toLocaleString()}
-                              </span>
-                              {hasDiscount && (
-                                <span className="font-mono text-xs text-[var(--text-muted)] line-through">
-                                  NRs. {Number(service.indicativePrice).toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {service.specs?.paperGsm && (
-                            <div className="text-right">
-                              <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider block font-bold">
-                                Media
-                              </span>
-                              <span className="text-xs font-mono text-[var(--text-secondary)] truncate max-w-[120px] block">
-                                {service.specs.paperGsm.split(" ")[0]} GSM
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--border-subtle)]">
-                          <button
-                            onClick={() => {
-                              onNavigate("printing");
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                            }}
-                            className="btn btn-secondary btn-sm text-[0.75rem]"
-                          >
-                            Details
-                          </button>
-                          <button
-                            onClick={() => {
-                              const handler = onInquirePrinting || onInquireProduct;
-                              if (handler) {
-                                handler({
-                                  name: service.name,
-                                  indicativePrice: activePrice,
-                                  type: "service",
-                                  category: service.category || "Printing Service",
-                                  description: service.shortDescription || service.description,
-                                });
-                              }
-                            }}
-                            className="btn btn-primary btn-sm text-[0.75rem]"
-                          >
-                            Inquire
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* =========================================================================
           FEATURED IT SERVICES BELOW THE PRODUCTS SECTION
           3 TIER SUBSCRIPTION / PLAN EXPERIENCE (EDITABLE BY ADMIN)
           ========================================================================= */}
@@ -509,7 +505,7 @@ export function HomePage({
             </p>
           </div>
 
-          {/* 3 Tier Subscription Cards */}
+          {/* 3 Symmetrical Tier Subscription Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch mb-14">
             {displayTiers.map((tier) => {
               const isPro = tier.packageTier === "professional";
@@ -518,21 +514,21 @@ export function HomePage({
               return (
                 <div
                   key={tier._id}
-                  className={`relative rounded-[var(--radius-lg)] flex flex-col p-6 sm:p-8 transition-all duration-300 ${
+                  className={`relative rounded-[var(--radius-lg)] flex flex-col p-6 sm:p-8 h-full transition-all duration-300 ${
                     isPro
-                      ? "bg-[var(--bg-elevated)] border-2 border-white shadow-[0_0_35px_rgba(255,255,255,0.12)] lg:scale-[1.02] lg:-translate-y-3 z-10"
-                      : "bg-[var(--bg-card)] border border-[var(--border-medium)] hover:border-[var(--border-bright)]"
+                      ? "bg-[var(--bg-elevated)] border-2 border-[var(--text-primary)] shadow-[var(--shadow-xl)]"
+                      : "bg-[var(--bg-card)] border border-[var(--border-medium)] hover:border-[var(--border-bright)] shadow-sm"
                   }`}
                 >
-                  {/* Top Badge */}
-                  <div className="flex justify-between items-center gap-2 mb-4">
+                  {/* Top Badge & Delivery Timeline (Symmetrical Header) */}
+                  <div className="flex justify-between items-center gap-2 h-7 mb-4">
                     <span
                       className={`badge text-[0.675rem] px-3 py-1 ${
                         isPro
                           ? "badge-white font-extrabold shadow-sm"
                           : isEnterprise
-                          ? "bg-white/15 text-white font-bold"
-                          : "badge-neutral"
+                          ? "bg-[var(--btn-primary-bg)]/15 text-[var(--text-primary)] font-bold border border-[var(--border-medium)]"
+                          : "badge-neutral font-semibold"
                       }`}
                     >
                       {tier.tierBadge || (isPro ? "Most Popular Plan" : isEnterprise ? "Enterprise Tier" : "Starter Plan")}
@@ -544,18 +540,20 @@ export function HomePage({
                     </div>
                   </div>
 
-                  {/* Title & Short Tagline */}
-                  <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[var(--text-primary)] m-0">
-                    {tier.title}
-                  </h3>
-                  <p className="text-[0.85rem] text-[var(--text-secondary)] leading-relaxed mt-2 min-h-[46px]">
-                    {tier.shortDescription}
-                  </p>
+                  {/* Title & Symmetrical Tagline */}
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[var(--text-primary)] m-0 leading-tight">
+                      {tier.title}
+                    </h3>
+                    <p className="text-[0.825rem] sm:text-[0.85rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2 h-[42px] m-0">
+                      {tier.shortDescription}
+                    </p>
+                  </div>
 
-                  {/* Pricing Display in NPr */}
-                  <div className="my-6 p-4 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col">
+                  {/* Symmetrical Price Block in NRs. */}
+                  <div className="my-5 p-4 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-center">
                     <span className="text-[0.675rem] uppercase font-bold tracking-wider text-[var(--text-muted)]">
-                      {tier.priceType === "hourly" ? "Hourly Rate" : "Transparent Investment"}
+                      {tier.priceType === "hourly" ? "Hourly Rate" : "Package Investment"}
                     </span>
                     <div className="flex items-baseline gap-2 mt-1">
                       <span className="font-mono text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] tracking-tight">
@@ -567,50 +565,54 @@ export function HomePage({
                     </div>
                   </div>
 
-                  {/* Feature Checklist (Each Tier's own features) */}
-                  <div className="flex-1 flex flex-col gap-3 mb-8">
-                    <span className="text-[0.725rem] uppercase font-bold tracking-[0.1em] text-[var(--text-muted)] flex items-center gap-1.5">
-                      <Sparkles size={12} />
+                  {/* Feature Checklist */}
+                  <div className="flex-1 flex flex-col gap-2.5 mb-6">
+                    <span className="text-[0.725rem] uppercase font-bold tracking-[0.1em] text-[var(--text-muted)] flex items-center gap-1.5 mb-1">
+                      <Sparkles size={12} className="text-[var(--text-primary)]" />
                       <span>Included Features & Capabilities:</span>
                     </span>
 
-                    {tier.features && tier.features.length > 0 ? (
-                      tier.features.map((feat, idx) => (
-                        <div key={idx} className="flex items-start gap-2.5 text-[0.825rem] text-[var(--text-primary)]">
-                          <CheckCircle2
-                            size={16}
-                            className={`shrink-0 mt-0.5 ${
-                              isPro ? "text-white" : "text-[var(--text-secondary)]"
-                            }`}
-                          />
-                          <span className="leading-snug">{feat}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-xs text-[var(--text-muted)]">Full-stack digital deliverables included</div>
-                    )}
+                    <div className="flex flex-col gap-2.5 flex-1">
+                      {tier.features && tier.features.length > 0 ? (
+                        tier.features.map((feat, idx) => (
+                          <div key={idx} className="flex items-start gap-2.5 text-[0.825rem] text-[var(--text-primary)]">
+                            <CheckCircle2
+                              size={15}
+                              className="shrink-0 mt-0.5 text-[var(--text-primary)] opacity-90"
+                            />
+                            <span className="leading-snug">{feat}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-xs text-[var(--text-muted)]">Full-stack digital deliverables included</div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Tech Stack Pills */}
-                  {tier.technologies && tier.technologies.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-6 pt-3 border-t border-[var(--border-subtle)]">
-                      {tier.technologies.map((tech, idx) => (
+                  {/* Symmetrical Tech Stack Badges */}
+                  <div className="min-h-[38px] flex flex-wrap items-center gap-1.5 pt-3 mb-5 border-t border-[var(--border-subtle)]">
+                    {tier.technologies && tier.technologies.length > 0 ? (
+                      tier.technologies.map((tech, idx) => (
                         <span
                           key={idx}
-                          className="text-[0.675rem] font-mono px-2.5 py-0.5 rounded bg-[var(--bg-input)] text-[var(--text-secondary)]"
+                          className="text-[0.675rem] font-mono px-2.5 py-0.5 rounded bg-[var(--bg-input)] text-[var(--text-secondary)] border border-[var(--border-subtle)]"
                         >
                           {tech}
                         </span>
-                      ))}
-                    </div>
-                  )}
+                      ))
+                    ) : (
+                      <span className="text-[0.675rem] font-mono text-[var(--text-muted)]">MERN Stack Architecture</span>
+                    )}
+                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex flex-col gap-2.5 mt-auto">
+                  {/* Action Buttons Anchored to Bottom */}
+                  <div className="flex flex-col gap-2.5 mt-auto pt-2">
                     <button
                       onClick={() => handleSubscribePlan(tier)}
-                      className={`btn w-full py-3.5 gap-2 font-bold text-[0.875rem] !rounded-[var(--radius-sm)] ${
-                        isPro ? "btn-primary shadow-lg" : "btn-secondary hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
+                      className={`btn w-full py-3.5 gap-2 font-bold text-[0.875rem] !rounded-[var(--radius-sm)] transition-all ${
+                        isPro
+                          ? "btn-primary shadow-md hover:shadow-lg"
+                          : "btn-secondary hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
                       }`}
                     >
                       <span>Subscribe to This Plan</span>
@@ -840,10 +842,10 @@ export function HomePage({
       <section className="py-20 text-center bg-[var(--bg-app)]">
         <div className="storefront-container max-w-[680px] mx-auto">
           <h2 className="text-3xl font-extrabold tracking-[-0.03em]">
-            Begin Your Analog & Digital Journey
+            Ready to Get Started?
           </h2>
           <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2.5 leading-relaxed">
-            Explore our curated analog stationery catalog or partner with our engineering atelier for custom digital software.
+            Browse our stationery and desk accessories or connect with our team for custom software and IT services.
           </p>
           <div className="flex justify-center gap-3 mt-8 flex-wrap">
             <button onClick={() => onNavigate("products")} className="btn btn-primary gap-1.5">

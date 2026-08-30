@@ -697,7 +697,7 @@ export function Navbar({
           {isStatusLoading || !shopStatus ? (
             <div className="p-3 rounded-[var(--radius-sm)] flex items-center gap-2.5 border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-muted)] animate-pulse mb-1">
               <Loader2 size={13} className="animate-spin text-[var(--text-muted)] shrink-0" />
-              <span className="text-xs font-medium">Checking atelier status...</span>
+              <span className="text-xs font-medium">Checking shop status...</span>
             </div>
           ) : (
             <div
@@ -767,7 +767,7 @@ export function Navbar({
             className="flex items-center gap-2 text-sm text-[var(--text-secondary)] pt-3 mt-1 border-t border-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"
           >
             <Phone size={14} />
-            <span>Call Atelier: +977 9808950275</span>
+            <span>Call Us: +977 9808950275</span>
           </a>
         </div>
       )}

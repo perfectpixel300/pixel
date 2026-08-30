@@ -82,17 +82,21 @@ export function WebTiersManagement({
             return (
               <div
                 key={pkg._id}
-                className={`relative rounded-[var(--radius-lg)] flex flex-col p-6 sm:p-7 transition-all ${
+                className={`relative rounded-[var(--radius-lg)] flex flex-col p-6 sm:p-7 h-full transition-all ${
                   isPro
-                    ? "bg-[var(--bg-elevated)] border-2 border-white shadow-lg"
-                    : "bg-[var(--bg-card)] border border-[var(--border-subtle)]"
+                    ? "bg-[var(--bg-elevated)] border-2 border-[var(--text-primary)] shadow-lg"
+                    : "bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)]"
                 }`}
               >
                 {/* Header info */}
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center gap-2 h-7 mb-4">
                   <span
                     className={`badge text-[0.65rem] px-2.5 py-1 ${
-                      isPro ? "badge-white font-extrabold" : isEnterprise ? "bg-white/20 text-white font-bold" : "badge-neutral"
+                      isPro
+                        ? "badge-white font-extrabold"
+                        : isEnterprise
+                        ? "bg-[var(--btn-primary-bg)]/15 text-[var(--text-primary)] font-bold border border-[var(--border-medium)]"
+                        : "badge-neutral font-semibold"
                     }`}
                   >
                     {pkg.tierBadge || (isPro ? "Most Popular" : isEnterprise ? "Enterprise Grade" : "Starter Plan")}
@@ -100,7 +104,7 @@ export function WebTiersManagement({
 
                   <button
                     onClick={() => onToggleActive(pkg._id)}
-                    className={`badge cursor-pointer ${pkg.isActive ? "badge-success" : "badge-neutral"}`}
+                    className={`badge cursor-pointer transition-colors ${pkg.isActive ? "badge-success" : "badge-neutral"}`}
                     title="Click to toggle live storefront visibility"
                   >
                     {pkg.isActive ? "● Live on Site" : "Hidden / Inactive"}
@@ -108,12 +112,14 @@ export function WebTiersManagement({
                 </div>
 
                 {/* Title & Description */}
-                <h3 className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] m-0">
-                  {pkg.title}
-                </h3>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1.5 min-h-[44px]">
-                  {pkg.shortDescription}
-                </p>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] m-0 leading-tight">
+                    {pkg.title}
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1.5 line-clamp-2 h-[36px] m-0">
+                    {pkg.shortDescription}
+                  </p>
+                </div>
 
                 {/* Price Display in NRs. */}
                 <div className="my-4 p-3.5 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-between">
@@ -139,20 +145,22 @@ export function WebTiersManagement({
                 {/* Checklist Features */}
                 <div className="flex-1 flex flex-col gap-2 mb-6">
                   <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)] flex items-center gap-1 mb-1">
-                    <Sparkles size={11} />
+                    <Sparkles size={11} className="text-[var(--text-primary)]" />
                     <span>Deliverables Checklist ({pkg.features?.length || 0})</span>
                   </div>
 
-                  {pkg.features && pkg.features.length > 0 ? (
-                    pkg.features.map((feat, fIdx) => (
-                      <div key={fIdx} className="flex items-start gap-2 text-xs text-[var(--text-primary)]">
-                        <CheckCircle2 size={13} className="text-white shrink-0 mt-0.5" />
-                        <span className="leading-snug">{feat}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-xs text-[var(--text-muted)]">No feature bullets configured</div>
-                  )}
+                  <div className="flex flex-col gap-2 flex-1">
+                    {pkg.features && pkg.features.length > 0 ? (
+                      pkg.features.map((feat, fIdx) => (
+                        <div key={fIdx} className="flex items-start gap-2 text-xs text-[var(--text-primary)]">
+                          <CheckCircle2 size={13} className="shrink-0 mt-0.5 text-[var(--text-primary)] opacity-90" />
+                          <span className="leading-snug">{feat}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-xs text-[var(--text-muted)]">No feature bullets configured</div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Tech Stack */}

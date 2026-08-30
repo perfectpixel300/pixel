@@ -15,7 +15,7 @@ export function ContactPage() {
 
   const [activeFaq, setActiveFaq] = useState(null);
 
-  const atelierWhatsApp = "https://wa.me/977980895925?text=Hello%20Pixel%20Perfect%20Atelier,%20I%20would%20like%20to%20inquire%20about%20your%20stationery%20and%20bespoke%20options.";
+  const supportWhatsApp = "https://wa.me/977980895925?text=Hello%20Pixel%20Perfect,%20I%20would%20like%20to%20inquire%20about%20your%20products%20and%20services.";
 
   const faqs = [
     {
@@ -203,7 +203,7 @@ export function ContactPage() {
             )}
           </div>
 
-          {/* Atelier Info & WhatsApp Quick Chat */}
+          {/* Support Info & WhatsApp Quick Chat */}
           <div className="flex flex-col gap-6">
             {/* WhatsApp Quick Card */}
             <div className="bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-lg)] p-7 flex flex-col gap-3">
@@ -214,10 +214,10 @@ export function ContactPage() {
                 </h3>
               </div>
               <p className="text-[0.825rem] text-[var(--text-muted)] leading-normal m-0">
-                Prefer instant messaging? Chat directly with our Stockholm atelier team for real-time inventory checks and bespoke custom requests.
+                Prefer instant messaging? Chat directly with our team for real-time inquiries, inventory checks, and custom orders.
               </p>
               <a
-                href={atelierWhatsApp}
+                href={supportWhatsApp}
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn-primary py-3 px-5 text-[0.825rem] gap-2 mt-1"

@@ -19,7 +19,7 @@ export function CategoryGrid({ categories = [], onSelectCategory }) {
             Curated Categories
           </h2>
           <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2">
-            Explore our specialized atelier collections categorized by function and craft.
+            Explore our specialized collections categorized by type.
           </p>
         </div>
 

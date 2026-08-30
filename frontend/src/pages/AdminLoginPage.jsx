@@ -104,7 +104,7 @@ export function AdminLoginPage({ onBackToStore, onLoginSuccess }) {
             className="btn btn-ghost btn-sm text-[var(--text-muted)] gap-1.5"
           >
             <ArrowLeft size={13} />
-            <span>Return to Public Atelier</span>
+            <span>Return to Storefront</span>
           </button>
         </div>
       </div>

@@ -23,14 +23,14 @@ export function Footer({ setActivePage, categories = [] }) {
       <div className="storefront-container">
         {/* Main Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
-          {/* Col 1: Brand & Atelier Mission */}
+          {/* Col 1: Brand Mission */}
           <div className="flex flex-col gap-3.5">
             <span className="text-[1.1rem] font-extrabold tracking-[0.08em] uppercase">
               PIXEL PERFECT
             </span>
             <p className="text-[0.85rem] text-[var(--text-muted)] leading-relaxed max-w-[320px]">
-              An independent stationery atelier dedicated to tactile objects of contemplation,
-              precision-machined brass writing tools, and archival Swedish Munken paper.
+              An independent studio dedicated to quality stationery, precision writing tools,
+              custom printing, and modern digital services.
             </p>
 
             {/* Social Media Links with clean SVGs */}
@@ -52,7 +52,7 @@ export function Footer({ setActivePage, categories = [] }) {
 
               {/* WhatsApp */}
               <a
-                href="https://wa.me/9808950275?text=Hello%20Pixel%20Perfect%20Atelier"
+                href="https://wa.me/9808950275?text=Hello%20Pixel%20Perfect"
                 target="_blank"
                 rel="noreferrer"
                 className="btn-icon btn-secondary !w-8 !h-8"
@@ -69,19 +69,19 @@ export function Footer({ setActivePage, categories = [] }) {
               Navigation
             </span>
             <span onClick={() => handleNav("home")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
-              Home Studio
+              Home
             </span>
             <span onClick={() => handleNav("products")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
-              All Products Catalog
+              All Products
             </span>
             <span onClick={() => handleNav("printing")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
-              Printing Atelier & Services
+              Printing Services
             </span>
             <span onClick={() => handleNav("services")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               IT & Web Development Services
             </span>
             <span onClick={() => handleNav("about")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
-              The Atelier Philosophy
+              About Us
             </span>
             <span onClick={() => handleNav("contact")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               Contact & Inquiries
@@ -130,7 +130,7 @@ export function Footer({ setActivePage, categories = [] }) {
               <div className="flex items-center gap-2">
                 <MessageCircle size={14} className="text-[var(--text-primary)] shrink-0" />
                 <a
-                  href="https://wa.me/9808950275?text=Hello%20Pixel%20Perfect%20Atelier"
+                  href="https://wa.me/9808950275?text=Hello%20Pixel%20Perfect"
                   target="_blank"
                   rel="noreferrer"
                   className="text-inherit font-mono hover:text-[var(--text-primary)]"

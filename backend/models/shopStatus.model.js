@@ -14,7 +14,7 @@ const shopStatusSchema = new mongoose.Schema(
     title: {
       type: String,
       trim: true,
-      default: "Pixel Perfect Atelier is Open",
+      default: "Pixel Perfect is Open",
     },
     partialTitle: {
       type: String,
@@ -73,7 +73,7 @@ const shopStatusSchema = new mongoose.Schema(
     contactEmail: {
       type: String,
       trim: true,
-      default: "atelier@pixelperfect.com",
+      default: "perfectpixel300@gmail.com",
     },
     updatedBy: {
       type: String,

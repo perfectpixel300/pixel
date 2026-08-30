@@ -6,9 +6,12 @@ const getOrCreateShopStatus = async () => {
   if (!status) {
     status = await ShopStatus.create({
       isOpen: true,
-      title: "Pixel Perfect Atelier is Open",
+      title: "Pixel Perfect is Open",
+      partialTitle: "Partial Service Availability • Selected Hours",
       closedMessage:
         "We are currently closed for off-hours / maintenance. You can still explore our catalog and submit project inquiries or WhatsApp messages. We will process them immediately once open!",
+      partialMessage:
+        "Some particular services are currently undergoing maintenance or unavailable, while our core stationery catalog and select digital services remain actively operational with their scheduled timings.",
       openMessage: "We are currently open and taking orders and consulting inquiries.",
       bannerNotice: "",
       timerEnabled: false,
@@ -17,7 +20,7 @@ const getOrCreateShopStatus = async () => {
       timerAction: "reopen",
       showPopupWhenClosed: true,
       contactPhone: "+977 9845991878",
-      contactEmail: "atelier@pixelperfect.com",
+      contactEmail: "perfectpixel300@gmail.com",
       updatedBy: "Admin",
     });
   }

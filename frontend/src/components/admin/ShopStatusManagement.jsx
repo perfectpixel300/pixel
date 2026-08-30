@@ -23,7 +23,7 @@ export function ShopStatusManagement({
   const [formData, setFormData] = useState({
     status: "open", // 'open' | 'partial' | 'closed'
     isOpen: true,
-    title: "Pixel Perfect Atelier is Open",
+    title: "Pixel Perfect is Open",
     partialTitle: "Partial Service Availability • Selected Hours",
     closedMessage:
       "We are currently closed for off-hours / maintenance. You can still explore our catalog and submit project inquiries or WhatsApp messages. We will process them immediately once open!",
@@ -37,7 +37,7 @@ export function ShopStatusManagement({
     timerAction: "reopen",
     showPopupWhenClosed: true,
     contactPhone: "+977 9845991878",
-    contactEmail: "atelier@pixelperfect.com",
+    contactEmail: "perfectpixel300@gmail.com",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,7 +64,7 @@ export function ShopStatusManagement({
       setFormData({
         status: currentStatus,
         isOpen: currentStatus !== "closed",
-        title: shopStatus.title || "Pixel Perfect Atelier is Open",
+        title: shopStatus.title || "Pixel Perfect is Open",
         partialTitle:
           shopStatus.partialTitle || "Partial Service Availability • Selected Hours",
         closedMessage:
@@ -88,7 +88,7 @@ export function ShopStatusManagement({
             ? Boolean(shopStatus.showPopupWhenClosed)
             : true,
         contactPhone: shopStatus.contactPhone || "+977 9845991878",
-        contactEmail: shopStatus.contactEmail || "atelier@pixelperfect.com",
+        contactEmail: shopStatus.contactEmail || "perfectpixel300@gmail.com",
       });
     }
   }, [shopStatus]);
@@ -547,7 +547,7 @@ export function ShopStatusManagement({
                   <label className="form-label">Closed Notice Headline</label>
                   <input
                     type="text"
-                    placeholder="e.g. We're Currently Closed / Atelier Maintenance"
+                    placeholder="e.g. We're Currently Closed / Under Maintenance"
                     value={formData.title}
                     onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                     className="form-input text-xs"
@@ -608,7 +608,7 @@ export function ShopStatusManagement({
                 </label>
                 <input
                   type="email"
-                  placeholder="atelier@pixelperfect.com"
+                  placeholder="perfectpixel300@gmail.com"
                   value={formData.contactEmail}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, contactEmail: e.target.value }))
@@ -759,7 +759,7 @@ export function ShopStatusManagement({
                         ? formData.partialTitle || "Partial Service Availability"
                         : formData.status === "closed"
                         ? formData.title || "We're Currently Closed"
-                        : formData.title || "Pixel Perfect Atelier is Open"}
+                        : formData.title || "Pixel Perfect is Open"}
                     </h4>
                   </div>
                 </div>

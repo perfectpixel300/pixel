@@ -25,7 +25,9 @@ import {
   Star,
   ShieldCheck,
   Printer,
+  Info,
 } from "lucide-react";
+import { CategoryDropdown } from "../components/common/CategoryDropdown";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 
 const DEFAULT_IT_CATEGORIES = [
@@ -237,7 +239,7 @@ export function ServicesPage({
               </div>
             </div>
 
-            {/* 3 Categories / Tiers Pricing Cards */}
+            {/* 3 Symmetrical Categories / Tiers Pricing Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mt-8 sm:mt-10 relative z-10 items-stretch">
               {webDevPackages.map((pkg) => {
                 const isPro = pkg.packageTier === "professional";
@@ -246,21 +248,21 @@ export function ServicesPage({
                 return (
                   <div
                     key={pkg._id}
-                    className={`relative rounded-[var(--radius-lg)] flex flex-col p-6 sm:p-8 transition-all duration-300 ${
+                    className={`relative rounded-[var(--radius-lg)] flex flex-col p-6 sm:p-8 h-full transition-all duration-300 ${
                       isPro
-                        ? "bg-[var(--bg-elevated)] border-2 border-white shadow-[0_0_35px_rgba(255,255,255,0.12)] lg:scale-[1.02] lg:-translate-y-2 z-10"
-                        : "bg-[var(--bg-card)] border border-[var(--border-medium)] hover:border-[var(--border-bright)]"
+                        ? "bg-[var(--bg-elevated)] border-2 border-[var(--text-primary)] shadow-[var(--shadow-xl)]"
+                        : "bg-[var(--bg-card)] border border-[var(--border-medium)] hover:border-[var(--border-bright)] shadow-sm"
                     }`}
                   >
-                    {/* Top Tier Badge */}
-                    <div className="flex justify-between items-center gap-2 mb-4">
+                    {/* Top Tier Badge & Delivery Timeline (Symmetrical Header) */}
+                    <div className="flex justify-between items-center gap-2 h-7 mb-4">
                       <span
                         className={`badge text-[0.675rem] px-3 py-1 ${
                           isPro
                             ? "badge-white font-extrabold shadow-sm"
                             : isEnterprise
-                            ? "bg-white/15 text-white font-bold"
-                            : "badge-neutral"
+                            ? "bg-[var(--btn-primary-bg)]/15 text-[var(--text-primary)] font-bold border border-[var(--border-medium)]"
+                            : "badge-neutral font-semibold"
                         }`}
                       >
                         {pkg.tierBadge || (isPro ? "Most Popular Plan" : isEnterprise ? "Enterprise Tier" : "Starter Plan")}
@@ -272,21 +274,23 @@ export function ServicesPage({
                       </div>
                     </div>
 
-                    {/* Title & Tagline */}
-                    <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight m-0 text-[var(--text-primary)]">
-                      {pkg.title}
-                    </h3>
-                    <p className="text-[0.85rem] text-[var(--text-secondary)] leading-relaxed mt-2 min-h-[46px]">
-                      {pkg.shortDescription}
-                    </p>
+                    {/* Title & Symmetrical Tagline */}
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight m-0 text-[var(--text-primary)] leading-tight">
+                        {pkg.title}
+                      </h3>
+                      <p className="text-[0.825rem] sm:text-[0.85rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2 h-[42px] m-0">
+                        {pkg.shortDescription}
+                      </p>
+                    </div>
 
-                    {/* Price Block in NPr */}
-                    <div className="my-6 p-4 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col">
+                    {/* Symmetrical Price Block in NRs. */}
+                    <div className="my-5 p-4 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-center">
                       <span className="text-[0.675rem] uppercase font-bold tracking-wider text-[var(--text-muted)]">
-                        {pkg.priceType === "starting_at" ? "Starting From" : "Package Investment"}
+                        {pkg.priceType === "starting_at" ? "Starting From" : pkg.priceType === "hourly" ? "Hourly Rate" : "Package Investment"}
                       </span>
                       <div className="flex items-baseline gap-2 mt-1">
-                        <span className="font-mono text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)]">
+                        <span className="font-mono text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] tracking-tight">
                           NRs. {Number(pkg.price).toLocaleString()}
                         </span>
                         <span className="text-[0.75rem] text-[var(--text-muted)] font-mono">
@@ -296,48 +300,52 @@ export function ServicesPage({
                     </div>
 
                     {/* Features Checklist */}
-                    <div className="flex-1 flex flex-col gap-3 mb-8">
-                      <span className="text-[0.725rem] uppercase font-bold tracking-[0.1em] text-[var(--text-muted)] flex items-center gap-1.5">
-                        <Sparkles size={12} />
+                    <div className="flex-1 flex flex-col gap-2.5 mb-6">
+                      <span className="text-[0.725rem] uppercase font-bold tracking-[0.1em] text-[var(--text-muted)] flex items-center gap-1.5 mb-1">
+                        <Sparkles size={12} className="text-[var(--text-primary)]" />
                         <span>Included Deliverables & Features:</span>
                       </span>
-                      {pkg.features && pkg.features.length > 0 ? (
-                        pkg.features.map((feat, idx) => (
-                          <div key={idx} className="flex items-start gap-2.5 text-[0.825rem] text-[var(--text-primary)]">
-                            <CheckCircle2
-                              size={16}
-                              className={`shrink-0 mt-0.5 ${
-                                isPro ? "text-white" : "text-[var(--text-secondary)]"
-                              }`}
-                            />
-                            <span className="leading-snug">{feat}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-xs text-[var(--text-muted)]">Full-stack custom features included</div>
-                      )}
+                      <div className="flex flex-col gap-2.5 flex-1">
+                        {pkg.features && pkg.features.length > 0 ? (
+                          pkg.features.map((feat, idx) => (
+                            <div key={idx} className="flex items-start gap-2.5 text-[0.825rem] text-[var(--text-primary)]">
+                              <CheckCircle2
+                                size={15}
+                                className="shrink-0 mt-0.5 text-[var(--text-primary)] opacity-90"
+                              />
+                              <span className="leading-snug">{feat}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-xs text-[var(--text-muted)]">Full-stack custom features included</div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Tech Stack Badges */}
-                    {pkg.technologies && pkg.technologies.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-6 pt-3 border-t border-[var(--border-subtle)]">
-                        {pkg.technologies.map((tech, idx) => (
+                    {/* Symmetrical Tech Stack Badges */}
+                    <div className="min-h-[38px] flex flex-wrap items-center gap-1.5 pt-3 mb-5 border-t border-[var(--border-subtle)]">
+                      {pkg.technologies && pkg.technologies.length > 0 ? (
+                        pkg.technologies.map((tech, idx) => (
                           <span
                             key={idx}
-                            className="text-[0.675rem] font-mono px-2.5 py-0.5 rounded bg-[var(--bg-input)] text-[var(--text-secondary)]"
+                            className="text-[0.675rem] font-mono px-2.5 py-0.5 rounded bg-[var(--bg-input)] text-[var(--text-secondary)] border border-[var(--border-subtle)]"
                           >
                             {tech}
                           </span>
-                        ))}
-                      </div>
-                    )}
+                        ))
+                      ) : (
+                        <span className="text-[0.675rem] font-mono text-[var(--text-muted)]">MERN Stack Architecture</span>
+                      )}
+                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-col gap-2.5 mt-auto">
+                    {/* Action Buttons Anchored to Bottom */}
+                    <div className="flex flex-col gap-2.5 mt-auto pt-2">
                       <button
                         onClick={() => handleSubscribePlan(pkg)}
-                        className={`btn w-full py-3.5 gap-2 font-bold text-[0.875rem] ${
-                          isPro ? "btn-primary shadow-lg" : "btn-secondary hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
+                        className={`btn w-full py-3.5 gap-2 font-bold text-[0.875rem] !rounded-[var(--radius-sm)] transition-all ${
+                          isPro
+                            ? "btn-primary shadow-md hover:shadow-lg"
+                            : "btn-secondary hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
                         }`}
                       >
                         <span>Subscribe to This Plan</span>
@@ -410,58 +418,44 @@ export function ServicesPage({
               </p>
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full md:w-72">
-              <Search
-                size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            {/* Search & Category Dropdown */}
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="relative w-full sm:w-64">
+                <Search
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+                />
+                <input
+                  type="text"
+                  placeholder="Search mobile, cloud, AI, security..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="form-input !pl-8.5 !pr-8 text-xs py-2 bg-[var(--bg-input)] rounded-[var(--radius-xs)] border border-[var(--border-subtle)] focus:border-[var(--border-bright)]"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-0 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+
+              <CategoryDropdown
+                categories={itCategories.map((cat) => ({
+                  id: cat,
+                  name: cat,
+                  count: services.filter((s) => s.category === cat && !s.isWebDevPackage && s.isActive).length,
+                }))}
+                selectedCategory={selectedCategory}
+                onSelectCategory={(catName) => setSelectedCategory(catName)}
+                totalCount={services.filter((s) => !s.isWebDevPackage && s.isActive).length}
+                label="IT Discipline"
+                allLabel="All IT Disciplines"
               />
-              <input
-                type="text"
-                placeholder="Search mobile, cloud, AI, security..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="form-input !pl-9 !pr-8 text-xs py-2 bg-[var(--bg-input)] rounded-full"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-0 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
-                >
-                  <X size={13} />
-                </button>
-              )}
             </div>
-          </div>
-
-          {/* Category Filter Pills (Excluding Web Development) */}
-          <div className="flex gap-2 overflow-x-auto pb-3 mb-8 border-b border-[var(--border-subtle)]">
-            <button
-              onClick={() => setSelectedCategory("All")}
-              className={`btn btn-sm !rounded-full ${
-                selectedCategory === "All" ? "btn-primary" : "btn-secondary"
-              }`}
-            >
-              All IT Disciplines ({services.filter((s) => !s.isWebDevPackage && s.isActive).length})
-            </button>
-
-            {itCategories.map((cat) => {
-              const count = services.filter((s) => s.category === cat && !s.isWebDevPackage && s.isActive).length;
-              const isSelected = selectedCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`btn btn-sm !rounded-full whitespace-nowrap ${
-                    isSelected ? "btn-primary" : "btn-secondary"
-                  }`}
-                >
-                  <span>{cat}</span>
-                  <span className="opacity-65 text-[0.675rem]">({count})</span>
-                </button>
-              );
-            })}
           </div>
 
           {/* Other IT Services Grid */}
@@ -736,7 +730,7 @@ export function ServicesPage({
                           <div className="pt-2 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
                             <div>
                               <span className="text-[0.6rem] text-[var(--text-muted)] uppercase tracking-wider block font-bold">
-                                Price ({service.priceUnit || "per piece"})
+                                Price ({service.priceUnit || "per page"})
                               </span>
                               <span className="font-mono text-base font-extrabold text-[var(--text-primary)]">
                                 NRs. {activePrice.toLocaleString()}

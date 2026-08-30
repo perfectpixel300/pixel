@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Search, Plus, List, LayoutGrid, Star, Edit2, Trash2, Printer, Coins, TrendingUp, Clock, Layers } from "lucide-react";
+import { CategoryDropdown } from "../common/CategoryDropdown";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 const DEFAULT_PRINTING_CATEGORIES = [
@@ -44,14 +45,8 @@ export function PrintingManagement({
   const activeCount = printingServices.filter((s) => s.isAvailable).length;
   const inactiveCount = printingServices.filter((s) => !s.isAvailable).length;
 
-  const totalValue = printingServices.reduce(
-    (acc, s) => acc + getEffectivePrice(s) * (s?.stock !== undefined ? Number(s.stock) : 1),
-    0
-  );
-  const totalCost = printingServices.reduce(
-    (acc, s) => acc + (Number(s?.costPrice) || 0) * (s?.stock !== undefined ? Number(s.stock) : 1),
-    0
-  );
+  const totalValue = printingServices.reduce((acc, s) => acc + getEffectivePrice(s), 0);
+  const totalCost = printingServices.reduce((acc, s) => acc + (Number(s?.costPrice) || 0), 0);
   const totalExpectedProfit = totalValue - totalCost;
   const profitMargin = totalValue > 0 ? ((totalExpectedProfit / totalValue) * 100).toFixed(1) : 0;
 
@@ -103,7 +98,7 @@ export function PrintingManagement({
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4 flex items-center justify-between border border-[var(--border-subtle)]">
           <div>
             <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)]">
-              Service Base Value
+              Catalog Selling Value
             </div>
             <div className="text-xl font-extrabold mt-0.5 tracking-tight font-mono text-[var(--text-primary)]">
               NRs. {totalValue.toLocaleString()}
@@ -134,36 +129,13 @@ export function PrintingManagement({
               Expected Margin ({profitMargin}%)
             </div>
             <div className="text-xl font-extrabold mt-0.5 tracking-tight font-mono text-emerald-400">
-              NRs. {totalExpectedProfit.toLocaleString()}
+              +NRs. {totalExpectedProfit.toLocaleString()}
             </div>
           </div>
           <div className="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
             <TrendingUp size={16} />
           </div>
         </div>
-      </div>
-
-      {/* Category Filter Pills */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
-        <button
-          onClick={() => setSelectedCategory("All")}
-          className={`btn btn-sm !rounded-full ${selectedCategory === "All" ? "btn-primary" : "btn-secondary"}`}
-        >
-          All Categories ({printingServices.length})
-        </button>
-        {allCategories.map((cat) => {
-          const count = printingServices.filter((s) => s.category === cat).length;
-          return (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`btn btn-sm !rounded-full whitespace-nowrap ${selectedCategory === cat ? "btn-primary" : "btn-secondary"}`}
-            >
-              <span>{cat}</span>
-              <span className="opacity-65 text-[0.68rem]">({count})</span>
-            </button>
-          );
-        })}
       </div>
 
       {/* Toolbar */}
@@ -179,6 +151,21 @@ export function PrintingManagement({
               className="form-input !pl-8 text-xs py-2 px-2.5"
             />
           </div>
+
+          {/* Minimal Category Dropdown */}
+          <CategoryDropdown
+            categories={allCategories.map((cat) => ({
+              id: cat,
+              name: cat,
+              count: printingServices.filter((s) => s.category === cat).length,
+            }))}
+            selectedCategory={selectedCategory}
+            onSelectCategory={(catName) => setSelectedCategory(catName)}
+            totalCount={printingServices.length}
+            label="Category"
+            allLabel="All Categories"
+            size="sm"
+          />
 
           {/* Quick Status Filter Pills */}
           <div className="flex items-center gap-1 bg-[var(--bg-input)] p-0.5 rounded-[var(--radius-xs)] border border-[var(--border-subtle)]">
@@ -299,9 +286,10 @@ export function PrintingManagement({
                   <th className="py-2.5 px-3.5">Category</th>
                   <th className="py-2.5 px-3.5">Selling Price</th>
                   <th className="py-2.5 px-3.5">Cost Price</th>
+                  <th className="py-2.5 px-3.5">Expected Profit</th>
                   <th className="py-2.5 px-3.5">Unit / MOQ</th>
                   <th className="py-2.5 px-3.5">Turnaround</th>
-                  <th className="py-2.5 px-3.5">Specs / Paper</th>
+                  <th className="py-2.5 px-3.5">Specs / Media</th>
                   <th className="py-2.5 px-3.5">Status</th>
                   <th className="py-2.5 px-3.5">Featured</th>
                   <th className="py-2.5 px-3.5 text-right">Actions</th>
@@ -311,7 +299,12 @@ export function PrintingManagement({
                 {filtered.map((s) => {
                   const rawImg = s.images && s.images[0] ? s.images[0] : "";
                   const img = getOptimizedImageUrl(rawImg, { width: 120 });
+                  const effectivePrice = getEffectivePrice(s);
                   const hasDiscount = s.discountPrice && Number(s.discountPrice) > 0 && Number(s.discountPrice) < Number(s.indicativePrice);
+                  const cost = Number(s.costPrice || 0);
+                  const profit = effectivePrice - cost;
+                  const margin = effectivePrice > 0 ? ((profit / effectivePrice) * 100).toFixed(1) : 0;
+                  const priceUnit = s.priceUnit || "per page";
 
                   return (
                     <tr key={s._id} className="border-b border-[var(--border-subtle)]">
@@ -347,15 +340,26 @@ export function PrintingManagement({
                           <span>NRs. {Number(s.indicativePrice).toLocaleString()}</span>
                         )}
                         <span className="text-[0.65rem] text-[var(--text-muted)] font-sans block font-normal">
-                          {s.priceUnit || "per piece"}
+                          {priceUnit}
                         </span>
                       </td>
-                      <td className="py-3 px-3.5 font-mono text-[var(--text-muted)]">
-                        NRs. {Number(s.costPrice || 0).toLocaleString()}
+                      <td className="py-3 px-3.5 font-mono text-[var(--text-secondary)]">
+                        <div>NRs. {cost.toLocaleString()}</div>
+                        <span className="text-[0.65rem] text-[var(--text-muted)] font-sans block font-normal">
+                          {priceUnit}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3.5 font-bold font-mono">
+                        <span className={profit >= 0 ? "text-emerald-400" : "text-red-400"}>
+                          {profit >= 0 ? "+" : ""}NRs. {profit.toLocaleString()}
+                        </span>
+                        <span className="text-[0.65rem] text-[var(--text-muted)] font-mono block font-normal">
+                          ({margin}% margin)
+                        </span>
                       </td>
                       <td className="py-3 px-3.5">
                         <span className="badge badge-neutral text-[0.68rem]">
-                          Min: {s.minOrderQuantity || 1}
+                          {priceUnit} (Min: {s.minOrderQuantity || 1})
                         </span>
                       </td>
                       <td className="py-3 px-3.5 text-[0.75rem] font-mono text-[var(--text-secondary)]">
@@ -365,7 +369,7 @@ export function PrintingManagement({
                         </div>
                       </td>
                       <td className="py-3 px-3.5 text-[0.725rem] text-[var(--text-muted)] max-w-[160px] truncate">
-                        {s.specs?.paperGsm || s.specs?.printTechnology || s.paperOptions?.[0] || "Custom Media"}
+                        {s.specs?.paperGsm || s.specs?.printTechnology || s.paperOptions?.[0] || "Standard Print"}
                       </td>
                       <td className="py-3 px-3.5">
                         <button
@@ -418,7 +422,12 @@ export function PrintingManagement({
           {filtered.map((s) => {
             const rawImg = s.images && s.images[0] ? s.images[0] : "";
             const img = getOptimizedImageUrl(rawImg, { width: 500 });
+            const effectivePrice = getEffectivePrice(s);
             const hasDiscount = s.discountPrice && Number(s.discountPrice) > 0 && Number(s.discountPrice) < Number(s.indicativePrice);
+            const cost = Number(s.costPrice || 0);
+            const profit = effectivePrice - cost;
+            const margin = effectivePrice > 0 ? ((profit / effectivePrice) * 100).toFixed(1) : 0;
+            const priceUnit = s.priceUnit || "per page";
 
             return (
               <div key={s._id} className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col border border-[var(--border-subtle)]">
@@ -472,8 +481,15 @@ export function PrintingManagement({
                   </p>
 
                   <div className="flex justify-between items-center text-[0.72rem] text-[var(--text-muted)] font-mono pt-2 border-t border-[var(--border-subtle)] mt-auto">
-                    <span>Cost: NRs. {Number(s.costPrice || 0).toLocaleString()}</span>
-                    <span>{s.priceUnit || "per piece"}</span>
+                    <span>Cost: NRs. {cost.toLocaleString()}</span>
+                    <span>{priceUnit}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[0.72rem] font-mono">
+                    <span className="text-[var(--text-muted)]">Expected Profit:</span>
+                    <span className={`font-bold ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      {profit >= 0 ? "+" : ""}NRs. {profit.toLocaleString()} ({margin}%)
+                    </span>
                   </div>
 
                   <div className="pt-2 flex justify-between items-center border-t border-[var(--border-subtle)]">

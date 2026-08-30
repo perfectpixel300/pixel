@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Filter, SlidersHorizontal, Package, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard } from "../components/storefront/ProductCard";
+import { CategoryDropdown } from "../components/common/CategoryDropdown";
 
 export function ProductsPage({
   products,
@@ -91,63 +92,54 @@ export function ProductsPage({
           </p>
         </div>
 
-        {/* Category Pills Bar */}
-        <div className="flex gap-2 overflow-x-auto pb-3 mb-8 border-b border-[var(--border-subtle)]">
-          <button
-            onClick={() => setSelectedCategory("All")}
-            className={`btn btn-sm !rounded-full ${
-              selectedCategory === "All" ? "btn-primary" : "btn-secondary"
-            }`}
-          >
-            All Items ({products.length})
-          </button>
-          {categories.map((cat) => {
-            const count = products.filter((p) => p.category === cat.name).length;
-            const isSelected = selectedCategory === cat.name;
-            return (
-              <button
-                key={cat._id || cat.name}
-                onClick={() => setSelectedCategory(cat.name)}
-                className={`btn btn-sm !rounded-full whitespace-nowrap ${
-                  isSelected ? "btn-primary" : "btn-secondary"
-                }`}
-              >
-                <span>{cat.name}</span>
-                <span className="opacity-70 text-[0.7rem]">({count})</span>
-              </button>
-            );
-          })}
-        </div>
-
         {/* Filter Controls Bar */}
-        <div className="flex justify-between items-center flex-wrap gap-3.5 mb-10">
-          {/* Search Box */}
-          <div className="relative w-full sm:w-72">
-            <Search
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+        <div className="flex justify-between items-center flex-wrap gap-3.5 mb-8 pb-6 border-b border-[var(--border-subtle)]">
+          <div className="flex items-center gap-2.5 flex-wrap w-full sm:w-auto flex-1">
+            {/* Search Box */}
+            <div className="relative w-full sm:w-72">
+              <Search
+                size={15}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+              />
+              <input
+                type="text"
+                placeholder="Search by keyword or material..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="form-input !pl-9 !pr-8 text-[0.825rem]"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-0 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Minimal Category Dropdown */}
+            <CategoryDropdown
+              categories={categories.map((cat) => ({
+                id: cat._id || cat.name,
+                name: cat.name,
+                count: products.filter((p) => p.category === cat.name).length,
+              }))}
+              selectedCategory={selectedCategory}
+              onSelectCategory={(catName) => {
+                setSelectedCategory(catName);
+                setCurrentPage(1);
+              }}
+              totalCount={products.length}
+              label="Category"
+              allLabel="All Categories"
             />
-            <input
-              type="text"
-              placeholder="Search by keyword or material..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="form-input !pl-9 !pr-8 text-[0.825rem]"
-            />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => setSearchTerm("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-0 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
-              >
-                <X size={14} />
-              </button>
-            )}
           </div>
 
           {/* Right Filters */}
           <div className="flex items-center gap-3 flex-wrap">
-            <label className="flex items-center gap-2 text-[0.8rem] text-[var(--text-secondary)] cursor-pointer">
+            <label className="flex items-center gap-2 text-[0.8rem] text-[var(--text-secondary)] cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={availabilityOnly}

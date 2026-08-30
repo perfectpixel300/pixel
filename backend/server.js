@@ -64,7 +64,7 @@ app.use("/api/upload", uploadRoutes);
 app.get("/", (req, res) => {
   res.json({
     status: "online",
-    brand: "Pixel Perfect Atelier",
+    brand: "Pixel Perfect",
     version: "2.3.0",
     currency: "NRs.",
     theme: "monochrome",

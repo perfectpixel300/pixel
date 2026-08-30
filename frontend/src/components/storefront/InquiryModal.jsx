@@ -13,7 +13,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const atelierWhatsAppNumber = "9779808950275"; // Nepal WhatsApp hotline
+  const supportWhatsAppNumber = "9779808950275"; // Nepal WhatsApp hotline
 
   useEffect(() => {
     if (product) {
@@ -27,7 +27,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
         subject: `Inquiry: ${itemName}`,
         message: isService
           ? `Hello Pixel Perfect Team,\n\nI would like to inquire about your "${itemName}" service ${priceStr ? `(${priceStr})` : ""}.\nPlease share the project timeline, kickoff process, and proposal details.\n\nThank you.`
-          : `Hello Pixel Perfect,\n\nI would like to inquire about purchasing "${itemName}" ${priceStr ? `(${priceStr})` : ""}. Please advise on availability and bespoke options.\n\nThank you.`,
+          : `Hello Pixel Perfect,\n\nI would like to inquire about purchasing "${itemName}" ${priceStr ? `(${priceStr})` : ""}. Please advise on availability.\n\nThank you.`,
       });
     } else {
       setFormData({
@@ -53,7 +53,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
     } else {
       text += "I would like to ask a question regarding your products and IT web development services.";
     }
-    return `https://wa.me/${atelierWhatsAppNumber}?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(text)}`;
   };
 
   const handleSubmit = async (e) => {
@@ -134,7 +134,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
             </div>
             <div>
               <h3 className="text-base font-bold m-0">
-                {product ? `Inquire: ${product.name}` : "Atelier Direct Inquiry"}
+                {product ? `Inquire: ${product.name}` : "Direct Inquiry"}
               </h3>
               <span className="text-[0.725rem] text-[var(--text-muted)]">
                 Fast communication via WhatsApp or Direct Form
