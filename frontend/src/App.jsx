@@ -15,6 +15,7 @@ import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { InquiryModal } from "./components/storefront/InquiryModal";
 import { ShopClosedModal } from "./components/storefront/ShopClosedModal";
 import { Preloader } from "./components/common/Preloader";
+import { ScrollToTop } from "./components/common/ScrollToTop";
 import { api } from "./services/api";
 
 // Helper to get initial route from URL path
@@ -66,16 +67,23 @@ function AppContent() {
     if (window.location.pathname !== path) {
       window.history.pushState(null, "", path);
     }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   };
 
   // Sync with browser back/forward buttons
   useEffect(() => {
     const handlePopState = () => {
       setActivePageState(getRouteFromPath());
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+
+  // Guarantee scroll to top whenever activePage or selectedProduct changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [activePage, selectedProduct]);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -181,7 +189,7 @@ function AppContent() {
   const handleViewProduct = (product) => {
     setSelectedProduct(product);
     setActivePage("product-detail");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   };
 
   // Open direct inquiry modal for product or service
@@ -195,7 +203,7 @@ function AppContent() {
     setSearchQuery(query);
     setSelectedCategory("All");
     setActivePage("products");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   };
 
   const isAdminView = activePage === "admin";
@@ -326,6 +334,9 @@ function AppContent() {
           />
         </ProtectedRoute>
       )}
+
+      {/* Floating Scroll-to-Top Button */}
+      <ScrollToTop />
     </>
   );
 }

@@ -14,6 +14,7 @@ import {
   Zap,
   Clock,
   Sliders,
+  X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -32,6 +33,8 @@ export function AdminSidebar({
   isLiveBackend,
   onSeedData,
   onExitToStore,
+  mobileSidebarOpen = false,
+  setMobileSidebarOpen,
 }) {
   const { logout } = useAuth();
 
@@ -45,8 +48,8 @@ export function AdminSidebar({
       id: "shop-status",
       label: "Store Status & Timer",
       icon: <Clock size={17} />,
-      badge: shopStatus?.isOpen ? "Open" : "Closed",
-      badgeColor: shopStatus?.isOpen ? "success" : "danger",
+      badge: shopStatus?.status === "partial" ? "Partial" : shopStatus?.isOpen ? "Open" : "Closed",
+      badgeColor: shopStatus?.status === "partial" ? "info" : shopStatus?.isOpen ? "success" : "danger",
     },
     {
       id: "web-tiers",
@@ -97,149 +100,202 @@ export function AdminSidebar({
     },
   ];
 
+  const handleNavClick = (tabId) => {
+    setActiveTab(tabId);
+    if (setMobileSidebarOpen) {
+      setMobileSidebarOpen(false);
+    }
+  };
+
   return (
-    <aside
-      className={`bg-[var(--bg-sidebar)] border-r border-[var(--border-subtle)] flex flex-col transition-[width] duration-200 shrink-0 z-20 relative ${
-        isCollapsed ? "w-[72px]" : "w-[250px]"
-      }`}
-    >
-      {/* Brand Header */}
-      <div
-        className={`h-16 flex items-center border-b border-[var(--border-subtle)] ${
-          isCollapsed ? "px-4 justify-center" : "px-5 justify-between"
+    <>
+      {/* Mobile Drawer Backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-xs transition-opacity duration-200"
+          onClick={() => setMobileSidebarOpen && setMobileSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`bg-[var(--bg-sidebar)] border-r border-[var(--border-subtle)] flex flex-col z-50 md:z-20 transition-all duration-200 shrink-0 ${
+          /* Mobile Drawer: fixed overlay */
+          mobileSidebarOpen
+            ? "fixed inset-y-0 left-0 w-[270px] max-w-[85vw] shadow-2xl flex md:relative md:shadow-none"
+            : "fixed inset-y-0 -left-full md:left-auto md:relative hidden md:flex"
+        } ${
+          /* Desktop Width */
+          isCollapsed ? "md:w-[72px]" : "md:w-[250px]"
         }`}
       >
+        {/* Brand Header */}
         <div
-          onClick={() => setActiveTab("overview")}
-          className="flex items-center gap-2.5 cursor-pointer"
+          className={`h-16 flex items-center border-b border-[var(--border-subtle)] ${
+            isCollapsed ? "px-4 justify-center" : "px-4 sm:px-5 justify-between"
+          }`}
         >
-          <div className="w-7.5 h-7.5 rounded-[var(--radius-xs)] bg-white text-black flex items-center justify-center font-extrabold text-sm">
-            P
+          <div
+            onClick={() => handleNavClick("overview")}
+            className="flex items-center gap-2.5 cursor-pointer min-w-0"
+          >
+            <div className="w-7.5 h-7.5 rounded-[var(--radius-xs)] bg-white text-black flex items-center justify-center font-extrabold text-sm shrink-0">
+              P
+            </div>
+            {!isCollapsed && (
+              <div className="min-w-0 truncate">
+                <div className="font-extrabold text-[0.825rem] sm:text-[0.85rem] tracking-[0.06em] uppercase truncate">
+                  PIXEL PERFECT
+                </div>
+                <div className="text-[0.625rem] sm:text-[0.65rem] text-[var(--text-muted)] tracking-[0.05em] uppercase truncate">
+                  Studio Admin
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Desktop Collapse Toggle */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`btn-icon btn-ghost !w-6.5 !h-6.5 hidden md:inline-flex ${isCollapsed ? "hidden" : ""}`}
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <ChevronLeft size={15} />
+          </button>
+
+          {/* Mobile Close Button */}
+          <button
+            onClick={() => setMobileSidebarOpen && setMobileSidebarOpen(false)}
+            className="btn-icon btn-ghost md:hidden !w-7 !h-7 text-[var(--text-muted)] hover:text-white"
+            title="Close navigation"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Navigation List */}
+        <div className="p-2.5 flex-1 flex flex-col gap-1 overflow-y-auto">
           {!isCollapsed && (
-            <div>
-              <div className="font-extrabold text-[0.85rem] tracking-[0.06em] uppercase">
-                PIXEL PERFECT
-              </div>
-              <div className="text-[0.65rem] text-[var(--text-muted)] tracking-[0.05em] uppercase">
-                Studio Admin
-              </div>
+            <div className="text-[0.68rem] font-bold uppercase text-[var(--text-muted)] tracking-[0.08em] px-2.5 pb-2 truncate">
+              Studio Management
+            </div>
+          )}
+
+          {navItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleNavClick(item.id)}
+                className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] border-0 cursor-pointer transition-all text-[0.825rem] text-left ${
+                  isCollapsed ? "py-2.5 justify-center" : "py-2.5 px-3 justify-start"
+                } ${
+                  isActive
+                    ? "bg-white text-black font-bold"
+                    : "bg-transparent text-[var(--text-secondary)] font-medium hover:bg-[var(--bg-elevated)] hover:text-white"
+                }`}
+                title={isCollapsed ? item.label : undefined}
+              >
+                <div className="flex items-center shrink-0">{item.icon}</div>
+
+                {!isCollapsed && (
+                  <>
+                    <span className="flex-1 truncate">{item.label}</span>
+                    {item.badge !== undefined && item.badge !== 0 && (
+                      <span
+                        className={`badge ${
+                          isActive
+                            ? "badge-dark"
+                            : item.badgeColor === "danger"
+                            ? "badge-danger"
+                            : item.badgeColor === "info"
+                            ? "bg-blue-500/20 text-blue-300"
+                            : "badge-neutral"
+                        } text-[0.65rem] px-1.5 py-0.5 shrink-0`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </>
+                )}
+              </button>
+            );
+          })}
+
+          {/* Storefront actions */}
+          <div className="mt-auto pt-3 flex flex-col gap-1.5 border-t border-[var(--border-subtle)]">
+            <button
+              onClick={() => {
+                if (setMobileSidebarOpen) setMobileSidebarOpen(false);
+                onExitToStore();
+              }}
+              className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-card)] text-[var(--text-primary)] cursor-pointer text-[0.78rem] font-semibold hover:bg-[var(--bg-elevated)] transition-colors ${
+                isCollapsed ? "py-2.5 justify-center" : "py-2.5 px-3 justify-start"
+              }`}
+              title="Public Storefront"
+            >
+              <Store size={15} className="shrink-0" />
+              {!isCollapsed && <span className="truncate">View Public Store</span>}
+            </button>
+
+            <button
+              onClick={() => {
+                if (setMobileSidebarOpen) setMobileSidebarOpen(false);
+                onSeedData && onSeedData();
+              }}
+              className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] bg-transparent text-[var(--text-muted)] cursor-pointer text-[0.75rem] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors ${
+                isCollapsed ? "py-2 justify-center" : "py-2 px-3 justify-start"
+              }`}
+              title="Reset / Seed Curated Data"
+            >
+              <Sparkles size={14} className="shrink-0" />
+              {!isCollapsed && <span className="truncate">Reset Sample Data (NRs.)</span>}
+            </button>
+
+            <button
+              onClick={() => {
+                if (setMobileSidebarOpen) setMobileSidebarOpen(false);
+                logout();
+              }}
+              className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] bg-transparent text-[var(--color-danger)] cursor-pointer text-[0.78rem] font-semibold hover:bg-[var(--color-danger-bg)] transition-colors ${
+                isCollapsed ? "py-2 justify-center" : "py-2 px-3 justify-start"
+              }`}
+              title="Logout"
+            >
+              <LogOut size={15} className="shrink-0" />
+              {!isCollapsed && <span className="truncate">Logout</span>}
+            </button>
+          </div>
+        </div>
+
+        {/* Backend indicator */}
+        <div
+          className={`border-t border-[var(--border-subtle)] flex items-center gap-2 bg-[var(--bg-app)] ${
+            isCollapsed ? "p-2.5 justify-center" : "py-3 px-4 justify-start"
+          }`}
+        >
+          <div
+            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+              isLiveBackend ? "bg-[var(--color-success)]" : "bg-[var(--color-warning)]"
+            }`}
+          />
+          {!isCollapsed && (
+            <div className="text-[0.68rem] text-[var(--text-muted)] truncate">
+              {isLiveBackend ? "Database: Connected" : "Local Sandbox Mode"}
             </div>
           )}
         </div>
 
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`btn-icon btn-ghost !w-6.5 !h-6.5 ${isCollapsed ? "hidden" : "inline-flex"}`}
-        >
-          <ChevronLeft size={15} />
-        </button>
-      </div>
-
-      {/* Navigation List */}
-      <div className="p-2.5 flex-1 flex flex-col gap-1">
-        {!isCollapsed && (
-          <div className="text-[0.68rem] font-bold uppercase text-[var(--text-muted)] tracking-[0.08em] px-2.5 pb-2">
-            Studio Management
-          </div>
+        {isCollapsed && (
+          <button
+            onClick={() => setIsCollapsed(false)}
+            className="btn-icon btn-ghost absolute top-4.5 -right-3 !w-5.5 !h-5.5 rounded-full bg-[var(--bg-elevated)] z-30 hidden md:inline-flex"
+            title="Expand sidebar"
+          >
+            <ChevronRight size={13} />
+          </button>
         )}
-
-        {navItems.map((item) => {
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] border-0 cursor-pointer transition-all text-[0.825rem] text-left ${
-                isCollapsed ? "py-2.5 justify-center" : "py-2.5 px-3 justify-start"
-              } ${
-                isActive
-                  ? "bg-white text-black font-bold"
-                  : "bg-transparent text-[var(--text-secondary)] font-medium hover:bg-[var(--bg-elevated)] hover:text-white hover:bg-black"
-              }`}
-              title={isCollapsed ? item.label : undefined}
-            >
-              <div className="flex items-center">{item.icon}</div>
-
-              {!isCollapsed && (
-                <>
-                  <span className="flex-1">{item.label}</span>
-                  {item.badge !== undefined && item.badge !== 0 && (
-                    <span
-                      className={`badge ${isActive ? "badge-dark" : "badge-neutral"} text-[0.65rem] px-1.5 py-0.5`}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </>
-              )}
-            </button>
-          );
-        })}
-
-        {/* Storefront actions */}
-        <div className="mt-auto flex flex-col gap-1.5">
-          <button
-            onClick={onExitToStore}
-            className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-card)] text-[var(--text-primary)] cursor-pointer text-[0.78rem] font-semibold hover:bg-[var(--bg-elevated)] transition-colors ${
-              isCollapsed ? "py-2.5 justify-center" : "py-2.5 px-3 justify-start"
-            }`}
-            title="Public Storefront"
-          >
-            <Store size={15} />
-            {!isCollapsed && <span>View Public Store</span>}
-          </button>
-
-          <button
-            onClick={onSeedData}
-            className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] bg-transparent text-[var(--text-muted)] cursor-pointer text-[0.75rem] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors ${
-              isCollapsed ? "py-2 justify-center" : "py-2 px-3 justify-start"
-            }`}
-            title="Reset / Seed Curated Data"
-          >
-            <Sparkles size={14} />
-            {!isCollapsed && <span>Reset Sample Data (NRs.)</span>}
-          </button>
-
-          <button
-            onClick={logout}
-            className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] bg-transparent text-[var(--color-danger)] cursor-pointer text-[0.78rem] font-semibold hover:bg-[var(--color-danger-bg)] transition-colors ${
-              isCollapsed ? "py-2 justify-center" : "py-2 px-3 justify-start"
-            }`}
-            title="Logout"
-          >
-            <LogOut size={15} />
-            {!isCollapsed && <span>Logout</span>}
-          </button>
-        </div>
-      </div>
-
-      {/* Backend indicator */}
-      <div
-        className={`border-t border-[var(--border-subtle)] flex items-center gap-2 bg-[var(--bg-app)] ${
-          isCollapsed ? "p-2.5 justify-center" : "py-3 px-4 justify-start"
-        }`}
-      >
-        <div
-          className={`w-1.5 h-1.5 rounded-full ${
-            isLiveBackend ? "bg-[var(--color-success)]" : "bg-[var(--color-warning)]"
-          }`}
-        />
-        {!isCollapsed && (
-          <div className="text-[0.68rem] text-[var(--text-muted)]">
-            {isLiveBackend ? "Database: Connected" : "Local Sandbox Mode"}
-          </div>
-        )}
-      </div>
-
-      {isCollapsed && (
-        <button
-          onClick={() => setIsCollapsed(false)}
-          className="btn-icon btn-ghost absolute top-4.5 -right-3 !w-5.5 !h-5.5 rounded-full bg-[var(--bg-elevated)] z-30"
-        >
-          <ChevronRight size={13} />
-        </button>
-      )}
-    </aside>
+      </aside>
+    </>
   );
 }

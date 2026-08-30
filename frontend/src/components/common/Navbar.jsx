@@ -230,7 +230,7 @@ export function Navbar({
             <input
               ref={desktopInputRef}
               type="text"
-              placeholder="Search artifacts..."
+              placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
@@ -255,7 +255,7 @@ export function Navbar({
           {isSearchFocused && searchQuery.trim() && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] overflow-hidden z-50 animate-[scaleUp_0.15s_ease-out]">
               <div className="p-2 border-b border-[var(--border-subtle)] flex justify-between items-center text-[0.68rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider px-3">
-                <span>Matching Artifacts</span>
+                <span>Matching Products</span>
                 <span>{searchResults.length} Results</span>
               </div>
 
@@ -533,7 +533,7 @@ export function Navbar({
             <div className="mt-2.5 bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] overflow-hidden max-h-[280px] overflow-y-auto divide-y divide-[var(--border-subtle)]">
               {searchResults.length === 0 ? (
                 <div className="p-4 text-center text-xs text-[var(--text-muted)]">
-                  No artifacts match "{searchQuery}"
+                  No products match "{searchQuery}"
                 </div>
               ) : (
                 <>
@@ -635,7 +635,7 @@ export function Navbar({
             />
             <input
               type="text"
-              placeholder="Search artifacts..."
+              placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="form-input !pl-8.5 text-sm py-2 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)]"

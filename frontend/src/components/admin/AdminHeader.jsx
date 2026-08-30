@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, PackagePlus, ImagePlus, Layers, Sun, Moon, Store, Code, Zap } from "lucide-react";
+import { Plus, PackagePlus, ImagePlus, Layers, Sun, Moon, Store, Code, Zap, Menu } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 export function AdminHeader({
@@ -11,6 +11,7 @@ export function AdminHeader({
   onOpenServiceModal,
   onOpenWebTierModal,
   onExitToStore,
+  onToggleMobileSidebar,
   theme,
   toggleTheme,
 }) {
@@ -21,13 +22,13 @@ export function AdminHeader({
       case "overview":
         return "Dashboard Overview";
       case "shop-status":
-        return "Store Availability, Operating Hours & Countdown Timer";
+        return "Store Availability & Operating Hours";
       case "web-tiers":
-        return "Web Development Subscription Plans (3 Tiers)";
+        return "Web Development Subscription Plans";
       case "services":
-        return "IT Capabilities & Services Catalog (NRs.)";
+        return "IT Capabilities & Services (NRs.)";
       case "service-categories":
-        return "Service Categories & Disciplines";
+        return "Service Categories & Groups";
       case "products":
         return "Products & Inventory (NRs.)";
       case "categories":
@@ -41,24 +42,61 @@ export function AdminHeader({
     }
   };
 
+  const getMobileTitle = () => {
+    switch (activeTab) {
+      case "overview":
+        return "Overview";
+      case "shop-status":
+        return "Store Status";
+      case "web-tiers":
+        return "Web Plans";
+      case "services":
+        return "IT Services";
+      case "service-categories":
+        return "Service Categories";
+      case "products":
+        return "Products";
+      case "categories":
+        return "Categories";
+      case "banners":
+        return "Banners";
+      case "inquiries":
+        return "Inquiries";
+      default:
+        return "Admin";
+    }
+  };
+
   return (
-    <header className="h-16 bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10">
-      {/* Title */}
-      <div className="flex items-center gap-2">
-        <span className="text-[var(--text-muted)] text-[0.75rem] uppercase tracking-[0.06em]">
+    <header className="h-16 bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between px-3 sm:px-6 md:px-8 sticky top-0 z-10">
+      {/* Title & Mobile Menu Button */}
+      <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
+        {onToggleMobileSidebar && (
+          <button
+            onClick={onToggleMobileSidebar}
+            className="btn-icon btn-ghost md:hidden shrink-0 !w-8 !h-8 text-[var(--text-primary)]"
+            title="Open Menu"
+            aria-label="Toggle navigation menu"
+          >
+            <Menu size={18} />
+          </button>
+        )}
+
+        <span className="text-[var(--text-muted)] text-[0.7rem] uppercase tracking-[0.06em] hidden sm:inline shrink-0">
           Admin
         </span>
-        <span className="text-[var(--border-bright)] text-[0.75rem]">/</span>
-        <h1 className="text-base font-bold text-[var(--text-primary)] m-0">
-          {getTitle()}
+        <span className="text-[var(--border-bright)] text-[0.7rem] hidden sm:inline shrink-0">/</span>
+        <h1 className="text-xs sm:text-base font-bold text-[var(--text-primary)] m-0 truncate leading-tight">
+          <span className="hidden sm:inline">{getTitle()}</span>
+          <span className="sm:hidden">{getMobileTitle()}</span>
         </h1>
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
         <button
           onClick={toggleTheme}
-          className="btn-icon btn-ghost"
+          className="btn-icon btn-ghost !w-8 !h-8 sm:!w-9 sm:!h-9"
           title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Monochrome`}
         >
           {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
@@ -66,10 +104,11 @@ export function AdminHeader({
 
         <button
           onClick={onExitToStore}
-          className="btn btn-secondary btn-sm gap-1.5"
+          className="btn btn-secondary btn-sm gap-1.5 !px-2 sm:!px-3 !h-8 sm:!h-9"
+          title="View Public Store"
         >
           <Store size={14} />
-          <span>Public Store</span>
+          <span className="hidden sm:inline">Public Store</span>
         </button>
 
         {activeTab === "web-tiers" ? (
@@ -78,40 +117,46 @@ export function AdminHeader({
               if (onOpenWebTierModal) onOpenWebTierModal();
               else if (onOpenServiceModal) onOpenServiceModal({ isWebDevPackage: true, category: "Web Development" });
             }}
-            className="btn btn-primary btn-sm gap-1.5"
+            className="btn btn-primary btn-sm gap-1 !px-2.5 sm:!px-3 !h-8 sm:!h-9"
           >
             <Zap size={14} fill="currentColor" />
-            <span>Add Web Plan</span>
+            <span className="hidden sm:inline">Add Web Plan</span>
+            <span className="sm:hidden">Add</span>
           </button>
         ) : activeTab === "services" ? (
           <button
             onClick={() => {
               if (onOpenServiceModal) onOpenServiceModal({ isWebDevPackage: false });
             }}
-            className="btn btn-primary btn-sm gap-1.5"
+            className="btn btn-primary btn-sm gap-1 !px-2.5 sm:!px-3 !h-8 sm:!h-9"
           >
             <Code size={14} />
-            <span>Add IT Service</span>
+            <span className="hidden sm:inline">Add IT Service</span>
+            <span className="sm:hidden">Add</span>
           </button>
         ) : activeTab === "service-categories" ? (
-          <button onClick={onOpenServiceCategoryModal} className="btn btn-primary btn-sm gap-1.5">
+          <button onClick={onOpenServiceCategoryModal} className="btn btn-primary btn-sm gap-1 !px-2.5 sm:!px-3 !h-8 sm:!h-9">
             <Layers size={14} />
-            <span>Add Service Category</span>
+            <span className="hidden sm:inline">Add Service Category</span>
+            <span className="sm:hidden">Add</span>
           </button>
         ) : activeTab === "categories" ? (
-          <button onClick={onOpenCategoryModal} className="btn btn-primary btn-sm gap-1.5">
+          <button onClick={onOpenCategoryModal} className="btn btn-primary btn-sm gap-1 !px-2.5 sm:!px-3 !h-8 sm:!h-9">
             <Layers size={14} />
-            <span>Add Category</span>
+            <span className="hidden sm:inline">Add Category</span>
+            <span className="sm:hidden">Add</span>
           </button>
         ) : activeTab === "banners" ? (
-          <button onClick={onOpenBannerModal} className="btn btn-primary btn-sm gap-1.5">
+          <button onClick={onOpenBannerModal} className="btn btn-primary btn-sm gap-1 !px-2.5 sm:!px-3 !h-8 sm:!h-9">
             <ImagePlus size={14} />
-            <span>Create Banner</span>
+            <span className="hidden sm:inline">Create Banner</span>
+            <span className="sm:hidden">Banner</span>
           </button>
         ) : activeTab === "shop-status" ? null : (
-          <button onClick={onOpenProductModal} className="btn btn-primary btn-sm gap-1.5">
+          <button onClick={onOpenProductModal} className="btn btn-primary btn-sm gap-1 !px-2.5 sm:!px-3 !h-8 sm:!h-9">
             <PackagePlus size={14} />
-            <span>Add Product</span>
+            <span className="hidden sm:inline">Add Product</span>
+            <span className="sm:hidden">Add</span>
           </button>
         )}
       </div>

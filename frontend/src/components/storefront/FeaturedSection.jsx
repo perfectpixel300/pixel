@@ -120,7 +120,7 @@ export function FeaturedSection({ products = [], onViewDetails, onInquire, onBro
               Spotlight
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-[-0.03em]">
-              Featured Artifacts
+              Featured Products
             </h2>
             <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2">
               Select objects highlighted for exceptional material purity and thoughtful engineering.
@@ -139,7 +139,7 @@ export function FeaturedSection({ products = [], onViewDetails, onInquire, onBro
                       ? "opacity-30 cursor-not-allowed"
                       : "hover:bg-white hover:text-black cursor-pointer shadow-md"
                   }`}
-                  aria-label="Previous featured artifact"
+                  aria-label="Previous featured product"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -151,7 +151,7 @@ export function FeaturedSection({ products = [], onViewDetails, onInquire, onBro
                       ? "opacity-30 cursor-not-allowed"
                       : "hover:bg-white hover:text-black cursor-pointer shadow-md"
                   }`}
-                  aria-label="Next featured artifact"
+                  aria-label="Next featured product"
                 >
                   <ChevronRight size={18} />
                 </button>

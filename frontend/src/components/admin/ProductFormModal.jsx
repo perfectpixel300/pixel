@@ -524,7 +524,7 @@ export function ProductFormModal({
                   <span className="toggle-slider"></span>
                 </label>
                 <div>
-                  <div className="text-[0.8rem] font-bold">Featured Artifact</div>
+                  <div className="text-[0.8rem] font-bold">Featured Product</div>
                   <div className="text-[0.68rem] text-[var(--text-muted)]">Highlight on storefront home</div>
                 </div>
               </div>

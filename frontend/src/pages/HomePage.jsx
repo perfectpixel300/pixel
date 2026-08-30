@@ -158,7 +158,7 @@ export function HomePage({
                 Complete Catalog
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-[-0.03em]">
-                All Products & Artifacts
+                All Products
               </h2>
               <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[620px]">
                 Explore our full archival stationery collection, CNC-machined writing instruments, and desk organizers.

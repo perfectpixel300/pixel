@@ -37,6 +37,7 @@ export function AdminDashboardPage({
 }) {
   const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'shop-status' | 'web-tiers' | 'services' | 'service-categories' | 'products' | 'categories' | 'banners' | 'inquiries'
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Modals state
   const [productModal, setProductModal] = useState({ isOpen: false, product: null });
@@ -356,6 +357,8 @@ export function AdminDashboardPage({
         setIsCollapsed={setIsCollapsed}
         isLiveBackend={isLiveBackend}
         onExitToStore={onExitToStore}
+        mobileSidebarOpen={mobileSidebarOpen}
+        setMobileSidebarOpen={setMobileSidebarOpen}
       />
 
       <div className="admin-main">
@@ -370,6 +373,7 @@ export function AdminDashboardPage({
           }
           onOpenBannerModal={handleOpenCreateBanner}
           onExitToStore={onExitToStore}
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           theme={theme}
           toggleTheme={toggleTheme}
         />
