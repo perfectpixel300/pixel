@@ -52,7 +52,8 @@ function AppContent() {
   const [banners, setBanners] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [isLiveBackend, setIsLiveBackend] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { isAuthenticated } = useAuth();
 
@@ -101,10 +102,14 @@ function AppContent() {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  // Load backend data
-  const loadData = useCallback(async () => {
+  // Load backend data (isInitial = true shows splash preloader on first open, false uses smooth blur refresh)
+  const loadData = useCallback(async (isInitial = false) => {
     try {
-      setIsLoading(true);
+      if (isInitial) {
+        setIsInitialLoad(true);
+      } else {
+        setIsRefreshing(true);
+      }
       const [
         productsRes,
         categoriesRes,
@@ -157,13 +162,14 @@ function AppContent() {
       setShopStatus({ isOpen: true });
       setIsStatusLoading(false);
     } finally {
-      setIsLoading(false);
+      setIsInitialLoad(false);
+      setIsRefreshing(false);
       setIsStatusLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadData();
+    loadData(true);
   }, [loadData]);
 
   // Update shop status handler from admin
@@ -210,8 +216,8 @@ function AppContent() {
 
   return (
     <>
-      {/* Clean Minimal Preloader */}
-      <Preloader isLoading={isLoading} />
+      {/* Clean Minimal Preloader (shown only on initial first load) */}
+      <Preloader isLoading={isInitialLoad} />
 
       {/* Toast */}
       <Toast toast={toast} onClose={() => setToast(null)} />
@@ -226,7 +232,7 @@ function AppContent() {
         product={inquiryProduct}
         onSubmitted={() => {
           showToast("Inquiry dispatched to records!");
-          loadData();
+          loadData(false);
         }}
       />
 
@@ -326,11 +332,12 @@ function AppContent() {
             banners={banners}
             inquiries={inquiries}
             isLiveBackend={isLiveBackend}
-            onRefreshData={loadData}
+            onRefreshData={() => loadData(false)}
             onExitToStore={() => setActivePage("home")}
             showToast={showToast}
             theme={theme}
             toggleTheme={toggleTheme}
+            isRefreshing={isRefreshing}
           />
         </ProtectedRoute>
       )}

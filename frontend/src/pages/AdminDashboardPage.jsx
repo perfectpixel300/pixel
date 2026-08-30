@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { AdminHeader } from "../components/admin/AdminHeader";
 import { DashboardOverview } from "../components/admin/DashboardOverview";
@@ -34,6 +35,7 @@ export function AdminDashboardPage({
   showToast,
   theme,
   toggleTheme,
+  isRefreshing = false,
 }) {
   const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'shop-status' | 'web-tiers' | 'services' | 'service-categories' | 'products' | 'categories' | 'banners' | 'inquiries'
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -537,6 +539,23 @@ export function AdminDashboardPage({
         onCancel={() => setDeleteModal({ isOpen: false, type: "product", id: null, name: "" })}
         isDeleting={isSubmitting}
       />
+
+      {/* Sleek Admin Action Loading Overlay with Backdrop Blur */}
+      {isRefreshing && (
+        <div className="fixed inset-0 z-[120] bg-black/40 backdrop-blur-md flex flex-col items-center justify-center pointer-events-none transition-all duration-300">
+          <div className="bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-bright)]/60 px-6 py-4 rounded-[var(--radius-lg)] shadow-2xl flex items-center gap-3.5 border border-white/10">
+            <Loader2 size={20} className="animate-spin text-[var(--text-primary)]" />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide">
+                Updating Records...
+              </span>
+              <span className="text-[0.68rem] text-[var(--text-muted)] font-mono">
+                Applying changes to catalog
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
