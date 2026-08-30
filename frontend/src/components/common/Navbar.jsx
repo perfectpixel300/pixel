@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   Menu,
   X,
@@ -16,6 +18,10 @@ import {
   Info,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export function Navbar({
   activePage,
@@ -36,7 +42,68 @@ export function Navbar({
   const [showStatusPopover, setShowStatusPopover] = useState(false);
   const [timerText, setTimerText] = useState("");
 
+  const headerRef = useRef(null);
   const statusPopoverRef = useRef(null);
+
+  // GSAP Dynamic Navbar: Scroll down -> hides, Scroll up -> shows smoothly at any position
+  useEffect(() => {
+    if (!headerRef.current) return;
+
+    // Set initial position
+    gsap.set(headerRef.current, { yPercent: 0 });
+
+    const showAnim = gsap.to(headerRef.current, {
+      yPercent: 0,
+      duration: 0.35,
+      ease: "power2.out",
+      paused: true,
+      overwrite: "auto",
+    });
+
+    const hideAnim = gsap.to(headerRef.current, {
+      yPercent: -100,
+      duration: 0.35,
+      ease: "power2.out",
+      paused: true,
+      overwrite: "auto",
+    });
+
+    // If overlay/search/drawer open, force show
+    if (mobileMenuOpen || isSearchFocused || showStatusPopover) {
+      showAnim.play();
+      return;
+    }
+
+    const trigger = ScrollTrigger.create({
+      start: "top top",
+      end: "max",
+      onUpdate: (self) => {
+        if (mobileMenuOpen || isSearchFocused || showStatusPopover) {
+          showAnim.play();
+          return;
+        }
+
+        // At the very top: always visible
+        if (self.scroll() <= 10) {
+          showAnim.play();
+        }
+        // When scrolling down: hide navbar
+        else if (self.direction === 1 && self.scroll() > 20) {
+          hideAnim.play();
+        }
+        // When scrolling up: show navbar smoothly at ANY position (middle or bottom)
+        else if (self.direction === -1) {
+          showAnim.play();
+        }
+      },
+    });
+
+    return () => {
+      trigger.kill();
+      showAnim.kill();
+      hideAnim.kill();
+    };
+  }, [mobileMenuOpen, isSearchFocused, showStatusPopover]);
 
   // Real-time ticking for navbar timer chip
   useEffect(() => {
@@ -179,7 +246,10 @@ export function Navbar({
   };
 
   return (
-    <header className="sticky top-0 z-[100] bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] transition-all">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-[100] w-full bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] will-change-transform"
+    >
       <div className="storefront-container h-[72px] flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
         <div

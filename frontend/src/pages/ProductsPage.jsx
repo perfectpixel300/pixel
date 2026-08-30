@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, Filter, SlidersHorizontal, Package, X } from "lucide-react";
+import { Search, Filter, SlidersHorizontal, Package, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard } from "../components/storefront/ProductCard";
 
 export function ProductsPage({
@@ -18,6 +18,13 @@ export function ProductsPage({
 
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [availabilityOnly, setAvailabilityOnly] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchTerm, availabilityOnly, sortBy]);
 
   const filteredProducts = products
     .filter((product) => {
@@ -50,6 +57,18 @@ export function ProductsPage({
       if (sortBy === "name_desc") return (b.name || "").localeCompare(a.name || "");
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
     });
+
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE) || 1;
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="py-16 pb-24">
@@ -181,16 +200,93 @@ export function ProductsPage({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onViewDetails={onViewProduct}
-                onInquire={onInquireProduct}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
+              {paginatedProducts.map((product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  onViewDetails={onViewProduct}
+                  onInquire={onInquireProduct}
+                />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-12 pt-8 border-t border-[var(--border-subtle)]">
+                <span className="text-xs sm:text-sm text-[var(--text-muted)] order-2 sm:order-1">
+                  Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                  {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} of{" "}
+                  <strong className="text-[var(--text-primary)]">{filteredProducts.length}</strong> products
+                </span>
+
+                <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`btn-icon btn-secondary !w-9 !h-9 !rounded-full ${
+                      currentPage === 1
+                        ? "opacity-30 cursor-not-allowed"
+                        : "cursor-pointer hover:bg-white hover:text-black"
+                    }`}
+                    aria-label="Previous Page"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNumber = idx + 1;
+                    const isActive = currentPage === pageNumber;
+
+                    // Compress long pagination lists
+                    if (
+                      totalPages > 7 &&
+                      pageNumber !== 1 &&
+                      pageNumber !== totalPages &&
+                      Math.abs(pageNumber - currentPage) > 1
+                    ) {
+                      if (pageNumber === 2 || pageNumber === totalPages - 1) {
+                        return (
+                          <span key={pageNumber} className="text-[var(--text-muted)] px-1">
+                            …
+                          </span>
+                        );
+                      }
+                      return null;
+                    }
+
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => handlePageChange(pageNumber)}
+                        className={`!w-9 !h-9 !rounded-full font-mono text-xs sm:text-sm font-bold transition-all border cursor-pointer ${
+                          isActive
+                            ? "bg-white text-black border-white shadow-sm"
+                            : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-[var(--border-medium)] hover:bg-zinc-700 hover:text-white"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages}
+                    className={`btn-icon btn-secondary !w-9 !h-9 !rounded-full ${
+                      currentPage >= totalPages
+                        ? "opacity-30 cursor-not-allowed"
+                        : "cursor-pointer hover:bg-white hover:text-black"
+                    }`}
+                    aria-label="Next Page"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
