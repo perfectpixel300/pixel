@@ -17,6 +17,7 @@ import {
   Layers,
   Lock,
   Star,
+  X,
 } from "lucide-react";
 import { HeroBannerCarousel } from "../components/storefront/HeroBannerCarousel";
 import { FeaturedSection } from "../components/storefront/FeaturedSection";
@@ -37,6 +38,7 @@ export function HomePage({
   onSelectCategory,
 }) {
   const [selectedHomeCategory, setSelectedHomeCategory] = useState("All");
+  const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
 
@@ -97,6 +99,13 @@ export function HomePage({
   const handleOpenWhatsAppTier = (tier) => {
     const text = encodeURIComponent(
       `Hello Pixel Perfect Team! I would like to subscribe to the "${tier.title}" Web Development plan (NRs. ${Number(tier.price).toLocaleString()}). Please let me know how we can get started.`
+    );
+    window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
+  };
+
+  const handleOpenWhatsAppService = (title, price) => {
+    const text = encodeURIComponent(
+      `Hello Pixel Perfect Team! I am interested in inquiring about your "${title}" service (Priced at NRs. ${Number(price).toLocaleString()}). Could you please share more details?`
     );
     window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
   };
@@ -628,10 +637,7 @@ export function HomePage({
                     {/* Actions */}
                     <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--border-subtle)]">
                       <button
-                        onClick={() => {
-                          onNavigate("services");
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
+                        onClick={() => setSelectedServiceDetail(service)}
                         className="btn btn-secondary btn-sm text-[0.75rem]"
                       >
                         View Details
@@ -685,6 +691,147 @@ export function HomePage({
           </div>
         </div>
       </section>
+
+      {/* Service Detail Modal (Full Scope Popup) */}
+      {selectedServiceDetail && (
+        <div className="modal-overlay" onClick={() => setSelectedServiceDetail(null)}>
+          <div
+            className="modal-card max-w-[680px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="modal-header">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded bg-[var(--bg-elevated)] flex items-center justify-center">
+                  {getServiceIcon(selectedServiceDetail.icon, 16)}
+                </div>
+                <div>
+                  <h3 className="text-base font-bold m-0">{selectedServiceDetail.title}</h3>
+                  <span className="badge badge-neutral text-[0.6rem] mt-0.5">
+                    {selectedServiceDetail.category}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedServiceDetail(null)}
+                className="btn-icon btn-ghost"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="modal-body flex flex-col gap-5">
+              {selectedServiceDetail.bannerImage && (
+                <img
+                  src={selectedServiceDetail.bannerImage}
+                  alt={selectedServiceDetail.title}
+                  className="w-full h-44 object-cover rounded-[var(--radius-sm)] border border-[var(--border-subtle)]"
+                />
+              )}
+
+              {/* Price & Timeline Bar */}
+              <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
+                    Investment
+                  </span>
+                  <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
+                    NRs. {Number(selectedServiceDetail.price).toLocaleString()}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
+                    Estimated Delivery
+                  </span>
+                  <span className="text-xs font-mono text-[var(--text-secondary)] font-semibold">
+                    {selectedServiceDetail.deliveryTime || "1-2 Weeks"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
+                  Detailed Overview
+                </h4>
+                <p className="text-[0.85rem] text-[var(--text-secondary)] leading-relaxed m-0 whitespace-pre-line">
+                  {selectedServiceDetail.description || selectedServiceDetail.shortDescription}
+                </p>
+              </div>
+
+              {/* Deliverables List */}
+              {selectedServiceDetail.features && selectedServiceDetail.features.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
+                    Scope of Deliverables
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedServiceDetail.features.map((feat, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-start gap-2 p-2 rounded bg-[var(--bg-elevated)] text-xs text-[var(--text-primary)]"
+                      >
+                        <CheckCircle2 size={13} className="text-white shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Technologies */}
+              {selectedServiceDetail.technologies && selectedServiceDetail.technologies.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
+                    Technology & Stack
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedServiceDetail.technologies.map((tech, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[0.7rem] font-mono px-2 py-0.5 rounded bg-[var(--bg-input)] text-[var(--text-secondary)]"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="modal-footer">
+              <button
+                onClick={() => handleOpenWhatsAppService(selectedServiceDetail.title, selectedServiceDetail.price)}
+                className="btn btn-secondary btn-sm gap-1.5"
+              >
+                <MessageCircle size={14} />
+                <span>WhatsApp</span>
+              </button>
+              <button
+                onClick={() => {
+                  const s = selectedServiceDetail;
+                  setSelectedServiceDetail(null);
+                  if (onInquireService) {
+                    onInquireService({
+                      name: s.title,
+                      indicativePrice: s.price,
+                      type: "service",
+                      category: s.category,
+                      description: s.shortDescription || s.description,
+                    });
+                  }
+                }}
+                className="btn btn-primary btn-sm gap-1.5"
+              >
+                <span>Inquire Service Now</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

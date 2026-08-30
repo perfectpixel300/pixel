@@ -13,6 +13,7 @@ export function ProductManagement({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [stockFilter, setStockFilter] = useState("all"); // 'all' | 'in_stock' | 'out_of_stock'
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [viewMode, setViewMode] = useState("table");
 
@@ -31,14 +32,30 @@ export function ProductManagement({
     0
   );
 
+  const outOfStockCount = products.filter(
+    (p) => !p.isAvailable || (p.stock !== undefined && Number(p.stock) <= 0)
+  ).length;
+  const inStockCount = products.filter(
+    (p) => p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+  ).length;
+
   const filtered = products
     .filter((p) => {
+      // Category filter
       if (selectedCategory !== "All" && p.category !== selectedCategory) return false;
+
+      // Stock status filter
+      const isAvailable = p.isAvailable && (p.stock === undefined || Number(p.stock) > 0);
+      if (stockFilter === "in_stock" && !isAvailable) return false;
+      if (stockFilter === "out_of_stock" && isAvailable) return false;
+
+      // Search filter
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
         const matchName = p.name?.toLowerCase().includes(q);
         const matchDesc = p.description?.toLowerCase().includes(q);
-        if (!matchName && !matchDesc) return false;
+        const matchCat = p.category?.toLowerCase().includes(q);
+        if (!matchName && !matchDesc && !matchCat) return false;
       }
       return true;
     })
@@ -137,7 +154,7 @@ export function ProductManagement({
       {/* Toolbar */}
       <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-3.5 flex items-center justify-between flex-wrap gap-3 border border-[var(--border-subtle)]">
         <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="relative w-55">
+          <div className="relative w-48 sm:w-55">
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
             <input
               type="text"
@@ -146,6 +163,48 @@ export function ProductManagement({
               onChange={(e) => setSearchTerm(e.target.value)}
               className="form-input !pl-8 text-xs py-2 px-2.5"
             />
+          </div>
+
+          {/* Quick Stock Status Filter Pills */}
+          <div className="flex items-center gap-1 bg-[var(--bg-input)] p-0.5 rounded-[var(--radius-xs)] border border-[var(--border-subtle)]">
+            <button
+              type="button"
+              onClick={() => setStockFilter("all")}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-[var(--radius-xs)] transition-all cursor-pointer ${
+                stockFilter === "all"
+                  ? "bg-[var(--bg-card)] text-[var(--text-primary)] shadow-xs"
+                  : "text-[var(--text-muted)] hover:text-white"
+              }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setStockFilter("in_stock")}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-[var(--radius-xs)] transition-all cursor-pointer ${
+                stockFilter === "in_stock"
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  : "text-[var(--text-muted)] hover:text-emerald-400"
+              }`}
+            >
+              In Stock ({inStockCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => setStockFilter("out_of_stock")}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-[var(--radius-xs)] transition-all cursor-pointer flex items-center gap-1.5 ${
+                stockFilter === "out_of_stock"
+                  ? "bg-red-500/20 text-red-400 border border-red-500/30 font-bold"
+                  : "text-[var(--text-muted)] hover:text-red-400"
+              }`}
+            >
+              <span>Out of Stock</span>
+              {outOfStockCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-red-500 text-white text-[0.625rem] font-bold">
+                  {outOfStockCount}
+                </span>
+              )}
+            </button>
           </div>
 
           <select
@@ -165,12 +224,14 @@ export function ProductManagement({
             <button
               onClick={() => setViewMode("table")}
               className={`btn-icon !w-7 !h-7 ${viewMode === "table" ? "btn-primary" : "btn-ghost"}`}
+              title="Table View"
             >
               <List size={14} />
             </button>
             <button
               onClick={() => setViewMode("grid")}
               className={`btn-icon !w-7 !h-7 ${viewMode === "grid" ? "btn-primary" : "btn-ghost"}`}
+              title="Grid View"
             >
               <LayoutGrid size={14} />
             </button>
@@ -187,10 +248,30 @@ export function ProductManagement({
       {filtered.length === 0 ? (
         <div className="p-16 text-center border border-dashed border-[var(--border-medium)] rounded-[var(--radius-md)]">
           <Package size={28} className="text-[var(--text-muted)] mb-2 mx-auto" />
-          <h3 className="text-base font-bold">No products found</h3>
+          <h3 className="text-base font-bold">
+            {stockFilter === "out_of_stock"
+              ? "No out of stock products"
+              : stockFilter === "in_stock"
+              ? "No in stock products"
+              : "No products found"}
+          </h3>
           <p className="text-[var(--text-muted)] text-[0.825rem] mt-1">
-            Create your first catalog item or reset filters.
+            {stockFilter !== "all" || selectedCategory !== "All" || searchTerm
+              ? "Try resetting your stock status, category, or search filters."
+              : "Create your first catalog item or reset filters."}
           </p>
+          {(stockFilter !== "all" || selectedCategory !== "All" || searchTerm) && (
+            <button
+              onClick={() => {
+                setStockFilter("all");
+                setSelectedCategory("All");
+                setSearchTerm("");
+              }}
+              className="btn btn-secondary btn-sm mt-3"
+            >
+              Reset All Filters
+            </button>
+          )}
         </div>
       ) : viewMode === "table" ? (
         /* Table Mode */
