@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, Plus, List, LayoutGrid, Star, Edit2, Trash2, Package, Coins } from "lucide-react";
+import { Search, Plus, List, LayoutGrid, Star, Edit2, Trash2, Package, Coins, TrendingUp } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function ProductManagement({
@@ -20,6 +20,12 @@ export function ProductManagement({
     (acc, p) => acc + (Number(p?.indicativePrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
     0
   );
+  const totalCostPrice = products.reduce(
+    (acc, p) => acc + (Number(p?.costPrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
+    0
+  );
+  const totalExpectedProfit = totalInventoryPrice - totalCostPrice;
+  const profitMargin = totalInventoryPrice > 0 ? ((totalExpectedProfit / totalInventoryPrice) * 100).toFixed(1) : 0;
   const totalStockUnits = products.reduce(
     (acc, p) => acc + (p?.stock !== undefined ? Number(p.stock) : 0),
     0
@@ -46,15 +52,15 @@ export function ProductManagement({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Inventory Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+      {/* Inventory Summary Cards with Profit */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4 flex items-center justify-between border border-[var(--border-subtle)]">
           <div>
             <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)]">
-              Total Products
+              Total Products & Units
             </div>
             <div className="text-xl font-extrabold mt-0.5 tracking-tight">
-              {products.length} Items
+              {products.length} Items <span className="text-xs text-[var(--text-muted)] font-normal">({totalStockUnits.toLocaleString()} units)</span>
             </div>
           </div>
           <div className="w-9 h-9 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)]">
@@ -65,21 +71,7 @@ export function ProductManagement({
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4 flex items-center justify-between border border-[var(--border-subtle)]">
           <div>
             <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)]">
-              Total Stock Units
-            </div>
-            <div className="text-xl font-extrabold mt-0.5 tracking-tight">
-              {totalStockUnits.toLocaleString()} Units
-            </div>
-          </div>
-          <div className="w-9 h-9 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)]">
-            <Package size={16} />
-          </div>
-        </div>
-
-        <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4 flex items-center justify-between border border-[var(--border-subtle)]">
-          <div>
-            <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)]">
-              Total Inventory Price
+              Inventory Value (Selling)
             </div>
             <div className="text-xl font-extrabold mt-0.5 tracking-tight font-mono text-[var(--text-primary)]">
               NRs. {totalInventoryPrice.toLocaleString()}
@@ -87,6 +79,34 @@ export function ProductManagement({
           </div>
           <div className="w-9 h-9 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)]">
             <Coins size={16} />
+          </div>
+        </div>
+
+        <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4 flex items-center justify-between border border-[var(--border-subtle)]">
+          <div>
+            <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)]">
+              Inventory Cost (Total)
+            </div>
+            <div className="text-xl font-extrabold mt-0.5 tracking-tight font-mono text-zinc-300">
+              NRs. {totalCostPrice.toLocaleString()}
+            </div>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-zinc-400">
+            <Coins size={16} />
+          </div>
+        </div>
+
+        <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4 flex items-center justify-between border border-emerald-500/30 bg-emerald-500/5">
+          <div>
+            <div className="text-[0.7rem] uppercase font-bold text-emerald-400">
+              Expected Profit ({profitMargin}%)
+            </div>
+            <div className="text-xl font-extrabold mt-0.5 tracking-tight font-mono text-emerald-400">
+              NRs. {totalExpectedProfit.toLocaleString()}
+            </div>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <TrendingUp size={16} />
           </div>
         </div>
       </div>
@@ -181,9 +201,12 @@ export function ProductManagement({
                 <tr className="bg-[var(--bg-sidebar)] border-b border-[var(--border-subtle)] text-[var(--text-muted)] text-[0.7rem] uppercase">
                   <th className="py-2.5 px-3.5">Product</th>
                   <th className="py-2.5 px-3.5">Category</th>
-                  <th className="py-2.5 px-3.5">Price (NRs.)</th>
+                  <th className="py-2.5 px-3.5">Selling Price</th>
+                  <th className="py-2.5 px-3.5">Cost Price</th>
                   <th className="py-2.5 px-3.5">Stock</th>
-                  <th className="py-2.5 px-3.5">Total Value (NRs.)</th>
+                  <th className="py-2.5 px-3.5">Total Cost</th>
+                  <th className="py-2.5 px-3.5">Total Value</th>
+                  <th className="py-2.5 px-3.5">Expected Profit</th>
                   <th className="py-2.5 px-3.5">Specs</th>
                   <th className="py-2.5 px-3.5">Status</th>
                   <th className="py-2.5 px-3.5">Featured</th>
@@ -194,7 +217,10 @@ export function ProductManagement({
                 {filtered.map((p) => {
                   const rawImg = p.images && p.images[0] ? p.images[0] : "";
                   const img = getOptimizedImageUrl(rawImg, { width: 120 });
-                  const totalVal = (Number(p.indicativePrice) || 0) * (p.stock !== undefined ? Number(p.stock) : 0);
+                  const stockNum = p.stock !== undefined ? Number(p.stock) : 0;
+                  const totalVal = (Number(p.indicativePrice) || 0) * stockNum;
+                  const totalCost = (Number(p.costPrice) || 0) * stockNum;
+                  const profit = totalVal - totalCost;
                   return (
                     <tr key={p._id} className="border-b border-[var(--border-subtle)]">
                       <td className="py-3 px-3.5">
@@ -218,11 +244,20 @@ export function ProductManagement({
                       <td className="py-3 px-3.5 font-bold font-mono">
                         NRs. {Number(p.indicativePrice).toLocaleString()}
                       </td>
+                      <td className="py-3 px-3.5 font-mono text-zinc-400">
+                        NRs. {Number(p.costPrice || 0).toLocaleString()}
+                      </td>
                       <td className="py-3 px-3.5">
-                        <span className="badge badge-neutral">{p.stock || 0} units</span>
+                        <span className="badge badge-neutral">{stockNum} units</span>
+                      </td>
+                      <td className="py-3 px-3.5 font-mono text-zinc-300">
+                        NRs. {totalCost.toLocaleString()}
                       </td>
                       <td className="py-3 px-3.5 font-bold font-mono text-[var(--text-primary)]">
                         NRs. {totalVal.toLocaleString()}
+                      </td>
+                      <td className="py-3 px-3.5 font-bold font-mono text-emerald-400">
+                        +NRs. {profit.toLocaleString()}
                       </td>
                       <td className="py-3 px-3.5 text-[0.725rem] text-[var(--text-muted)]">
                         {p.specs?.paperGsm || p.specs?.color || "Standard"}
@@ -286,7 +321,10 @@ export function ProductManagement({
           {filtered.map((p) => {
             const rawImg = p.images && p.images[0] ? p.images[0] : "";
             const img = getOptimizedImageUrl(rawImg, { width: 500 });
-            const totalVal = (Number(p.indicativePrice) || 0) * (p.stock !== undefined ? Number(p.stock) : 0);
+            const stockNum = p.stock !== undefined ? Number(p.stock) : 0;
+            const totalVal = (Number(p.indicativePrice) || 0) * stockNum;
+            const totalCost = (Number(p.costPrice) || 0) * stockNum;
+            const profit = totalVal - totalCost;
             return (
               <div key={p._id} className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col border border-[var(--border-subtle)]">
                 <div className="h-40 relative bg-[#050505] flex items-center justify-center">
@@ -309,9 +347,25 @@ export function ProductManagement({
                     <span className="font-bold font-mono text-sm">NRs. {Number(p.indicativePrice).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center text-[0.72rem] text-[var(--text-muted)] font-mono">
-                    <span>Stock: {p.stock || 0} units</span>
+                    <span>Cost: NRs. {Number(p.costPrice || 0).toLocaleString()}</span>
+                    <span>Stock: {stockNum} units</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[0.72rem] font-mono">
+                    <span className="text-[var(--text-muted)]">Cost Total:</span>
+                    <span className="font-semibold text-zinc-300">
+                      NRs. {totalCost.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-[0.72rem] font-mono">
+                    <span className="text-[var(--text-muted)]">Inventory Value:</span>
                     <span className="font-semibold text-[var(--text-primary)]">
-                      Total: NRs. {totalVal.toLocaleString()}
+                      NRs. {totalVal.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-[0.72rem] font-mono text-emerald-400">
+                    <span>Expected Profit:</span>
+                    <span className="font-bold">
+                      +NRs. {profit.toLocaleString()}
                     </span>
                   </div>
                   <div className="mt-auto pt-2.5 flex justify-between items-center border-t border-[var(--border-subtle)]">

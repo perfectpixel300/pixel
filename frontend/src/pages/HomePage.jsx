@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Package,
   Feather,
   Cpu,
   Compass,
@@ -13,10 +16,14 @@ import {
   Code,
   Layers,
   Lock,
+  Star,
 } from "lucide-react";
 import { HeroBannerCarousel } from "../components/storefront/HeroBannerCarousel";
 import { FeaturedSection } from "../components/storefront/FeaturedSection";
 import { CategoryGrid } from "../components/storefront/CategoryGrid";
+import { ProductCard } from "../components/storefront/ProductCard";
+import { getServiceIcon } from "./ServicesPage";
+import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 
 export function HomePage({
   banners,
@@ -29,10 +36,36 @@ export function HomePage({
   onNavigate,
   onSelectCategory,
 }) {
+  const [selectedHomeCategory, setSelectedHomeCategory] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
   const handleCategoryClick = (category) => {
     onSelectCategory(category);
     onNavigate("products");
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Products with pagination for Home Page
+  const filteredHomeProducts = (products || []).filter((p) => {
+    if (selectedHomeCategory !== "All" && p.category !== selectedHomeCategory) {
+      return false;
+    }
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredHomeProducts.length / ITEMS_PER_PAGE) || 1;
+  const paginatedProducts = filteredHomeProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    const el = document.getElementById("home-products-section");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   // Get the 3 Web Dev subscription tiers (ordered)
@@ -55,6 +88,11 @@ export function HomePage({
       });
     }
   };
+
+  // Get other IT services (excluding 3-tier web dev packages)
+  const otherItServices = (services || [])
+    .filter((s) => !s.isWebDevPackage && s.isActive)
+    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
   const handleOpenWhatsAppTier = (tier) => {
     const text = encodeURIComponent(
@@ -107,68 +145,167 @@ export function HomePage({
         onSelectCategory={handleCategoryClick}
       />
 
-      {/* Craftsmanship Spotlight */}
-      {/* <section className="py-22 border-b border-[var(--border-subtle)]">
+      {/* =========================================================================
+          PRODUCTS SECTION WITH PAGINATION
+          (POSITIONED AT END OF STOREFRONT CATALOG, ABOVE IT SERVICES)
+          ========================================================================= */}
+      <section id="home-products-section" className="py-22 border-b border-[var(--border-subtle)] bg-[var(--bg-app)]">
         <div className="storefront-container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
-              <span className="text-[0.75rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
-                Materials & Provenance
+              <span className="text-[0.75rem] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
+                Complete Catalog
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-[-0.03em] leading-tight">
-                Archival Paper. Machined Metals. Hand-Finished Leather.
+              <h2 className="text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-[-0.03em]">
+                All Products & Artifacts
               </h2>
-              <p className="text-[0.95rem] text-[var(--text-secondary)] leading-relaxed mt-3.5">
-                We refuse synthetic fillers and temporary coatings. Our notebooks utilize 120gsm Swedish Munken paper
-                engineered to eliminate fountain pen bleed-through while keeping pages feather-light.
+              <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[620px]">
+                Explore our full archival stationery collection, CNC-machined writing instruments, and desk organizers.
               </p>
+            </div>
 
-              <div className="flex flex-col gap-4 mt-8">
-                <div className="flex gap-3.5 items-start">
-                  <Feather size={20} className="text-[var(--text-primary)] shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="text-[0.95rem] font-bold m-0">Swedish Munken Paper</h4>
-                    <p className="text-[0.825rem] text-[var(--text-muted)] mt-1">
-                      FSC-certified archival stock with lay-flat Smyth sewn binding for an uninterrupted 180° spread.
-                    </p>
-                  </div>
+            <button
+              onClick={() => {
+                onNavigate("products");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="btn btn-secondary gap-1.5 self-start md:self-auto"
+            >
+              <span>Open Catalog Page</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          {/* Category Filter Pills */}
+          {categories && categories.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-3 mb-10 border-b border-[var(--border-subtle)]">
+              <button
+                onClick={() => {
+                  setSelectedHomeCategory("All");
+                  setCurrentPage(1);
+                }}
+                className={`btn btn-sm !rounded-full whitespace-nowrap ${
+                  selectedHomeCategory === "All" ? "btn-primary" : "btn-secondary"
+                }`}
+              >
+                All Items ({products.length})
+              </button>
+              {categories.map((cat) => {
+                const count = products.filter((p) => p.category === cat.name).length;
+                const isSelected = selectedHomeCategory === cat.name;
+                return (
+                  <button
+                    key={cat._id || cat.name}
+                    onClick={() => {
+                      setSelectedHomeCategory(cat.name);
+                      setCurrentPage(1);
+                    }}
+                    className={`btn btn-sm !rounded-full whitespace-nowrap ${
+                      isSelected ? "btn-primary" : "btn-secondary"
+                    }`}
+                  >
+                    <span>{cat.name}</span>
+                    <span className="opacity-70 text-[0.7rem]">({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* 2-Column Mobile & 4-Column Desktop Product Grid */}
+          {paginatedProducts.length === 0 ? (
+            <div className="py-20 px-8 text-center border border-dashed border-[var(--border-medium)] rounded-[var(--radius-lg)]">
+              <Package size={32} className="text-[var(--text-muted)] mb-3 mx-auto" />
+              <h3 className="text-lg font-bold">No products in this category</h3>
+              <button
+                onClick={() => {
+                  setSelectedHomeCategory("All");
+                  setCurrentPage(1);
+                }}
+                className="btn btn-secondary btn-sm mt-3"
+              >
+                View All Items
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
+              {paginatedProducts.map((product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  onViewDetails={onViewProduct}
+                  onInquire={onInquireProduct}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Clean Minimal Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-12 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <span className="text-xs text-[var(--text-muted)] font-mono order-2 sm:order-1">
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredHomeProducts.length)} of{" "}
+                {filteredHomeProducts.length} items
+              </span>
+
+              <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`btn btn-sm btn-secondary gap-1 !px-3 ${
+                    currentPage === 1
+                      ? "opacity-30 cursor-not-allowed"
+                      : "hover:!bg-white hover:!text-black"
+                  }`}
+                  aria-label="Previous Page"
+                >
+                  <ChevronLeft size={14} />
+                  <span className="hidden sm:inline">Previous</span>
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNumber = idx + 1;
+                    const isActive = currentPage === pageNumber;
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => handlePageChange(pageNumber)}
+                        className={`w-8 h-8 rounded-[var(--radius-xs)] text-xs font-mono font-bold flex items-center justify-center transition-all ${
+                          isActive
+                            ? "bg-white text-black shadow-sm"
+                            : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-input-focus)]"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                <div className="flex gap-3.5 items-start">
-                  <Cpu size={20} className="text-[var(--text-primary)] shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="text-[0.95rem] font-bold m-0">Micron Precision CNC Machining</h4>
-                    <p className="text-[0.825rem] text-[var(--text-muted)] mt-1">
-                      Solid raw brass and titanium turned to tolerances under 0.01mm for flawless balance.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3.5 items-start">
-                  <Compass size={20} className="text-[var(--text-primary)] shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="text-[0.95rem] font-bold m-0">Tuscan Vegetable-Tanned Leather</h4>
-                    <p className="text-[0.825rem] text-[var(--text-muted)] mt-1">
-                      Natural bark and plant tannin cured hides that develop a rich, personal patina over years of use.
-                    </p>
-                  </div>
-                </div>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
+                  className={`btn btn-sm btn-secondary gap-1 !px-3 ${
+                    currentPage >= totalPages
+                      ? "opacity-30 cursor-not-allowed"
+                      : "hover:!bg-white hover:!text-black"
+                  }`}
+                  aria-label="Next Page"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight size={14} />
+                </button>
               </div>
             </div>
-
-            <div className="rounded-[var(--radius-lg)] overflow-hidden h-[480px] border border-[var(--border-subtle)]">
-              <img
-                src="https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=1200&auto=format&fit=crop"
-                alt="Precision Brass Pen Workshop"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
+          )}
         </div>
-      </section> */}
+      </section>
 
       {/* =========================================================================
-          FEATURED WEB SERVICES AT THE LAST IN THE HOME PAGE
+          FEATURED IT SERVICES BELOW THE PRODUCTS SECTION
           3 TIER SUBSCRIPTION / PLAN EXPERIENCE (EDITABLE BY ADMIN)
           ========================================================================= */}
       {displayTiers.length > 0 && (
@@ -363,8 +500,166 @@ export function HomePage({
       )}
 
 
-      {/* OTHER ID SERVICES SECTION  */}
-      
+      {/* =========================================================================
+          OTHER IT DISCIPLINES & CAPABILITIES SECTION AT THE BOTTOM
+          ========================================================================= */}
+      {otherItServices.length > 0 && (
+        <section id="it-disciplines-section" className="py-22 border-b border-[var(--border-subtle)] bg-[var(--bg-app)]">
+          <div className="storefront-container">
+            {/* Section Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div>
+                <span className="text-[0.75rem] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
+                  Specialized Engineering
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-[-0.03em]">
+                  Other IT Disciplines & Capabilities
+                </h2>
+                <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[620px]">
+                  Explore our non-web software engineering practices: mobile applications, UI/UX design systems, cloud architecture, cybersecurity, and AI automation.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  onNavigate("services");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="btn btn-secondary gap-1.5 self-start md:self-auto"
+              >
+                <span>Explore All Services</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {/* Grid of Other IT Services */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {otherItServices.map((service) => (
+                <div
+                  key={service._id}
+                  className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-md)] overflow-hidden flex flex-col transition-all duration-200 hover:shadow-[var(--shadow-md)] group"
+                >
+                  {/* Top image or banner if available */}
+                  {service.bannerImage && (
+                    <div className="h-36 relative overflow-hidden bg-[var(--bg-sidebar)]">
+                      <img
+                        src={getOptimizedImageUrl(service.bannerImage, { width: 800 })}
+                        alt={service.title}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/40 to-transparent" />
+                      <div className="absolute top-3 left-3">
+                        <span className="badge badge-dark text-[0.625rem]">
+                          {service.category}
+                        </span>
+                      </div>
+                      {service.isFeatured && (
+                        <div className="absolute top-3 right-3">
+                          <span className="badge badge-white text-[0.6rem] gap-1">
+                            <Star size={10} fill="currentColor" />
+                            <span>Featured</span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Body Content */}
+                  <div className="p-5 sm:p-6 flex flex-col flex-1 gap-3">
+                    {!service.bannerImage && (
+                      <div className="flex justify-between items-center">
+                        <div className="w-9 h-9 rounded-[var(--radius-xs)] bg-[var(--bg-elevated)] text-[var(--text-primary)] flex items-center justify-center">
+                          {getServiceIcon(service.icon, 18)}
+                        </div>
+                        <span className="badge badge-neutral text-[0.625rem]">
+                          {service.category}
+                        </span>
+                      </div>
+                    )}
+
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug">
+                        {service.title}
+                      </h3>
+                      <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2">
+                        {service.shortDescription}
+                      </p>
+                    </div>
+
+                    {/* Pricing in NPr & Delivery Time */}
+                    <div className="pt-2 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
+                      <div>
+                        <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
+                          {service.priceType === "hourly"
+                            ? "Hourly Rate"
+                            : service.priceType === "fixed"
+                            ? "Fixed Investment"
+                            : "Starting From"}
+                        </span>
+                        <span className="font-mono text-base font-bold text-[var(--text-primary)]">
+                          NRs. {Number(service.price).toLocaleString()}
+                        </span>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
+                          Timeline
+                        </span>
+                        <span className="text-xs text-[var(--text-secondary)] font-mono">
+                          {service.deliveryTime || "1-2 Weeks"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Features Snippet (Top 3) */}
+                    {service.features && service.features.length > 0 && (
+                      <div className="flex flex-col gap-1.5 pt-2">
+                        {service.features.slice(0, 3).map((feat, idx) => (
+                          <div key={idx} className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                            <CheckCircle2 size={12} className="text-white shrink-0" />
+                            <span className="truncate">{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--border-subtle)]">
+                      <button
+                        onClick={() => {
+                          onNavigate("services");
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="btn btn-secondary btn-sm text-[0.75rem]"
+                      >
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (onInquireService) {
+                            onInquireService({
+                              name: service.title,
+                              indicativePrice: service.price,
+                              type: "service",
+                              category: service.category,
+                              description: service.shortDescription || service.description,
+                            });
+                          }
+                        }}
+                        className="btn btn-primary btn-sm text-[0.75rem]"
+                      >
+                        Inquire
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Ending Action Strip */}
       <section className="py-20 text-center bg-[var(--bg-app)]">

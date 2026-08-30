@@ -32,6 +32,11 @@ const productSchema = new mongoose.Schema(
       required: [true, "Indicative price in NRs is required"],
       min: [0, "Price must be a positive number"],
     },
+    costPrice: {
+      type: Number,
+      default: 0,
+      min: [0, "Cost price cannot be negative"],
+    },
     currency: {
       type: String,
       default: "NRs.",

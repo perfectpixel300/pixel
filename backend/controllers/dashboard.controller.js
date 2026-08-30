@@ -45,18 +45,20 @@ exports.getDashboardStats = async (req, res) => {
       ]),
     ]);
 
-    // Calculate total catalog value
+    // Calculate total catalog value and total inventory cost
     const catalogValueAgg = await Product.aggregate([
       {
         $group: {
           _id: null,
           totalValue: { $sum: { $multiply: ["$indicativePrice", { $ifNull: ["$stock", 1] }] } },
+          totalCost: { $sum: { $multiply: [{ $ifNull: ["$costPrice", 0] }, { $ifNull: ["$stock", 1] }] } },
           avgPrice: { $avg: "$indicativePrice" },
         },
       },
     ]);
 
     const totalValue = catalogValueAgg.length > 0 ? Math.round(catalogValueAgg[0].totalValue) : 0;
+    const totalCost = catalogValueAgg.length > 0 ? Math.round(catalogValueAgg[0].totalCost) : 0;
     const averagePrice = catalogValueAgg.length > 0 ? Math.round(catalogValueAgg[0].avgPrice * 100) / 100 : 0;
 
     res.status(200).json({
@@ -68,6 +70,7 @@ exports.getDashboardStats = async (req, res) => {
           inactive: inactiveProducts,
           featured: featuredProducts,
           totalValue,
+          totalCost,
           averagePrice,
         },
         banners: {

@@ -14,6 +14,7 @@ import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { InquiryModal } from "./components/storefront/InquiryModal";
 import { ShopClosedModal } from "./components/storefront/ShopClosedModal";
+import { Preloader } from "./components/common/Preloader";
 import { api } from "./services/api";
 
 // Helper to get initial route from URL path
@@ -201,6 +202,9 @@ function AppContent() {
 
   return (
     <>
+      {/* Clean Minimal Preloader */}
+      <Preloader isLoading={isLoading} />
+
       {/* Toast */}
       <Toast toast={toast} onClose={() => setToast(null)} />
 

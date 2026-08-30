@@ -6,16 +6,32 @@ const shopStatusSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    status: {
+      type: String,
+      enum: ["open", "closed", "partial"],
+      default: "open",
+    },
     title: {
       type: String,
       trim: true,
       default: "Pixel Perfect Atelier is Open",
+    },
+    partialTitle: {
+      type: String,
+      trim: true,
+      default: "Partial Service Availability",
     },
     closedMessage: {
       type: String,
       trim: true,
       default:
         "We are currently closed for off-hours / maintenance. You can still explore our catalog and submit project inquiries or WhatsApp messages. We will process them immediately once open!",
+    },
+    partialMessage: {
+      type: String,
+      trim: true,
+      default:
+        "Some particular services are currently undergoing maintenance or unavailable, while other services and catalog items remain active and operational with their scheduled timings.",
     },
     openMessage: {
       type: String,

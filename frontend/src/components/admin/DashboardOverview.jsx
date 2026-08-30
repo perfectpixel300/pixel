@@ -53,6 +53,10 @@ export function DashboardOverview({
     (acc, p) => acc + (Number(p?.indicativePrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
     0
   );
+  const totalInventoryCost = safeProducts.reduce(
+    (acc, p) => acc + (Number(p?.costPrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
+    0
+  );
   const totalStockUnits = safeProducts.reduce(
     (acc, p) => acc + (p?.stock !== undefined ? Number(p.stock) : 0),
     0
@@ -168,7 +172,7 @@ export function DashboardOverview({
   return (
     <div className="flex flex-col gap-7">
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3.5">
         {/* Metric 1: Products */}
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4.5 flex flex-col gap-1.5 border border-[var(--border-subtle)]">
           <div className="flex justify-between text-[var(--text-muted)] text-[0.7rem] uppercase font-bold">
@@ -186,7 +190,7 @@ export function DashboardOverview({
         {/* Metric 2: Total Inventory Value */}
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4.5 flex flex-col gap-1.5 border border-[var(--border-subtle)]">
           <div className="flex justify-between text-[var(--text-muted)] text-[0.7rem] uppercase font-bold">
-            <span>Inventory Total</span>
+            <span>Inventory Value</span>
             <Coins size={14} />
           </div>
           <div className="text-xl sm:text-2xl font-extrabold tracking-[-0.03em] font-mono">
@@ -194,6 +198,20 @@ export function DashboardOverview({
           </div>
           <div className="text-[0.7rem] text-[var(--text-secondary)]">
             {totalStockUnits.toLocaleString()} units in stock
+          </div>
+        </div>
+
+        {/* Metric 3: Total Inventory Cost Price (Aside Inventory Value) */}
+        <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4.5 flex flex-col gap-1.5 border border-[var(--border-subtle)]">
+          <div className="flex justify-between text-[var(--text-muted)] text-[0.7rem] uppercase font-bold">
+            <span>Inventory Cost</span>
+            <Coins size={14} className="text-zinc-500" />
+          </div>
+          <div className="text-xl sm:text-2xl font-extrabold tracking-[-0.03em] font-mono text-zinc-300">
+            NRs. {totalInventoryCost.toLocaleString()}
+          </div>
+          <div className="text-[0.7rem] text-[var(--text-muted)]">
+            Total cost price
           </div>
         </div>
 
@@ -644,14 +662,14 @@ export function DashboardOverview({
           </div>
 
           {/* Shadcn Card Footer */}
-          <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs text-[var(--text-muted)]">
+          <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs text-[var(--text-muted)] flex-wrap gap-2">
             <div className="flex items-center gap-1.5 font-medium text-[var(--text-primary)]">
               <TrendingUp size={13} className="text-emerald-400" />
-              <span>Catalog Valuation</span>
+              <span>Valuation: <strong className="font-mono text-[var(--text-primary)]">NRs. {totalInventoryValue.toLocaleString()}</strong></span>
             </div>
-            <span className="font-mono text-[var(--text-primary)] font-semibold">
-              NRs. {totalInventoryValue.toLocaleString()}
-            </span>
+            <div className="font-mono text-zinc-400">
+              Total Cost: <strong className="font-mono text-zinc-300">NRs. {totalInventoryCost.toLocaleString()}</strong>
+            </div>
           </div>
         </div>
 

@@ -23,13 +23,13 @@ export function CategoryGrid({ categories = [], onSelectCategory }) {
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Categories Grid - 2 cols on mobile */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {categories.map((cat) => (
             <div
               key={cat._id || cat.name}
               onClick={() => onSelectCategory(cat.name)}
-              className="h-[260px] relative rounded-[var(--radius-md)] overflow-hidden cursor-pointer border border-[var(--border-subtle)] bg-[var(--bg-card)] group"
+              className="h-40 sm:h-56 md:h-[260px] relative rounded-[var(--radius-md)] overflow-hidden cursor-pointer border border-[var(--border-subtle)] bg-[var(--bg-card)] group"
             >
               {/* Background Image */}
               {cat.imageUrl ? (
@@ -42,26 +42,26 @@ export function CategoryGrid({ categories = [], onSelectCategory }) {
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-[#1c1c1e] to-[#0a0a0b] flex items-center justify-center">
-                  <Layers size={40} className="text-white/20" />
+                  <Layers size={32} className="text-white/20 sm:size-10" />
                 </div>
               )}
 
               {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/10 p-7 flex flex-col justify-end">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3.5 sm:p-7 flex flex-col justify-end">
                 <div>
-                  <h3 className="text-xl font-extrabold text-white m-0 mb-1.5">
+                  <h3 className="text-sm sm:text-xl font-extrabold text-white m-0 mb-0.5 sm:mb-1.5 line-clamp-1">
                     {cat.name}
                   </h3>
                   {cat.description && (
-                    <p className="text-[0.8rem] text-white/75 leading-snug m-0 line-clamp-2">
+                    <p className="text-[0.7rem] sm:text-[0.8rem] text-white/75 leading-tight sm:leading-snug m-0 line-clamp-1 sm:line-clamp-2 hidden xs:block">
                       {cat.description}
                     </p>
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5 text-white text-[0.775rem] font-bold uppercase tracking-[0.06em] mt-3">
-                  <span>Explore Discipline</span>
-                  <ArrowRight size={13} />
+                <div className="flex items-center gap-1 sm:gap-1.5 text-white text-[0.65rem] sm:text-[0.775rem] font-bold uppercase tracking-[0.06em] mt-1.5 sm:mt-3">
+                  <span>Explore</span>
+                  <ArrowRight size={11} className="sm:size-[13px]" />
                 </div>
               </div>
             </div>

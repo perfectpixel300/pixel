@@ -19,6 +19,7 @@ export function ProductFormModal({
     slug: "",
     category: defaultCategory,
     indicativePrice: "",
+    costPrice: "",
     stock: 25,
     description: "",
     images: [],
@@ -46,6 +47,7 @@ export function ProductFormModal({
         slug: editingProduct.slug || "",
         category: editingProduct.category || defaultCategory,
         indicativePrice: editingProduct.indicativePrice !== undefined ? editingProduct.indicativePrice : "",
+        costPrice: editingProduct.costPrice !== undefined ? editingProduct.costPrice : "",
         stock: editingProduct.stock !== undefined ? editingProduct.stock : 25,
         description: editingProduct.description || "",
         images: Array.isArray(editingProduct.images) ? [...editingProduct.images] : [],
@@ -65,6 +67,7 @@ export function ProductFormModal({
         slug: "",
         category: defaultCategory,
         indicativePrice: "",
+        costPrice: "",
         stock: 25,
         description: "",
         images: [],
@@ -268,11 +271,11 @@ export function ProductFormModal({
               </div>
             </div>
 
-            {/* Price (NRs.), Stock, Slug */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            {/* Price (NRs.), Cost Price (NRs.), Stock, Slug */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
               <div className="form-group">
                 <label className="form-label">
-                  Price (NRs.) *
+                  Selling Price (NRs.) *
                   {errors.indicativePrice && (
                     <span className="text-[var(--color-danger)] ml-1">{errors.indicativePrice}</span>
                   )}
@@ -290,13 +293,28 @@ export function ProductFormModal({
 
               <div className="form-group">
                 <label className="form-label">
+                  Cost Price (Admin Only)
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  className="form-input font-mono"
+                  placeholder="e.g. 950"
+                  value={formData.costPrice}
+                  onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
                   Stock Units
                   {errors.stock && <span className="text-[var(--color-danger)] ml-1">{errors.stock}</span>}
                 </label>
                 <input
                   type="number"
                   min="0"
-                  className="form-input"
+                  className="form-input font-mono"
                   value={formData.stock}
                   onChange={(e) => {
                     const val = e.target.value;

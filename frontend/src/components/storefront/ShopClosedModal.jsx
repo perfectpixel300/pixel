@@ -9,6 +9,7 @@ import {
   ShieldAlert,
   Sparkles,
   Calendar,
+  Info,
 } from "lucide-react";
 
 export function ShopClosedModal({
@@ -24,6 +25,7 @@ export function ShopClosedModal({
     isExpired: true,
   });
 
+  const isPartial = shopStatus?.status === "partial";
   const timerTarget = shopStatus?.timerTarget;
   const isTimerEnabled = Boolean(shopStatus?.timerEnabled && timerTarget);
 
@@ -60,7 +62,7 @@ export function ShopClosedModal({
 
   const handleOpenWhatsApp = () => {
     const text = encodeURIComponent(
-      "Hello Pixel Perfect Atelier! I saw your store is currently closed, but I'd like to leave an inquiry."
+      `Hello Pixel Perfect Atelier! I saw your store status (${isPartial ? "Partial Services" : "Currently Closed"}), and I'd like to leave an inquiry.`
     );
     window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
   };
@@ -83,15 +85,33 @@ export function ShopClosedModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Status Ambient Ribbon */}
-        <div className="bg-white text-black px-5 py-2.5 flex items-center justify-between font-bold text-xs uppercase tracking-wider">
+        <div
+          className={`px-5 py-2.5 flex items-center justify-between font-bold text-xs uppercase tracking-wider ${
+            isPartial ? "bg-blue-600 text-white" : "bg-white text-black"
+          }`}
+        >
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-600 animate-ping inline-block" />
-            <span className="w-2 h-2 rounded-full bg-red-600 inline-block -ml-4" />
-            <span>Store Notice • Currently Closed</span>
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isPartial ? "bg-white animate-pulse" : "bg-red-600 animate-ping"
+              } inline-block`}
+            />
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isPartial ? "bg-white" : "bg-red-600"
+              } inline-block -ml-4`}
+            />
+            <span>
+              {isPartial
+                ? "Service Notice • Partial Availability"
+                : "Store Notice • Currently Closed"}
+            </span>
           </div>
           <button
             onClick={onClose}
-            className="btn-icon !w-6 !h-6 bg-black/10 hover:bg-black/20 text-black border-0 rounded-full cursor-pointer"
+            className={`btn-icon !w-6 !h-6 ${
+              isPartial ? "bg-white/20 hover:bg-white/30 text-white" : "bg-black/10 hover:bg-black/20 text-black"
+            } border-0 rounded-full cursor-pointer`}
             title="Dismiss notice"
           >
             <X size={14} />
@@ -102,38 +122,79 @@ export function ShopClosedModal({
         <div className="p-6 sm:p-8 flex flex-col gap-6">
           {/* Header icon & title */}
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0">
-              <Clock size={24} />
+            <div
+              className={`w-12 h-12 rounded-full border flex items-center justify-center shrink-0 ${
+                isPartial
+                  ? "bg-blue-500/20 border-blue-500/40 text-blue-400"
+                  : "bg-white/10 border border-white/20 text-white"
+              }`}
+            >
+              {isPartial ? <Info size={24} /> : <Clock size={24} />}
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--bg-input)] border border-[var(--border-subtle)] text-[0.68rem] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
-                <ShieldAlert size={12} className="text-red-400" />
-                <span>Operating Hours Update</span>
+              <div
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[0.68rem] font-bold uppercase tracking-wider mb-1.5 ${
+                  isPartial
+                    ? "bg-blue-500/15 border-blue-500/30 text-blue-300"
+                    : "bg-[var(--bg-input)] border-[var(--border-subtle)] text-[var(--text-muted)]"
+                }`}
+              >
+                {isPartial ? (
+                  <Info size={12} className="text-blue-400" />
+                ) : (
+                  <ShieldAlert size={12} className="text-red-400" />
+                )}
+                <span>{isPartial ? "Selected Services Active" : "Operating Hours Update"}</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-extrabold m-0 text-[var(--text-primary)] leading-tight">
-                {shopStatus?.title || "We're Currently Closed"}
+                {isPartial
+                  ? shopStatus?.partialTitle || "Partial Service Availability • Selected Hours"
+                  : shopStatus?.title || "We're Currently Closed"}
               </h2>
             </div>
           </div>
 
-          {/* Admin Closed Message */}
-          <div className="p-4 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[0.875rem] text-[var(--text-secondary)] leading-relaxed whitespace-pre-line">
-            {shopStatus?.closedMessage ||
-              "We are currently closed for off-hours / maintenance. You can still explore our curated catalog, view IT services, and submit inquiries or message us on WhatsApp. We will process them immediately once open!"}
+          {/* Admin Notice Message */}
+          <div
+            className={`p-4 rounded-[var(--radius-md)] border text-[0.875rem] leading-relaxed whitespace-pre-line ${
+              isPartial
+                ? "bg-blue-500/10 border-blue-500/25 text-[var(--text-primary)]"
+                : "bg-[var(--bg-app)] border-[var(--border-subtle)] text-[var(--text-secondary)]"
+            }`}
+          >
+            {isPartial
+              ? shopStatus?.partialMessage ||
+                "Some particular services are currently undergoing maintenance or unavailable, while our core stationery catalog and select digital services remain actively operational with their scheduled timings."
+              : shopStatus?.closedMessage ||
+                "We are currently closed for off-hours / maintenance. You can still explore our curated catalog, view IT services, and submit inquiries or message us on WhatsApp. We will process them immediately once open!"}
           </div>
 
           {/* Countdown Timer Block (If Enabled & Target in Future) */}
           {isTimerEnabled && !timeLeft.isExpired && (
-            <div className="rounded-[var(--radius-md)] bg-gradient-to-r from-[var(--bg-card)] via-[var(--bg-elevated)] to-[var(--bg-card)] border-2 border-white/20 p-4 sm:p-5 flex flex-col items-center text-center shadow-inner">
-              <div className="text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)] flex items-center gap-1.5 mb-3">
+            <div
+              className={`rounded-[var(--radius-md)] bg-gradient-to-r border-2 p-4 sm:p-5 flex flex-col items-center text-center shadow-inner ${
+                isPartial
+                  ? "from-blue-950/40 via-[var(--bg-card)] to-blue-950/40 border-blue-500/40"
+                  : "from-[var(--bg-card)] via-[var(--bg-elevated)] to-[var(--bg-card)] border-white/20"
+              }`}
+            >
+              <div
+                className={`text-[0.72rem] font-bold uppercase tracking-[0.12em] flex items-center gap-1.5 mb-3 ${
+                  isPartial ? "text-blue-400" : "text-[var(--text-muted)]"
+                }`}
+              >
                 <Sparkles size={13} />
-                <span>{shopStatus?.timerLabel || "Reopening In"}</span>
+                <span>{shopStatus?.timerLabel || (isPartial ? "Full Services Resume In" : "Reopening In")}</span>
               </div>
 
               {/* Digital countdown tiles */}
               <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full max-w-[380px]">
                 <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
-                  <span className="font-mono text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] leading-none">
+                  <span
+                    className={`font-mono text-2xl sm:text-3xl font-extrabold leading-none ${
+                      isPartial ? "text-blue-300" : "text-[var(--text-primary)]"
+                    }`}
+                  >
                     {String(timeLeft.days).padStart(2, "0")}
                   </span>
                   <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider font-semibold mt-1">
@@ -142,7 +203,11 @@ export function ShopClosedModal({
                 </div>
 
                 <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
-                  <span className="font-mono text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] leading-none">
+                  <span
+                    className={`font-mono text-2xl sm:text-3xl font-extrabold leading-none ${
+                      isPartial ? "text-blue-300" : "text-[var(--text-primary)]"
+                    }`}
+                  >
                     {String(timeLeft.hours).padStart(2, "0")}
                   </span>
                   <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider font-semibold mt-1">
@@ -151,7 +216,11 @@ export function ShopClosedModal({
                 </div>
 
                 <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
-                  <span className="font-mono text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] leading-none">
+                  <span
+                    className={`font-mono text-2xl sm:text-3xl font-extrabold leading-none ${
+                      isPartial ? "text-blue-300" : "text-[var(--text-primary)]"
+                    }`}
+                  >
                     {String(timeLeft.minutes).padStart(2, "0")}
                   </span>
                   <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider font-semibold mt-1">
@@ -160,7 +229,11 @@ export function ShopClosedModal({
                 </div>
 
                 <div className="flex flex-col items-center bg-[var(--bg-app)] border border-[var(--border-medium)] rounded-[var(--radius-sm)] py-2.5 px-1.5">
-                  <span className="font-mono text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] leading-none">
+                  <span
+                    className={`font-mono text-2xl sm:text-3xl font-extrabold leading-none ${
+                      isPartial ? "text-blue-300" : "text-[var(--text-primary)]"
+                    }`}
+                  >
                     {String(timeLeft.seconds).padStart(2, "0")}
                   </span>
                   <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider font-semibold mt-1">
@@ -206,7 +279,7 @@ export function ShopClosedModal({
               onClick={onClose}
               className="btn btn-primary w-full py-3 text-sm font-bold gap-2 justify-center shadow-lg"
             >
-              <span>Acknowledge & Browse Catalog</span>
+              <span>{isPartial ? "Acknowledge & Browse Available Services" : "Acknowledge & Browse Catalog"}</span>
               <ArrowRight size={15} />
             </button>
           </div>
@@ -215,3 +288,4 @@ export function ShopClosedModal({
     </div>
   );
 }
+

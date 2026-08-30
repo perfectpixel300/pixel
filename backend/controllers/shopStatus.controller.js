@@ -49,8 +49,11 @@ exports.updateShopStatus = async (req, res) => {
   try {
     const {
       isOpen,
+      status: reqStatus,
       title,
+      partialTitle,
       closedMessage,
+      partialMessage,
       openMessage,
       bannerNotice,
       timerEnabled,
@@ -64,9 +67,22 @@ exports.updateShopStatus = async (req, res) => {
 
     let status = await getOrCreateShopStatus();
 
-    if (isOpen !== undefined) status.isOpen = Boolean(isOpen);
+    if (reqStatus !== undefined) {
+      status.status = reqStatus;
+      if (reqStatus === "closed") {
+        status.isOpen = false;
+      } else {
+        status.isOpen = true;
+      }
+    } else if (isOpen !== undefined) {
+      status.isOpen = Boolean(isOpen);
+      status.status = Boolean(isOpen) ? "open" : "closed";
+    }
+
     if (title !== undefined) status.title = title.trim();
+    if (partialTitle !== undefined) status.partialTitle = partialTitle.trim();
     if (closedMessage !== undefined) status.closedMessage = closedMessage.trim();
+    if (partialMessage !== undefined) status.partialMessage = partialMessage.trim();
     if (openMessage !== undefined) status.openMessage = openMessage.trim();
     if (bannerNotice !== undefined) status.bannerNotice = bannerNotice.trim();
     if (timerEnabled !== undefined) status.timerEnabled = Boolean(timerEnabled);

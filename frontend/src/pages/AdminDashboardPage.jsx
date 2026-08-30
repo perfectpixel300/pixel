@@ -455,6 +455,7 @@ export function AdminDashboardPage({
           {activeTab === "categories" && (
             <CategoryManagement
               categories={categories}
+              products={products}
               onOpenCreateModal={handleOpenCreateCategory}
               onEditCategory={handleOpenEditCategory}
               onDeleteCategory={handleDeleteCategoryPrompt}

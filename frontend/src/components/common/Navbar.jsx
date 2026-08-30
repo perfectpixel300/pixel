@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Sparkles,
   Loader2,
+  Info,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
@@ -327,65 +328,129 @@ export function Navbar({
             <div className="relative" ref={statusPopoverRef}>
               <button
                 onClick={() => {
-                  if (!shopStatus?.isOpen) {
+                  if (shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)) {
                     if (onOpenShopClosedModal) onOpenShopClosedModal();
+                  } else if (shopStatus?.status === "partial") {
+                    setShowStatusPopover(!showStatusPopover);
                   } else {
                     setShowStatusPopover(!showStatusPopover);
                   }
                 }}
                 className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[0.7rem] sm:text-[0.75rem] font-bold border transition-all cursor-pointer ${
-                  shopStatus?.isOpen
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
-                    : "bg-red-500/15 border-red-500/40 text-red-300 hover:bg-red-500/25"
+                  shopStatus?.status === "partial"
+                    ? "bg-blue-500/15 border-blue-500/40 text-blue-300 hover:bg-blue-500/25"
+                    : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
+                    ? "bg-red-500/15 border-red-500/40 text-red-300 hover:bg-red-500/25"
+                    : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
                 }`}
                 title={
-                  shopStatus?.isOpen
-                    ? "Store is currently open • Click for operating hours"
-                    : "Store is currently closed • Click to view reopen timer"
+                  shopStatus?.status === "partial"
+                    ? "Some services limited / unavailable • Click for schedule & details"
+                    : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
+                    ? "Store is currently closed • Click to view reopen timer"
+                    : "Store is currently open • Click for operating hours"
                 }
               >
                 <span className="relative flex h-2 w-2 shrink-0">
                   <span
                     className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                      shopStatus?.isOpen ? "bg-emerald-400" : "bg-red-400"
+                      shopStatus?.status === "partial"
+                        ? "bg-blue-400"
+                        : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
+                        ? "bg-red-400"
+                        : "bg-emerald-400"
                     }`}
                   />
                   <span
                     className={`relative inline-flex rounded-full h-2 w-2 ${
-                      shopStatus?.isOpen ? "bg-emerald-500" : "bg-red-500"
+                      shopStatus?.status === "partial"
+                        ? "bg-blue-400"
+                        : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
+                        ? "bg-red-500"
+                        : "bg-emerald-500"
                     }`}
                   />
                 </span>
 
-                <span className="hidden sm:inline">{shopStatus?.isOpen ? "Shop Open" : "Shop Closed"}</span>
-                <span className="sm:hidden">{shopStatus?.isOpen ? "Open" : "Closed"}</span>
+                {shopStatus?.status === "partial" ? (
+                  <>
+                    <span className="hidden sm:inline">Partial Services</span>
+                    <span className="sm:hidden">Partial</span>
+                  </>
+                ) : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen) ? (
+                  <>
+                    <span className="hidden sm:inline">Shop Closed</span>
+                    <span className="sm:hidden">Closed</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Shop Open</span>
+                    <span className="sm:hidden">Open</span>
+                  </>
+                )}
 
-                {/* Countdown text if closed & timer set */}
-                {!shopStatus?.isOpen && timerText && (
-                  <span className="text-[0.625rem] sm:text-[0.675rem] font-mono font-normal opacity-90 border-l border-red-500/30 pl-1 sm:pl-1.5 flex items-center gap-0.5">
+                {/* Countdown text if timer set */}
+                {timerText && (shopStatus?.status === "partial" || shopStatus?.status === "closed" || !shopStatus?.isOpen) && (
+                  <span
+                    className={`text-[0.625rem] sm:text-[0.675rem] font-mono font-normal opacity-90 border-l pl-1 sm:pl-1.5 flex items-center gap-0.5 ${
+                      shopStatus?.status === "partial"
+                        ? "border-blue-500/40 text-blue-300"
+                        : "border-red-500/30 text-red-300"
+                    }`}
+                  >
                     <Clock size={10} />
                     <span>{timerText}</span>
                   </span>
                 )}
               </button>
 
-              {/* Popover on click for Open store info (responsive on mobile & desktop) */}
-              {showStatusPopover && shopStatus?.isOpen && (
-                <div className="fixed top-[68px] left-3 right-3 max-w-[320px] ml-auto sm:ml-0 sm:max-w-none sm:left-auto sm:right-0 sm:absolute sm:top-full mt-2 sm:w-72 p-3.5 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
-                  <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
-                      Storefront Live & Operating
-                    </span>
-                  </div>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed m-0">
-                    {shopStatus?.openMessage ||
-                      "We are currently open and taking orders and consulting inquiries."}
-                  </p>
-                  <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.7rem] text-[var(--text-muted)]">
-                    <span>Inquiries Active</span>
-                    <span className="font-mono text-emerald-400">● 100% Online</span>
-                  </div>
+              {/* Popover on click for Open / Partial store info (responsive on mobile & desktop) */}
+              {showStatusPopover && (shopStatus?.status === "partial" || shopStatus?.isOpen !== false) && (
+                <div className="fixed top-[68px] left-3 right-3 max-w-[320px] ml-auto sm:ml-0 sm:max-w-none sm:left-auto sm:right-0 sm:absolute sm:top-full mt-2 sm:w-76 p-3.5 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
+                  {shopStatus?.status === "partial" ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
+                          {shopStatus?.partialTitle || "Partial Availability Update"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed m-0">
+                        {shopStatus?.partialMessage ||
+                          "Some particular services are currently unavailable or on schedule, while our catalog and other services remain operational."}
+                      </p>
+                      {timerText && (
+                        <div className="mt-2.5 p-2 rounded bg-blue-500/10 border border-blue-500/25 flex items-center justify-between text-[0.7rem]">
+                          <span className="text-blue-300 flex items-center gap-1 font-semibold">
+                            <Clock size={11} />
+                            <span>{shopStatus?.timerLabel || "Next Window:"}</span>
+                          </span>
+                          <span className="font-mono font-bold text-blue-400">{timerText}</span>
+                        </div>
+                      )}
+                      <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.7rem] text-[var(--text-muted)]">
+                        <span>Storefront Status</span>
+                        <span className="font-mono text-blue-400">● Selected Services Active</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                          Storefront Live & Operating
+                        </span>
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed m-0">
+                        {shopStatus?.openMessage ||
+                          "We are currently open and taking orders and consulting inquiries."}
+                      </p>
+                      <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.7rem] text-[var(--text-muted)]">
+                        <span>Inquiries Active</span>
+                        <span className="font-mono text-emerald-400">● 100% Online</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
