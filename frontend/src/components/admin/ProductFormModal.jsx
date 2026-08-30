@@ -303,10 +303,10 @@ export function ProductFormModal({
                 </label>
                 <input
                   type="number"
-                  step="1"
+                  step="any"
                   min="0"
                   className="form-input font-mono"
-                  placeholder="1650"
+                  placeholder="e.g. 1650.50"
                   value={formData.indicativePrice}
                   onChange={(e) => setFormData({ ...formData, indicativePrice: e.target.value })}
                 />
@@ -321,10 +321,10 @@ export function ProductFormModal({
                 </label>
                 <input
                   type="number"
-                  step="1"
+                  step="any"
                   min="0"
                   className="form-input font-mono border-emerald-500/40 focus:border-emerald-500"
-                  placeholder="Optional (e.g. 1350)"
+                  placeholder="Optional (e.g. 1350.25)"
                   value={formData.discountPrice}
                   onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
                 />
@@ -336,10 +336,10 @@ export function ProductFormModal({
                 </label>
                 <input
                   type="number"
-                  step="1"
+                  step="any"
                   min="0"
                   className="form-input font-mono"
-                  placeholder="e.g. 950"
+                  placeholder="e.g. 950.00"
                   value={formData.costPrice}
                   onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
                 />

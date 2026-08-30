@@ -352,6 +352,7 @@ export function ServiceFormModal({
               <label className="form-label">Price in NRs. *</label>
               <input
                 type="number"
+                step="any"
                 required
                 min="0"
                 placeholder="55000"
