@@ -74,6 +74,9 @@ export function Footer({ setActivePage, categories = [] }) {
             <span onClick={() => handleNav("products")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               All Products Catalog
             </span>
+            <span onClick={() => handleNav("printing")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+              Printing Atelier & Services
+            </span>
             <span onClick={() => handleNav("services")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               IT & Web Development Services
             </span>

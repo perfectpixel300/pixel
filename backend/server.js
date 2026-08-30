@@ -16,6 +16,7 @@ const serviceRoutes = require("./routes/service.routes");
 const serviceCategoryRoutes = require("./routes/serviceCategory.routes");
 const shopStatusRoutes = require("./routes/shopStatus.routes");
 const uploadRoutes = require("./routes/upload.routes");
+const printingServiceRoutes = require("./routes/printingService.routes");
 
 
 const PORT = process.env.PORT || 5000;
@@ -53,6 +54,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/service-categories", serviceCategoryRoutes);
+app.use("/api/printing-services", printingServiceRoutes);
 app.use("/api/shop-status", shopStatusRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/contact", contactRoutes);

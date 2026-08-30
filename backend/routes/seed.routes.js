@@ -5,6 +5,7 @@ const Banner = require("../models/banner.model");
 const Category = require("../models/category.model");
 const Service = require("../models/service.model");
 const ServiceCategory = require("../models/serviceCategory.model");
+const PrintingService = require("../models/printingService.model");
 const ShopStatus = require("../models/shopStatus.model");
 const {
   sampleCategories,
@@ -12,10 +13,11 @@ const {
   sampleBanners,
   sampleServices,
   sampleServiceCategories,
+  samplePrintingServices,
   defaultShopStatus,
 } = require("../config/seedData");
 
-// @desc    Seed database with initial categories, products, banners, services, service categories, and shop status
+// @desc    Seed database with initial categories, products, banners, services, service categories, printing services, and shop status
 // @route   POST /api/seed
 router.post("/", async (req, res) => {
   try {
@@ -26,6 +28,7 @@ router.post("/", async (req, res) => {
     const categoryCount = await Category.countDocuments();
     const serviceCount = await Service.countDocuments();
     const serviceCatCount = await ServiceCategory.countDocuments();
+    const printingServiceCount = await PrintingService.countDocuments();
     const shopStatusDoc = await ShopStatus.findOne();
 
     if (
@@ -35,6 +38,7 @@ router.post("/", async (req, res) => {
       categoryCount > 0 &&
       serviceCount > 0 &&
       serviceCatCount > 0 &&
+      printingServiceCount > 0 &&
       shopStatusDoc
     ) {
       return res.status(200).json({
@@ -45,6 +49,7 @@ router.post("/", async (req, res) => {
         bannerCount,
         serviceCount,
         serviceCategoryCount: serviceCatCount,
+        printingServiceCount,
       });
     }
 
@@ -54,6 +59,7 @@ router.post("/", async (req, res) => {
       await Banner.deleteMany({});
       await Service.deleteMany({});
       await ServiceCategory.deleteMany({});
+      await PrintingService.deleteMany({});
       await ShopStatus.deleteMany({});
     }
 
@@ -62,6 +68,7 @@ router.post("/", async (req, res) => {
     let seededBanners = [];
     let seededServices = [];
     let seededServiceCategories = [];
+    let seededPrintingServices = [];
 
     if (categoryCount === 0 || overwrite) {
       seededCategories = await Category.insertMany(sampleCategories);
@@ -78,6 +85,9 @@ router.post("/", async (req, res) => {
     if (serviceCatCount === 0 || overwrite) {
       seededServiceCategories = await ServiceCategory.insertMany(sampleServiceCategories);
     }
+    if (printingServiceCount === 0 || overwrite) {
+      seededPrintingServices = await PrintingService.insertMany(samplePrintingServices);
+    }
     if (!shopStatusDoc || overwrite) {
       await ShopStatus.create(defaultShopStatus);
     }
@@ -85,12 +95,13 @@ router.post("/", async (req, res) => {
     res.status(200).json({
       success: true,
       message:
-        "Curated sample categories, products, banners, IT services, service categories, and shop status seeded successfully in NRs. currency!",
+        "Curated sample categories, products, banners, IT services, service categories, printing services, and shop status seeded successfully in NRs. currency!",
       categoryCount: seededCategories.length || categoryCount,
       productCount: seededProducts.length || productCount,
       bannerCount: seededBanners.length || bannerCount,
       serviceCount: seededServices.length || serviceCount,
       serviceCategoryCount: seededServiceCategories.length || serviceCatCount,
+      printingServiceCount: seededPrintingServices.length || printingServiceCount,
     });
   } catch (error) {
     console.error("Error seeding database:", error);

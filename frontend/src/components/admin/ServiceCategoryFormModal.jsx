@@ -172,8 +172,8 @@ export function ServiceCategoryFormModal({
                     onClick={() => setFormData({ ...formData, icon: item.name })}
                     className={`p-2.5 flex flex-col items-center gap-1 rounded-[var(--radius-xs)] border cursor-pointer transition-all ${
                       isSelected
-                        ? "bg-white text-black font-bold border-white shadow-sm"
-                        : "bg-[var(--bg-card)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-medium)]"
+                        ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold border-[var(--btn-primary-bg)] shadow-sm"
+                        : "bg-[var(--bg-card)] border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-medium)]"
                     }`}
                     title={item.label}
                   >

@@ -33,7 +33,6 @@ export function DashboardOverview({
   onDeleteProduct,
   onToggleProductAvailability,
   onToggleProductFeatured,
-  onSeedData,
 }) {
   const safeProducts = Array.isArray(products) ? products : [];
   const safeCategories = Array.isArray(categories) ? categories : [];
@@ -48,24 +47,34 @@ export function DashboardOverview({
   const recentProducts = safeProducts.slice(0, 5);
   const activeServices = safeServices.filter((s) => s && s.isActive);
   const webDevServices = safeServices.filter((s) => s && s.isWebDevPackage);
+  const getEffectivePrice = (p) => {
+    if (
+      p?.discountPrice &&
+      Number(p.discountPrice) > 0 &&
+      Number(p.discountPrice) < Number(p.indicativePrice)
+    ) {
+      return Number(p.discountPrice);
+    }
+    return Number(p?.indicativePrice) || 0;
+  };
 
   const totalInventoryValue = safeProducts.reduce(
-    (acc, p) => acc + (Number(p?.indicativePrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
+    (acc, p) => acc + getEffectivePrice(p) * (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
     0
   );
   const totalInventoryCost = safeProducts.reduce(
-    (acc, p) => acc + (Number(p?.costPrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
+    (acc, p) => acc + (Number(p?.costPrice) || 0) * (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
     0
   );
   const totalStockUnits = safeProducts.reduce(
-    (acc, p) => acc + (p?.stock !== undefined ? Number(p.stock) : 0),
+    (acc, p) => acc + (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
     0
   );
 
   // Processed products for sorted horizontal bar chart
   const processedProducts = safeProducts.map((p) => {
-    const price = Number(p?.indicativePrice) || 0;
-    const stock = p?.stock !== undefined ? Number(p.stock) : 0;
+    const price = getEffectivePrice(p);
+    const stock = p?.stock !== undefined ? Number(p.stock) || 0 : 0;
     const value = price * stock;
     return {
       id: p._id || p.slug || Math.random().toString(),
@@ -116,7 +125,7 @@ export function DashboardOverview({
     const totalValue = catProducts.reduce(
       (sum, p) =>
         sum +
-        (Number(p?.indicativePrice) || 0) *
+        getEffectivePrice(p) *
           (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
       0
     );
@@ -124,7 +133,7 @@ export function DashboardOverview({
       count > 0
         ? Math.round(
             catProducts.reduce(
-              (sum, p) => sum + (Number(p?.indicativePrice) || 0),
+              (sum, p) => sum + getEffectivePrice(p),
               0
             ) / count
           )
@@ -205,9 +214,9 @@ export function DashboardOverview({
         <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-4.5 flex flex-col gap-1.5 border border-[var(--border-subtle)]">
           <div className="flex justify-between text-[var(--text-muted)] text-[0.7rem] uppercase font-bold">
             <span>Inventory Cost</span>
-            <Coins size={14} className="text-zinc-500" />
+            <Coins size={14} className="text-[var(--text-muted)]" />
           </div>
-          <div className="text-xl sm:text-2xl font-extrabold tracking-[-0.03em] font-mono text-zinc-300">
+          <div className="text-xl sm:text-2xl font-extrabold tracking-[-0.03em] font-mono text-[var(--text-primary)]">
             NRs. {totalInventoryCost.toLocaleString()}
           </div>
           <div className="text-[0.7rem] text-[var(--text-muted)]">
@@ -301,10 +310,6 @@ export function DashboardOverview({
           <MessageSquare size={12} />
           <span>Inquiries</span>
         </button>
-        <button onClick={onSeedData} className="btn btn-ghost btn-sm ml-auto gap-1 text-xs">
-          <Sparkles size={12} />
-          <span>Reset Samples (NRs.)</span>
-        </button>
       </div>
 
       {/* Two Column Grid */}
@@ -373,7 +378,7 @@ export function DashboardOverview({
                     <span className="text-[var(--text-muted)]">{count} items ({percent}%)</span>
                   </div>
                   <div className="h-1 bg-[var(--bg-input)] rounded-full">
-                    <div className="h-full bg-white rounded-full" style={{ width: `${percent}%` }} />
+                    <div className="h-full bg-[var(--text-primary)] rounded-full" style={{ width: `${percent}%` }} />
                   </div>
                 </div>
               );
@@ -460,7 +465,18 @@ export function DashboardOverview({
                     <span className="badge badge-neutral">{p.category}</span>
                   </td>
                   <td className="p-2.5 font-bold font-mono">
-                    NRs. {Number(p.indicativePrice).toLocaleString()}
+                    {p.discountPrice && Number(p.discountPrice) > 0 && Number(p.discountPrice) < Number(p.indicativePrice) ? (
+                      <div className="flex flex-col">
+                        <span className="text-emerald-400 font-bold">
+                          NRs. {Number(p.discountPrice).toLocaleString()}
+                        </span>
+                        <span className="text-[var(--text-muted)] line-through text-[0.675rem]">
+                          NRs. {Number(p.indicativePrice).toLocaleString()}
+                        </span>
+                      </div>
+                    ) : (
+                      <span>NRs. {Number(p.indicativePrice).toLocaleString()}</span>
+                    )}
                   </td>
                   <td className="p-2.5">
                     <button
@@ -632,7 +648,7 @@ export function DashboardOverview({
                           </div>
                           <div className="text-[10px] text-[var(--text-muted)] flex justify-between border-t border-[var(--border-subtle)] pt-1 mt-0.5">
                             <span>{p.category}</span>
-                            <span className={p.isAvailable ? "text-emerald-400 font-medium" : "text-zinc-500"}>
+                            <span className={p.isAvailable ? "text-emerald-400 font-medium" : "text-[var(--text-muted)]"}>
                               {p.isAvailable ? "In Stock" : "Out of Stock"}
                             </span>
                           </div>
@@ -667,8 +683,8 @@ export function DashboardOverview({
               <TrendingUp size={13} className="text-emerald-400" />
               <span>Valuation: <strong className="font-mono text-[var(--text-primary)]">NRs. {totalInventoryValue.toLocaleString()}</strong></span>
             </div>
-            <div className="font-mono text-zinc-400">
-              Total Cost: <strong className="font-mono text-zinc-300">NRs. {totalInventoryCost.toLocaleString()}</strong>
+            <div className="font-mono text-[var(--text-muted)]">
+              Total Cost: <strong className="font-mono text-[var(--text-primary)]">NRs. {totalInventoryCost.toLocaleString()}</strong>
             </div>
           </div>
         </div>

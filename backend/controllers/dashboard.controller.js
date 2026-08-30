@@ -1,6 +1,7 @@
 const Product = require("../models/product.model");
 const Banner = require("../models/banner.model");
 const Service = require("../models/service.model");
+const PrintingService = require("../models/printingService.model");
 
 // @desc    Get aggregated dashboard stats and recent data
 // @route   GET /api/dashboard/stats
@@ -16,9 +17,12 @@ exports.getDashboardStats = async (req, res) => {
       totalServices,
       activeServices,
       featuredServices,
+      totalPrintingServices,
+      activePrintingServices,
       recentProducts,
       recentBanners,
       recentServices,
+      recentPrintingServices,
       categoryStats,
     ] = await Promise.all([
       Product.countDocuments(),
@@ -30,9 +34,12 @@ exports.getDashboardStats = async (req, res) => {
       Service.countDocuments(),
       Service.countDocuments({ isActive: true }),
       Service.countDocuments({ isFeatured: true }),
+      PrintingService.countDocuments(),
+      PrintingService.countDocuments({ isAvailable: true }),
       Product.find().sort({ createdAt: -1 }).limit(6),
       Banner.find().sort({ order: 1, createdAt: -1 }).limit(4),
       Service.find().sort({ isFeatured: -1, displayOrder: 1, createdAt: -1 }).limit(6),
+      PrintingService.find().sort({ createdAt: -1 }).limit(6),
       Product.aggregate([
         {
           $group: {
@@ -45,14 +52,52 @@ exports.getDashboardStats = async (req, res) => {
       ]),
     ]);
 
-    // Calculate total catalog value and total inventory cost
+    // Calculate total catalog value and total inventory cost with effective selling price
     const catalogValueAgg = await Product.aggregate([
       {
         $group: {
           _id: null,
-          totalValue: { $sum: { $multiply: ["$indicativePrice", { $ifNull: ["$stock", 1] }] } },
-          totalCost: { $sum: { $multiply: [{ $ifNull: ["$costPrice", 0] }, { $ifNull: ["$stock", 1] }] } },
-          avgPrice: { $avg: "$indicativePrice" },
+          totalValue: {
+            $sum: {
+              $multiply: [
+                {
+                  $cond: [
+                    {
+                      $and: [
+                        { $gt: ["$discountPrice", 0] },
+                        { $lt: ["$discountPrice", "$indicativePrice"] },
+                      ],
+                    },
+                    "$discountPrice",
+                    { $ifNull: ["$indicativePrice", 0] },
+                  ],
+                },
+                { $ifNull: ["$stock", 0] },
+              ],
+            },
+          },
+          totalCost: {
+            $sum: {
+              $multiply: [
+                { $ifNull: ["$costPrice", 0] },
+                { $ifNull: ["$stock", 0] },
+              ],
+            },
+          },
+          avgPrice: {
+            $avg: {
+              $cond: [
+                {
+                  $and: [
+                    { $gt: ["$discountPrice", 0] },
+                    { $lt: ["$discountPrice", "$indicativePrice"] },
+                  ],
+                },
+                "$discountPrice",
+                { $ifNull: ["$indicativePrice", 0] },
+              ],
+            },
+          },
         },
       },
     ]);
@@ -84,6 +129,11 @@ exports.getDashboardStats = async (req, res) => {
           inactive: totalServices - activeServices,
           featured: featuredServices,
         },
+        printingServices: {
+          total: totalPrintingServices,
+          active: activePrintingServices,
+          inactive: totalPrintingServices - activePrintingServices,
+        },
         categoryDistribution: categoryStats.map((c) => ({
           category: c._id || "Uncategorized",
           count: c.count,
@@ -92,6 +142,7 @@ exports.getDashboardStats = async (req, res) => {
         recentProducts,
         recentBanners,
         recentServices,
+        recentPrintingServices,
       },
     });
   } catch (error) {

@@ -17,12 +17,23 @@ export function CategoryManagement({
     return c.name?.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q);
   });
 
+  const getEffectivePrice = (p) => {
+    if (
+      p?.discountPrice &&
+      Number(p.discountPrice) > 0 &&
+      Number(p.discountPrice) < Number(p.indicativePrice)
+    ) {
+      return Number(p.discountPrice);
+    }
+    return Number(p?.indicativePrice) || 0;
+  };
+
   const totalCatVal = products.reduce(
-    (sum, p) => sum + (Number(p?.indicativePrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
+    (sum, p) => sum + getEffectivePrice(p) * (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
     0
   );
   const totalCatCost = products.reduce(
-    (sum, p) => sum + (Number(p?.costPrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
+    (sum, p) => sum + (Number(p?.costPrice) || 0) * (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
     0
   );
   const totalCatProfit = totalCatVal - totalCatCost;
@@ -65,11 +76,11 @@ export function CategoryManagement({
             <div className="text-[0.7rem] uppercase font-bold text-[var(--text-muted)]">
               Total Category Cost
             </div>
-            <div className="text-xl font-extrabold mt-0.5 tracking-tight font-mono text-zinc-300">
+            <div className="text-xl font-extrabold mt-0.5 tracking-tight font-mono text-[var(--text-primary)]">
               NRs. {totalCatCost.toLocaleString()}
             </div>
           </div>
-          <div className="w-9 h-9 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-zinc-400">
+          <div className="w-9 h-9 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-muted)]">
             <Coins size={16} />
           </div>
         </div>
@@ -136,7 +147,7 @@ export function CategoryManagement({
             const count = catProducts.length;
             const stockCount = catProducts.reduce((sum, p) => sum + (p?.stock !== undefined ? Number(p.stock) || 0 : 0), 0);
             const val = catProducts.reduce(
-              (sum, p) => sum + (Number(p?.indicativePrice) || 0) * (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
+              (sum, p) => sum + getEffectivePrice(p) * (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
               0
             );
             const cost = catProducts.reduce(
@@ -153,7 +164,7 @@ export function CategoryManagement({
               >
                 {/* Cover Image Banner */}
                 <div
-                  className="h-28 relative bg-cover bg-center bg-[#18181b]"
+                  className="h-28 relative bg-cover bg-center bg-[var(--bg-sidebar)]"
                   style={
                     cat.imageUrl
                       ? { backgroundImage: `url(${getOptimizedImageUrl(cat.imageUrl, { width: 600 })})` }
@@ -184,7 +195,7 @@ export function CategoryManagement({
                     </div>
                     <div className="flex justify-between items-center text-[var(--text-muted)]">
                       <span>Total Cost:</span>
-                      <span className="text-zinc-300">NRs. {cost.toLocaleString()}</span>
+                      <span className="text-[var(--text-primary)]">NRs. {cost.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center text-emerald-400 font-bold border-t border-[var(--border-subtle)] pt-1 mt-0.5">
                       <div className="flex items-center gap-1.5">

@@ -484,6 +484,103 @@ class ApiService {
   }
 
   /* ==========================================================================
+     PRINTING SERVICES API
+     ========================================================================== */
+
+  async getPrintingServices(params = {}) {
+    try {
+      const query = new URLSearchParams(params).toString();
+      const res = await fetch(`${API_BASE_URL}/printing-services${query ? `?${query}` : ""}`);
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          printingServices: data.printingServices || data.services || [],
+          count: data.count || 0,
+          total: data.total || 0,
+          fromServer: true,
+        };
+      }
+      return { printingServices: [], count: 0, total: 0, fromServer: false };
+    } catch (error) {
+      console.error("Error fetching printing services:", error);
+      return { printingServices: [], count: 0, total: 0, fromServer: false };
+    }
+  }
+
+  async getPrintingServiceById(id) {
+    const res = await fetch(`${API_BASE_URL}/printing-services/${id}`);
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to fetch printing service");
+    }
+    return data;
+  }
+
+  async createPrintingService(serviceData) {
+    const res = await fetch(`${API_BASE_URL}/printing-services`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(serviceData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to create printing service");
+    }
+    return data;
+  }
+
+  async updatePrintingService(id, serviceData) {
+    const res = await fetch(`${API_BASE_URL}/printing-services/${id}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(serviceData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update printing service");
+    }
+    return data;
+  }
+
+  async deletePrintingService(id) {
+    const res = await fetch(`${API_BASE_URL}/printing-services/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete printing service");
+    }
+    return data;
+  }
+
+  async togglePrintingServiceAvailability(id) {
+    if (!id) return;
+    const res = await fetch(`${API_BASE_URL}/printing-services/${id}/toggle-availability`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to toggle availability");
+    }
+    return data;
+  }
+
+  async togglePrintingServiceFeatured(id) {
+    if (!id) return;
+    const res = await fetch(`${API_BASE_URL}/printing-services/${id}/toggle-featured`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to toggle featured status");
+    }
+    return data;
+  }
+
+  /* ==========================================================================
      SHOP STATUS & NOTICES API
      ========================================================================== */
 

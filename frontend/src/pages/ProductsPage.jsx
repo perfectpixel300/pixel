@@ -180,7 +180,7 @@ export function ProductsPage({
             </span>
             <button
               onClick={() => setSearchTerm("")}
-              className="text-xs text-[var(--text-muted)] hover:text-white underline cursor-pointer bg-transparent border-0 ml-1"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] underline cursor-pointer bg-transparent border-0 ml-1"
             >
               Clear Search
             </button>
@@ -233,7 +233,7 @@ export function ProductsPage({
                     className={`btn-icon btn-secondary !w-9 !h-9 !rounded-full ${
                       currentPage === 1
                         ? "opacity-30 cursor-not-allowed"
-                        : "cursor-pointer hover:bg-white hover:text-black"
+                        : "cursor-pointer hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)]"
                     }`}
                     aria-label="Previous Page"
                   >
@@ -267,8 +267,8 @@ export function ProductsPage({
                         onClick={() => handlePageChange(pageNumber)}
                         className={`!w-9 !h-9 !rounded-full font-mono text-xs sm:text-sm font-bold transition-all border cursor-pointer ${
                           isActive
-                            ? "bg-white text-black border-white shadow-sm"
-                            : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-[var(--border-medium)] hover:bg-zinc-700 hover:text-white"
+                            ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] border-[var(--btn-primary-bg)] shadow-sm"
+                            : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-[var(--border-medium)] hover:bg-[var(--bg-input-focus)] hover:text-[var(--text-primary)]"
                         }`}
                       >
                         {pageNumber}
@@ -282,7 +282,7 @@ export function ProductsPage({
                     className={`btn-icon btn-secondary !w-9 !h-9 !rounded-full ${
                       currentPage >= totalPages
                         ? "opacity-30 cursor-not-allowed"
-                        : "cursor-pointer hover:bg-white hover:text-black"
+                        : "cursor-pointer hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)]"
                     }`}
                     aria-label="Next Page"
                   >

@@ -14,6 +14,7 @@ import {
   Zap,
   Clock,
   Sliders,
+  Printer,
   X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -26,12 +27,12 @@ export function AdminSidebar({
   webTiersCount,
   servicesCount,
   serviceCategoriesCount = 0,
+  printingServicesCount = 0,
   inquiriesCount,
   shopStatus = { isOpen: true },
   isCollapsed,
   setIsCollapsed,
   isLiveBackend,
-  onSeedData,
   onExitToStore,
   mobileSidebarOpen = false,
   setMobileSidebarOpen,
@@ -52,10 +53,17 @@ export function AdminSidebar({
       badgeColor: shopStatus?.status === "partial" ? "info" : shopStatus?.isOpen ? "success" : "danger",
     },
     {
+      id: "printing",
+      label: "Printing Services",
+      icon: <Printer size={17} />,
+      badge: printingServicesCount || 0,
+      badgeColor: "success",
+    },
+    {
       id: "web-tiers",
       label: "Web Dev Plans",
       icon: <Zap size={17} />,
-      badge: webTiersCount !== undefined ? webTiersCount : 3,
+      badge: webTiersCount !== undefined ? webTiersCount : 0,
       badgeColor: "success",
     },
     {
@@ -139,12 +147,12 @@ export function AdminSidebar({
             onClick={() => handleNavClick("overview")}
             className="flex items-center gap-2.5 cursor-pointer min-w-0"
           >
-            <div className="w-7.5 h-7.5 rounded-[var(--radius-xs)] bg-white text-black flex items-center justify-center font-extrabold text-sm shrink-0">
+            <div className="w-7.5 h-7.5 rounded-[var(--radius-xs)] bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center font-extrabold text-sm shrink-0 shadow-xs">
               P
             </div>
             {!isCollapsed && (
               <div className="min-w-0 truncate">
-                <div className="font-extrabold text-[0.825rem] sm:text-[0.85rem] tracking-[0.06em] uppercase truncate">
+                <div className="font-extrabold text-[0.825rem] sm:text-[0.85rem] tracking-[0.06em] uppercase truncate text-[var(--text-primary)]">
                   PIXEL PERFECT
                 </div>
                 <div className="text-[0.625rem] sm:text-[0.65rem] text-[var(--text-muted)] tracking-[0.05em] uppercase truncate">
@@ -157,7 +165,7 @@ export function AdminSidebar({
           {/* Desktop Collapse Toggle */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`btn-icon btn-ghost !w-6.5 !h-6.5 hidden md:inline-flex ${isCollapsed ? "hidden" : ""}`}
+            className={`btn-icon btn-ghost !w-6.5 !h-6.5 hidden md:inline-flex text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] ${isCollapsed ? "hidden" : ""}`}
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             <ChevronLeft size={15} />
@@ -166,7 +174,7 @@ export function AdminSidebar({
           {/* Mobile Close Button */}
           <button
             onClick={() => setMobileSidebarOpen && setMobileSidebarOpen(false)}
-            className="btn-icon btn-ghost md:hidden !w-7 !h-7 text-[var(--text-muted)] hover:text-white"
+            className="btn-icon btn-ghost md:hidden !w-7 !h-7 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
             title="Close navigation"
           >
             <X size={16} />
@@ -191,8 +199,8 @@ export function AdminSidebar({
                   isCollapsed ? "py-2.5 justify-center" : "py-2.5 px-3 justify-start"
                 } ${
                   isActive
-                    ? "bg-white text-black font-bold"
-                    : "bg-transparent text-[var(--text-secondary)] font-medium hover:bg-[var(--bg-elevated)] hover:text-white"
+                    ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold shadow-xs"
+                    : "bg-transparent text-[var(--text-secondary)] font-medium hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]"
                 }`}
                 title={isCollapsed ? item.label : undefined}
               >
@@ -205,13 +213,15 @@ export function AdminSidebar({
                       <span
                         className={`badge ${
                           isActive
-                            ? "badge-dark"
+                            ? "bg-[var(--bg-card)] text-[var(--text-primary)] border border-[var(--border-subtle)]"
                             : item.badgeColor === "danger"
                             ? "badge-danger"
                             : item.badgeColor === "info"
-                            ? "bg-blue-500/20 text-blue-300"
+                            ? "bg-blue-500/20 text-blue-400"
+                            : item.badgeColor === "success"
+                            ? "badge-success"
                             : "badge-neutral"
-                        } text-[0.65rem] px-1.5 py-0.5 shrink-0`}
+                        } text-[0.65rem] px-1.5 py-0.5 shrink-0 font-bold`}
                       >
                         {item.badge}
                       </span>
@@ -229,27 +239,13 @@ export function AdminSidebar({
                 if (setMobileSidebarOpen) setMobileSidebarOpen(false);
                 onExitToStore();
               }}
-              className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-card)] text-[var(--text-primary)] cursor-pointer text-[0.78rem] font-semibold hover:bg-[var(--bg-elevated)] transition-colors ${
+              className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-card)] text-[var(--text-primary)] cursor-pointer text-[0.78rem] font-semibold hover:bg-[var(--bg-elevated)] border border-[var(--border-subtle)] transition-all ${
                 isCollapsed ? "py-2.5 justify-center" : "py-2.5 px-3 justify-start"
               }`}
               title="Public Storefront"
             >
               <Store size={15} className="shrink-0" />
               {!isCollapsed && <span className="truncate">View Public Store</span>}
-            </button>
-
-            <button
-              onClick={() => {
-                if (setMobileSidebarOpen) setMobileSidebarOpen(false);
-                onSeedData && onSeedData();
-              }}
-              className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] bg-transparent text-[var(--text-muted)] cursor-pointer text-[0.75rem] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors ${
-                isCollapsed ? "py-2 justify-center" : "py-2 px-3 justify-start"
-              }`}
-              title="Reset / Seed Curated Data"
-            >
-              <Sparkles size={14} className="shrink-0" />
-              {!isCollapsed && <span className="truncate">Reset Sample Data (NRs.)</span>}
             </button>
 
             <button

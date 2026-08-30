@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { MessageSquare, Trash2, Mail, Package } from "lucide-react";
 
 export function InquiriesManagement({
-  inquiries,
+  inquiries = [],
   onDeleteInquiry,
 }) {
   const [filter, setFilter] = useState("all"); // 'all' | 'unread'

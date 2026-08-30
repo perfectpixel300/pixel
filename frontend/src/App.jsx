@@ -5,6 +5,7 @@ import { Footer } from "./components/common/Footer";
 import { Toast } from "./components/common/Toast";
 import { HomePage } from "./pages/HomePage";
 import { ProductsPage } from "./pages/ProductsPage";
+import { PrintingPage } from "./pages/PrintingPage";
 import { ServicesPage } from "./pages/ServicesPage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { AboutPage } from "./pages/AboutPage";
@@ -23,6 +24,7 @@ const getRouteFromPath = () => {
   const path = window.location.pathname.toLowerCase().replace(/\/+$/, "") || "/";
   if (path === "/admin" || path === "/admin/login") return "admin";
   if (path === "/products") return "products";
+  if (path === "/printing") return "printing";
   if (path === "/services") return "services";
   if (path === "/about") return "about";
   if (path === "/contact") return "contact";
@@ -44,6 +46,7 @@ function AppContent() {
   // Data states
   const [stats, setStats] = useState(null);
   const [products, setProducts] = useState([]);
+  const [printingServices, setPrintingServices] = useState([]);
   const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
   const [serviceCategories, setServiceCategories] = useState([]);
@@ -112,6 +115,7 @@ function AppContent() {
       }
       const [
         productsRes,
+        printingServicesRes,
         categoriesRes,
         servicesRes,
         serviceCategoriesRes,
@@ -119,6 +123,7 @@ function AppContent() {
         bannersRes,
       ] = await Promise.all([
         api.getProducts(),
+        api.getPrintingServices(),
         api.getCategories(),
         api.getServices(),
         api.getServiceCategories(),
@@ -127,6 +132,7 @@ function AppContent() {
       ]);
 
       setProducts(productsRes.products || []);
+      setPrintingServices(printingServicesRes.printingServices || []);
       setCategories(categoriesRes.categories || []);
       setServices(servicesRes.services || []);
       setServiceCategories(serviceCategoriesRes.categories || []);
@@ -267,11 +273,13 @@ function AppContent() {
               <HomePage
                 banners={banners}
                 products={products}
+                printingServices={printingServices}
                 categories={categories}
                 services={services}
                 onViewProduct={handleViewProduct}
                 onInquireProduct={handleOpenInquiry}
                 onInquireService={handleOpenInquiry}
+                onInquirePrinting={handleOpenInquiry}
                 onNavigate={setActivePage}
                 onSelectCategory={setSelectedCategory}
               />
@@ -290,11 +298,21 @@ function AppContent() {
               />
             )}
 
+            {activePage === "printing" && (
+              <PrintingPage
+                printingServices={printingServices}
+                onInquirePrinting={handleOpenInquiry}
+                onNavigate={setActivePage}
+              />
+            )}
+
             {activePage === "services" && (
               <ServicesPage
                 services={services}
+                printingServices={printingServices}
                 serviceCategories={serviceCategories}
                 onInquireService={handleOpenInquiry}
+                onInquirePrinting={handleOpenInquiry}
                 onNavigate={setActivePage}
               />
             )}
@@ -324,6 +342,7 @@ function AppContent() {
           <AdminDashboardPage
             stats={stats}
             products={products}
+            printingServices={printingServices}
             categories={categories}
             services={services}
             serviceCategories={serviceCategories}

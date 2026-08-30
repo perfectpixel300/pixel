@@ -17,6 +17,7 @@ import {
   Layers,
   Lock,
   Star,
+  Printer,
   X,
 } from "lucide-react";
 import { HeroBannerCarousel } from "../components/storefront/HeroBannerCarousel";
@@ -29,11 +30,13 @@ import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 export function HomePage({
   banners,
   products,
+  printingServices = [],
   categories = [],
   services = [],
   onViewProduct,
   onInquireProduct,
   onInquireService,
+  onInquirePrinting,
   onNavigate,
   onSelectCategory,
 }) {
@@ -41,6 +44,8 @@ export function HomePage({
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
+
+  const displayPrintingServices = (printingServices || []).filter((s) => s.isAvailable !== false);
 
   const handleCategoryClick = (category) => {
     onSelectCategory(category);
@@ -284,8 +289,8 @@ export function HomePage({
                         onClick={() => handlePageChange(pageNumber)}
                         className={`w-8 h-8 rounded-[var(--radius-xs)] text-xs font-mono font-bold flex items-center justify-center transition-all ${
                           isActive
-                            ? "bg-white text-black shadow-sm"
-                            : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-input-focus)]"
+                            ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] shadow-sm"
+                            : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input-focus)]"
                         }`}
                       >
                         {pageNumber}
@@ -300,7 +305,7 @@ export function HomePage({
                   className={`btn btn-sm btn-secondary gap-1 !px-3 ${
                     currentPage >= totalPages
                       ? "opacity-30 cursor-not-allowed"
-                      : "hover:!bg-white hover:!text-black"
+                      : "hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
                   }`}
                   aria-label="Next Page"
                 >
@@ -314,6 +319,170 @@ export function HomePage({
       </section>
 
       {/* =========================================================================
+          PRINTING SERVICES SECTION BELOW THE PRODUCTS SECTION
+          ========================================================================= */}
+      {displayPrintingServices && displayPrintingServices.length > 0 && (
+        <section id="home-printing-section" className="py-24 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)] relative overflow-hidden">
+          <div className="storefront-container relative z-10">
+            {/* Section Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[0.7rem] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)] mb-3">
+                  <Printer size={13} />
+                  <span>Archival & Commercial Printing Atelier</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.03em] text-[var(--text-primary)]">
+                  Fine Art Giclée & Custom Printmaking
+                </h2>
+                <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[640px]">
+                  Museum-grade 12-color Lucia PRO pigment prints, architectural CAD blueprints, Smyth-sewn hardcover binding, and luxury metallic foil stamping.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  onNavigate("printing");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="btn btn-secondary gap-1.5 self-start md:self-auto"
+              >
+                <span>Explore Full Print Atelier</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {/* Grid of Printing Services */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+              {displayPrintingServices
+                .slice(0, 6)
+                .map((service) => {
+                  const rawImg = service.images && service.images[0] ? service.images[0] : "";
+                  const img = getOptimizedImageUrl(rawImg, { width: 800 });
+                  const hasDiscount =
+                    service.discountPrice &&
+                    Number(service.discountPrice) > 0 &&
+                    Number(service.discountPrice) < Number(service.indicativePrice);
+                  const activePrice = hasDiscount
+                    ? Number(service.discountPrice)
+                    : Number(service.indicativePrice);
+
+                  return (
+                    <div
+                      key={service._id}
+                      className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-lg)] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-lg)] group"
+                    >
+                      {/* Image Preview */}
+                      <div className="h-48 relative overflow-hidden bg-[var(--bg-sidebar)] flex items-center justify-center">
+                        {img ? (
+                          <img
+                            src={img}
+                            alt={service.name}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <Printer size={36} className="text-[var(--text-muted)] opacity-30" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-black/30 to-transparent opacity-80" />
+
+                        <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                          <span className="badge badge-dark text-[0.625rem] bg-black/80">
+                            {service.category}
+                          </span>
+                          {hasDiscount && (
+                            <span className="badge badge-emerald bg-emerald-500 text-white text-[0.6rem] font-bold">
+                              SPECIAL
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-xs text-white text-[0.65rem] px-2 py-0.5 rounded font-mono flex items-center gap-1">
+                          <Clock size={11} />
+                          <span>{service.turnaroundTime || "24-48h"}</span>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-5 flex flex-col flex-1 gap-3">
+                        <div>
+                          <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug">
+                            {service.name}
+                          </h3>
+                          <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-1.5 line-clamp-2">
+                            {service.shortDescription || service.description}
+                          </p>
+                        </div>
+
+                        {/* Price Display */}
+                        <div className="pt-2 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
+                          <div>
+                            <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider block font-bold">
+                              Investment ({service.priceUnit || "per piece"})
+                            </span>
+                            <div className="flex items-baseline gap-1.5 mt-0.5">
+                              <span className="font-mono text-lg font-extrabold text-[var(--text-primary)]">
+                                NRs. {activePrice.toLocaleString()}
+                              </span>
+                              {hasDiscount && (
+                                <span className="font-mono text-xs text-[var(--text-muted)] line-through">
+                                  NRs. {Number(service.indicativePrice).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {service.specs?.paperGsm && (
+                            <div className="text-right">
+                              <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider block font-bold">
+                                Media
+                              </span>
+                              <span className="text-xs font-mono text-[var(--text-secondary)] truncate max-w-[120px] block">
+                                {service.specs.paperGsm.split(" ")[0]} GSM
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--border-subtle)]">
+                          <button
+                            onClick={() => {
+                              onNavigate("printing");
+                              window.scrollTo({ top: 0, behavior: "smooth" });
+                            }}
+                            className="btn btn-secondary btn-sm text-[0.75rem]"
+                          >
+                            Details
+                          </button>
+                          <button
+                            onClick={() => {
+                              const handler = onInquirePrinting || onInquireProduct;
+                              if (handler) {
+                                handler({
+                                  name: service.name,
+                                  indicativePrice: activePrice,
+                                  type: "service",
+                                  category: service.category || "Printing Service",
+                                  description: service.shortDescription || service.description,
+                                });
+                              }
+                            }}
+                            className="btn btn-primary btn-sm text-[0.75rem]"
+                          >
+                            Inquire
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* =========================================================================
           FEATURED IT SERVICES BELOW THE PRODUCTS SECTION
           3 TIER SUBSCRIPTION / PLAN EXPERIENCE (EDITABLE BY ADMIN)
           ========================================================================= */}
@@ -325,7 +494,7 @@ export function HomePage({
         <div className="storefront-container relative z-10">
           {/* Section Header */}
           <div className="text-center max-w-[800px] mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white text-black font-extrabold text-[0.675rem] uppercase tracking-[0.14em] mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-extrabold text-[0.675rem] uppercase tracking-[0.14em] mb-4">
               <Zap size={13} fill="currentColor" />
               <span>Flagship IT Service & Engineering</span>
             </div>
@@ -441,7 +610,7 @@ export function HomePage({
                     <button
                       onClick={() => handleSubscribePlan(tier)}
                       className={`btn w-full py-3.5 gap-2 font-bold text-[0.875rem] !rounded-[var(--radius-sm)] ${
-                        isPro ? "btn-primary shadow-lg" : "btn-secondary hover:!bg-white hover:!text-black"
+                        isPro ? "btn-primary shadow-lg" : "btn-secondary hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
                       }`}
                     >
                       <span>Subscribe to This Plan</span>
@@ -450,7 +619,7 @@ export function HomePage({
 
                     <button
                       onClick={() => handleOpenWhatsAppTier(tier)}
-                      className="btn btn-ghost btn-sm text-[0.75rem] text-[var(--text-muted)] hover:text-white flex items-center justify-center gap-1.5"
+                      className="btn btn-ghost btn-sm text-[0.75rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1.5"
                     >
                       <MessageCircle size={13} />
                       <span>Inquire via WhatsApp</span>
@@ -464,7 +633,7 @@ export function HomePage({
           {/* Bottom Trust & Assurance Footer */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 rounded-[var(--radius-lg)] bg-[var(--bg-card)] border border-[var(--border-subtle)] text-center sm:text-left">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shrink-0 font-bold">
+              <div className="w-10 h-10 rounded-full bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center shrink-0 font-bold">
                 <ShieldCheck size={18} />
               </div>
               <div>
@@ -478,7 +647,7 @@ export function HomePage({
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shrink-0 font-bold">
+              <div className="w-10 h-10 rounded-full bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] flex items-center justify-center shrink-0 font-bold">
                 <Code size={18} />
               </div>
               <div>

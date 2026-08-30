@@ -271,13 +271,14 @@ input, textarea, select {
   }
 
   .badge-dark {
-    background-color: #1a1a1a;
-    color: #ffffff;
+    background-color: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle) !important;
   }
 
   .badge-white {
-    background-color: #ffffff;
-    color: #000000;
+    background-color: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
     font-weight: 700;
   }
 
@@ -384,12 +385,12 @@ input, textarea, select {
   }
 
   input:checked + .toggle-slider {
-    background-color: #ffffff;
+    background-color: var(--text-primary);
   }
 
   input:checked + .toggle-slider:before {
     transform: translateX(16px);
-    background-color: #000000;
+    background-color: var(--bg-app);
   }
 
   /* Modals & Overlays */

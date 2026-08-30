@@ -4,6 +4,7 @@ import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { AdminHeader } from "../components/admin/AdminHeader";
 import { DashboardOverview } from "../components/admin/DashboardOverview";
 import { ProductManagement } from "../components/admin/ProductManagement";
+import { PrintingManagement } from "../components/admin/PrintingManagement";
 import { CategoryManagement } from "../components/admin/CategoryManagement";
 import { WebTiersManagement } from "../components/admin/WebTiersManagement";
 import { ServicesManagement } from "../components/admin/ServicesManagement";
@@ -12,6 +13,7 @@ import { ShopStatusManagement } from "../components/admin/ShopStatusManagement";
 import { BannerManagement } from "../components/admin/BannerManagement";
 import { InquiriesManagement } from "../components/admin/InquiriesManagement";
 import { ProductFormModal } from "../components/admin/ProductFormModal";
+import { PrintingFormModal } from "../components/admin/PrintingFormModal";
 import { CategoryFormModal } from "../components/admin/CategoryFormModal";
 import { ServiceCategoryFormModal } from "../components/admin/ServiceCategoryFormModal";
 import { ServiceFormModal } from "../components/admin/ServiceFormModal";
@@ -20,16 +22,17 @@ import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 import { api } from "../services/api";
 
 export function AdminDashboardPage({
-  stats,
-  products,
-  categories,
+  stats = null,
+  products = [],
+  printingServices = [],
+  categories = [],
   services = [],
   serviceCategories = [],
   shopStatus = { isOpen: true },
   onUpdateShopStatus,
-  banners,
-  inquiries,
-  isLiveBackend,
+  banners = [],
+  inquiries = [],
+  isLiveBackend = false,
   onRefreshData,
   onExitToStore,
   showToast,
@@ -37,12 +40,13 @@ export function AdminDashboardPage({
   toggleTheme,
   isRefreshing = false,
 }) {
-  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'shop-status' | 'web-tiers' | 'services' | 'service-categories' | 'products' | 'categories' | 'banners' | 'inquiries'
+  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'shop-status' | 'printing' | 'web-tiers' | 'services' | 'service-categories' | 'products' | 'categories' | 'banners' | 'inquiries'
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Modals state
   const [productModal, setProductModal] = useState({ isOpen: false, product: null });
+  const [printingModal, setPrintingModal] = useState({ isOpen: false, service: null });
   const [categoryModal, setCategoryModal] = useState({ isOpen: false, category: null });
   const [serviceCategoryModal, setServiceCategoryModal] = useState({ isOpen: false, category: null });
   const [serviceModal, setServiceModal] = useState({ isOpen: false, service: null });
@@ -50,8 +54,8 @@ export function AdminDashboardPage({
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: "product", id: null, name: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const webTiersCount = services.filter((s) => s.isWebDevPackage).length;
-  const itServicesCount = services.filter((s) => !s.isWebDevPackage).length;
+  const webTiersCount = (services || []).filter((s) => s && s.isWebDevPackage).length;
+  const itServicesCount = (services || []).filter((s) => s && !s.isWebDevPackage).length;
 
   // Product CRUD
   const handleOpenCreateProduct = () => setProductModal({ isOpen: true, product: null });
@@ -102,6 +106,61 @@ export function AdminDashboardPage({
     try {
       await api.toggleProductFeatured(productId);
       showToast("Featured status updated!");
+      onRefreshData();
+    } catch (err) {
+      showToast("Failed to toggle featured status", "error");
+    }
+  };
+
+  // Printing Services CRUD
+  const handleOpenCreatePrintingService = () => setPrintingModal({ isOpen: true, service: null });
+  const handleOpenEditPrintingService = (service) => setPrintingModal({ isOpen: true, service });
+
+  const handleSubmitPrintingService = async (serviceData) => {
+    try {
+      setIsSubmitting(true);
+      const targetId = printingModal.service?._id || serviceData._id;
+      if (targetId && targetId !== "undefined") {
+        await api.updatePrintingService(targetId, serviceData);
+        showToast(`Printing Service "${serviceData.name}" updated!`);
+      } else {
+        await api.createPrintingService(serviceData);
+        showToast(`Printing Service "${serviceData.name}" created!`);
+      }
+      setPrintingModal({ isOpen: false, service: null });
+      onRefreshData();
+    } catch (err) {
+      showToast(err.message || "Failed to save printing service", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeletePrintingServicePrompt = (service) => {
+    setDeleteModal({
+      isOpen: true,
+      type: "printing-service",
+      id: service._id,
+      name: service.name,
+    });
+  };
+
+  const handleTogglePrintingServiceAvailability = async (serviceId) => {
+    if (!serviceId || serviceId === "undefined") return;
+    try {
+      await api.togglePrintingServiceAvailability(serviceId);
+      showToast("Printing service availability updated!");
+      onRefreshData();
+    } catch (err) {
+      showToast("Failed to toggle availability", "error");
+    }
+  };
+
+  const handleTogglePrintingServiceFeatured = async (serviceId) => {
+    if (!serviceId || serviceId === "undefined") return;
+    try {
+      await api.togglePrintingServiceFeatured(serviceId);
+      showToast("Printing service featured flag updated!");
       onRefreshData();
     } catch (err) {
       showToast("Failed to toggle featured status", "error");
@@ -318,6 +377,9 @@ export function AdminDashboardPage({
       if (deleteModal.type === "product") {
         await api.deleteProduct(deleteModal.id);
         showToast("Product deleted from catalog.");
+      } else if (deleteModal.type === "printing-service") {
+        await api.deletePrintingService(deleteModal.id);
+        showToast("Printing service removed from catalog.");
       } else if (deleteModal.type === "category") {
         await api.deleteCategory(deleteModal.id);
         showToast("Product Category removed.");
@@ -349,11 +411,12 @@ export function AdminDashboardPage({
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         stats={stats}
-        categoriesCount={categories.length}
+        categoriesCount={(categories || []).length}
+        printingServicesCount={(printingServices || []).length}
         webTiersCount={webTiersCount}
         servicesCount={itServicesCount}
-        serviceCategoriesCount={serviceCategories.length}
-        inquiriesCount={inquiries.length}
+        serviceCategoriesCount={(serviceCategories || []).length}
+        inquiriesCount={(inquiries || []).length}
         shopStatus={shopStatus}
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
@@ -367,6 +430,7 @@ export function AdminDashboardPage({
         <AdminHeader
           activeTab={activeTab}
           onOpenProductModal={handleOpenCreateProduct}
+          onOpenPrintingModal={handleOpenCreatePrintingService}
           onOpenCategoryModal={handleOpenCreateCategory}
           onOpenServiceCategoryModal={handleOpenCreateServiceCategory}
           onOpenServiceModal={() => handleOpenCreateService({ isWebDevPackage: false })}
@@ -407,6 +471,17 @@ export function AdminDashboardPage({
               shopStatus={shopStatus}
               onUpdateShopStatus={onUpdateShopStatus}
               showToast={showToast}
+            />
+          )}
+
+          {activeTab === "printing" && (
+            <PrintingManagement
+              printingServices={printingServices}
+              onOpenCreateModal={handleOpenCreatePrintingService}
+              onEditService={handleOpenEditPrintingService}
+              onDeleteService={handleDeletePrintingServicePrompt}
+              onToggleAvailability={handleTogglePrintingServiceAvailability}
+              onToggleFeatured={handleTogglePrintingServiceFeatured}
             />
           )}
 
@@ -495,6 +570,14 @@ export function AdminDashboardPage({
         onSubmit={handleSubmitProduct}
         editingProduct={productModal.product}
         categories={categories}
+        isSubmitting={isSubmitting}
+      />
+
+      <PrintingFormModal
+        isOpen={printingModal.isOpen}
+        onClose={() => setPrintingModal({ isOpen: false, service: null })}
+        onSubmit={handleSubmitPrintingService}
+        editingService={printingModal.service}
         isSubmitting={isSubmitting}
       />
 

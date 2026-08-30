@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export function BannerManagement({
-  banners,
+  banners = [],
   onOpenCreateModal,
   onEditBanner,
   onDeleteBanner,

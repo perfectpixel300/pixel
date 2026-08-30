@@ -38,21 +38,15 @@ export function AdminLoginPage({ onBackToStore, onLoginSuccess }) {
     }
   };
 
-  const handleQuickDemoFill = () => {
-    setEmail("");
-    setPassword("");
-    setError("");
-  };
-
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-6">
-      <div className="w-full max-w-[440px] bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-lg)] p-8 sm:p-10">
+      <div className="w-full max-w-[440px] bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-lg)] p-8 sm:p-10 shadow-lg">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-11 h-11 rounded-[var(--radius-sm)] bg-white text-black inline-flex items-center justify-center mb-3 font-extrabold text-xl">
+          <div className="w-11 h-11 rounded-[var(--radius-sm)] bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] inline-flex items-center justify-center mb-3 font-extrabold text-xl shadow-xs">
             P
           </div>
-          <h2 className="text-xl font-extrabold tracking-[-0.02em] m-0 mb-1">
+          <h2 className="text-xl font-extrabold tracking-[-0.02em] m-0 mb-1 text-[var(--text-primary)]">
             Pixel Perfect Studio
           </h2>
           <span className="text-[0.75rem] text-[var(--text-muted)] uppercase tracking-[0.08em]">
@@ -76,7 +70,7 @@ export function AdminLoginPage({ onBackToStore, onLoginSuccess }) {
               className="form-input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="••••••••"
+              placeholder="admin@pixelperfect.com"
             />
           </div>
 

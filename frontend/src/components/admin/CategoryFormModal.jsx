@@ -200,7 +200,7 @@ export function CategoryFormModal({
                 <button
                   type="button"
                   onClick={() => setShowManualUrl(!showManualUrl)}
-                  className="text-[0.725rem] text-[var(--text-muted)] hover:text-white bg-transparent border-0 cursor-pointer"
+                  className="text-[0.725rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] bg-transparent border-0 cursor-pointer"
                 >
                   {showManualUrl ? "Hide URL Input" : "+ Paste Image URL"}
                 </button>
@@ -219,7 +219,7 @@ export function CategoryFormModal({
                   className={`border-2 border-dashed rounded-[var(--radius-sm)] p-5 text-center cursor-pointer transition-all duration-200 ${
                     uploading
                       ? "border-[var(--border-bright)] bg-[var(--bg-elevated)]"
-                      : "border-[var(--border-medium)] hover:border-white hover:bg-[var(--bg-elevated)]"
+                      : "border-[var(--border-medium)] hover:border-[var(--border-bright)] hover:bg-[var(--bg-elevated)]"
                   }`}
                 >
                   <input
@@ -233,14 +233,14 @@ export function CategoryFormModal({
 
                   {uploading ? (
                     <div className="flex flex-col items-center justify-center gap-2 py-2">
-                      <Loader2 size={22} className="animate-spin text-white" />
-                      <span className="text-xs font-bold text-white">
+                      <Loader2 size={22} className="animate-spin text-[var(--text-primary)]" />
+                      <span className="text-xs font-bold text-[var(--text-primary)]">
                         Uploading cover to Cloudinary...
                       </span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-1.5">
-                      <div className="w-8 h-8 rounded-full bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center justify-center text-white">
+                      <div className="w-8 h-8 rounded-full bg-[var(--bg-card)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)]">
                         <UploadCloud size={16} />
                       </div>
                       <div className="text-xs font-bold text-[var(--text-primary)]">

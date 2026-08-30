@@ -180,6 +180,7 @@ export function Navbar({
   const navLinks = [
     { id: "home", label: "Home" },
     { id: "products", label: "Products" },
+    { id: "printing", label: "Printing" },
     { id: "services", label: "Services" },
     { id: "about", label: "About" },
     { id: "contact", label: "Contact" },
@@ -276,33 +277,33 @@ export function Navbar({
         {/* Brand Logo */}
         <div
           onClick={() => handleNavClick("home")}
-          className="cursor-pointer flex flex-col shrink-0 min-w-0"
+          className="cursor-pointer flex flex-col shrink-0 min-w-0 group"
         >
-          <span className="text-[0.8rem] sm:text-[1.15rem] font-extrabold tracking-[0.06em] sm:tracking-[0.08em] uppercase text-[var(--text-primary)] leading-tight">
+          <span className="text-[0.8rem] sm:text-[1.15rem] font-extrabold tracking-[0.06em] sm:tracking-[0.08em] uppercase text-[var(--text-primary)] leading-tight group-hover:opacity-85 transition-opacity">
             PIXEL PERFECT
           </span>
-          <span className="text-[0.55rem] sm:text-[0.625rem] font-medium tracking-[0.12em] sm:tracking-[0.15em] uppercase text-[var(--text-muted)] mt-0.5 hidden sm:inline">
+          <span className="text-[0.55rem] sm:text-[0.625rem] font-medium tracking-[0.12em] sm:tracking-[0.15em] uppercase text-[var(--text-muted)] mt-0.5 hidden sm:inline group-hover:text-[var(--text-secondary)] transition-colors">
             Stationery, Studio & IT
           </span>
         </div>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-7 shrink-0">
+        {/* Desktop Navigation Links with Dynamic Light/Dark Hover */}
+        <nav className="hidden lg:flex items-center gap-1.5 shrink-0">
           {navLinks.map((link) => {
             const isActive = activePage === link.id;
             return (
               <button
                 key={link.id}
                 onClick={() => handleNavClick(link.id)}
-                className={`bg-transparent border-none text-[0.825rem] uppercase tracking-[0.04em] cursor-pointer py-1 relative transition-colors ${
+                className={`border-none text-[0.825rem] uppercase tracking-[0.04em] cursor-pointer px-3.5 py-1.5 rounded-[var(--radius-sm)] relative transition-all duration-200 ${
                   isActive
-                    ? "font-bold text-[var(--text-primary)]"
-                    : "font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    ? "font-bold text-[var(--text-primary)] bg-[var(--bg-elevated)] shadow-xs"
+                    : "font-medium text-[var(--text-secondary)] bg-transparent hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
                 }`}
               >
                 {link.label}
                 {isActive && (
-                  <span className="absolute -bottom-0.5 left-0 right-0 h-[2px] bg-[var(--text-primary)]" />
+                  <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-[var(--text-primary)] rounded-full" />
                 )}
               </button>
             );
@@ -550,7 +551,7 @@ export function Navbar({
 
           <a
             href="tel:+9779808950275"
-            className="hidden xl:inline-flex items-center gap-1.5 text-[0.775rem] font-semibold text-[var(--text-secondary)] tracking-[0.02em] hover:text-[var(--text-primary)]"
+            className="hidden xl:inline-flex items-center gap-1.5 text-[0.775rem] font-semibold text-[var(--text-secondary)] tracking-[0.02em] hover:text-[var(--text-primary)] px-2.5 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--bg-elevated)] transition-all"
           >
             <Phone size={13} />
             <span className="font-mono">+977 9808950275</span>
@@ -691,10 +692,10 @@ export function Navbar({
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[var(--bg-card)] border-b border-[var(--border-medium)] px-4 sm:px-6 py-5 flex flex-col gap-3.5 animate-[fadeIn_0.2s_ease-out]">
+        <div className="lg:hidden bg-[var(--bg-card)] border-b border-[var(--border-medium)] px-4 sm:px-6 py-5 flex flex-col gap-2.5 animate-[fadeIn_0.2s_ease-out]">
           {/* Mobile status banner in drawer */}
           {isStatusLoading || !shopStatus ? (
-            <div className="p-3 rounded-[var(--radius-sm)] flex items-center gap-2.5 border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-muted)] animate-pulse">
+            <div className="p-3 rounded-[var(--radius-sm)] flex items-center gap-2.5 border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-muted)] animate-pulse mb-1">
               <Loader2 size={13} className="animate-spin text-[var(--text-muted)] shrink-0" />
               <span className="text-xs font-medium">Checking atelier status...</span>
             </div>
@@ -706,7 +707,7 @@ export function Navbar({
                   setMobileMenuOpen(false);
                 }
               }}
-              className={`p-3 rounded-[var(--radius-sm)] flex items-center justify-between cursor-pointer border ${
+              className={`p-3 rounded-[var(--radius-sm)] flex items-center justify-between cursor-pointer border mb-1 ${
                 shopStatus?.isOpen
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
                   : "bg-red-500/15 border-red-500/40 text-red-300"
@@ -745,22 +746,25 @@ export function Navbar({
             />
           </form>
 
-          {navLinks.map((link) => (
-            <button
-              key={link.id}
-              onClick={() => handleNavClick(link.id)}
-              className={`bg-transparent border-none text-left text-base uppercase tracking-[0.05em] py-2 cursor-pointer ${
-                activePage === link.id
-                  ? "font-bold text-[var(--text-primary)]"
-                  : "font-medium text-[var(--text-secondary)]"
-              }`}
-            >
-              {link.label}
-            </button>
-          ))}
+          <div className="flex flex-col gap-1">
+            {navLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => handleNavClick(link.id)}
+                className={`border-none text-left text-sm uppercase tracking-[0.05em] px-3.5 py-2.5 rounded-[var(--radius-sm)] transition-all cursor-pointer ${
+                  activePage === link.id
+                    ? "font-bold text-[var(--text-primary)] bg-[var(--bg-elevated)]"
+                    : "font-medium text-[var(--text-secondary)] bg-transparent hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
+                }`}
+              >
+                {link.label}
+              </button>
+            ))}
+          </div>
+
           <a
             href="tel:+9779808950275"
-            className="flex items-center gap-2 text-sm text-[var(--text-secondary)] pt-2 border-t border-[var(--border-subtle)]"
+            className="flex items-center gap-2 text-sm text-[var(--text-secondary)] pt-3 mt-1 border-t border-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"
           >
             <Phone size={14} />
             <span>Call Atelier: +977 9808950275</span>
