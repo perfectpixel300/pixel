@@ -49,59 +49,80 @@ export function Navbar({
   useEffect(() => {
     if (!headerRef.current) return;
 
-    // Set initial position
+    let lastScrollY = window.scrollY;
+    let isHidden = false;
+
+    // Reset initial state to visible
     gsap.set(headerRef.current, { yPercent: 0 });
 
-    const showAnim = gsap.to(headerRef.current, {
-      yPercent: 0,
-      duration: 0.35,
-      ease: "power2.out",
-      paused: true,
-      overwrite: "auto",
-    });
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollY;
 
-    const hideAnim = gsap.to(headerRef.current, {
-      yPercent: -100,
-      duration: 0.35,
-      ease: "power2.out",
-      paused: true,
-      overwrite: "auto",
-    });
+      // Keep open if menu or search or status popover is open
+      if (mobileMenuOpen || isSearchFocused || showStatusPopover) {
+        if (isHidden) {
+          gsap.to(headerRef.current, {
+            yPercent: 0,
+            duration: 0.35,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+          isHidden = false;
+        }
+        lastScrollY = currentScrollY;
+        return;
+      }
 
-    // If overlay/search/drawer open, force show
-    if (mobileMenuOpen || isSearchFocused || showStatusPopover) {
-      showAnim.play();
-      return;
-    }
+      // 1. When at top of page (scrollY <= 15): always show
+      if (currentScrollY <= 15) {
+        if (isHidden) {
+          gsap.to(headerRef.current, {
+            yPercent: 0,
+            duration: 0.3,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+          isHidden = false;
+        }
+      }
+      // 2. When scrolling DOWN (delta > 3 and past top): HIDE
+      else if (delta > 3 && currentScrollY > 30) {
+        if (!isHidden) {
+          gsap.to(headerRef.current, {
+            yPercent: -100,
+            duration: 0.35,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+          isHidden = true;
+        }
+      }
+      // 3. When scrolling UP (delta < -3): SHOW at ANY position on page (including bottom!)
+      else if (delta < -3) {
+        if (isHidden) {
+          gsap.to(headerRef.current, {
+            yPercent: 0,
+            duration: 0.35,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+          isHidden = false;
+        }
+      }
 
-    const trigger = ScrollTrigger.create({
-      start: "top top",
-      end: "max",
-      onUpdate: (self) => {
-        if (mobileMenuOpen || isSearchFocused || showStatusPopover) {
-          showAnim.play();
-          return;
-        }
+      lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
+    };
 
-        // At the very top: always visible
-        if (self.scroll() <= 10) {
-          showAnim.play();
-        }
-        // When scrolling down: hide navbar
-        else if (self.direction === 1 && self.scroll() > 20) {
-          hideAnim.play();
-        }
-        // When scrolling up: show navbar smoothly at ANY position (middle or bottom)
-        else if (self.direction === -1) {
-          showAnim.play();
-        }
-      },
-    });
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("wheel", handleScroll, { passive: true });
+    window.addEventListener("touchmove", handleScroll, { passive: true });
 
     return () => {
-      trigger.kill();
-      showAnim.kill();
-      hideAnim.kill();
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("wheel", handleScroll);
+      window.removeEventListener("touchmove", handleScroll);
+      gsap.killTweensOf(headerRef.current);
     };
   }, [mobileMenuOpen, isSearchFocused, showStatusPopover]);
 
@@ -246,11 +267,12 @@ export function Navbar({
   };
 
   return (
-    <header
-      ref={headerRef}
-      className="sticky top-0 z-[100] w-full bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] will-change-transform"
-    >
-      <div className="storefront-container h-[72px] flex items-center justify-between gap-2 sm:gap-4">
+    <>
+      <header
+        ref={headerRef}
+        className="fixed top-0 left-0 right-0 z-[100] w-full bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] will-change-transform shadow-xs"
+      >
+        <div className="storefront-container h-[72px] flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
         <div
           onClick={() => handleNavClick("home")}
@@ -735,6 +757,10 @@ export function Navbar({
         </div>
       )}
     </header>
+
+    {/* Fixed Navbar Space Placeholder to prevent layout jump */}
+    <div className="h-[72px] w-full shrink-0" aria-hidden="true" />
+  </>
   );
 }
 
