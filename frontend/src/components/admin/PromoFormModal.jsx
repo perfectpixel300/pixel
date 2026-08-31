@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { api } from "../../services/api";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
-import { formatToKathmanduInput, parseKathmanduInputToISO } from "../../utils/timezone";
+import { formatToKathmanduInput, parseKathmanduInputToISO, calculateTimeRemaining } from "../../utils/timezone";
 
 export function PromoFormModal({
   isOpen,
