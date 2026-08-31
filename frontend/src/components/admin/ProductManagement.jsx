@@ -25,17 +25,21 @@ export function ProductManagement({
     return Number(p?.indicativePrice) || 0;
   };
 
-  const totalInventoryPrice = products.reduce(
+  const inStockProducts = products.filter(
+    (p) => p && p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+  );
+
+  const totalInventoryPrice = inStockProducts.reduce(
     (acc, p) => acc + getEffectivePrice(p) * (p?.stock !== undefined ? Number(p.stock) : 0),
     0
   );
-  const totalCostPrice = products.reduce(
+  const totalCostPrice = inStockProducts.reduce(
     (acc, p) => acc + (Number(p?.costPrice) || 0) * (p?.stock !== undefined ? Number(p.stock) : 0),
     0
   );
   const totalExpectedProfit = totalInventoryPrice - totalCostPrice;
-  const profitMargin = totalInventoryPrice > 0 ? ((totalExpectedProfit / totalInventoryPrice) * 100).toFixed(1) : 0;
-  const totalStockUnits = products.reduce(
+  const profitMargin = totalInventoryPrice > 0 ? ((totalExpectedProfit / totalInventoryPrice) * 100).toFixed(1) : "0.0";
+  const totalStockUnits = inStockProducts.reduce(
     (acc, p) => acc + (p?.stock !== undefined ? Number(p.stock) : 0),
     0
   );
@@ -326,7 +330,16 @@ export function ProductManagement({
                         <span className="badge badge-neutral">{p.category}</span>
                       </td>
                       <td className="py-3 px-3.5 font-bold font-mono">
-                        {hasDiscount ? (
+                        {!p.isAvailable || (p.stock !== undefined && Number(p.stock) <= 0) ? (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[var(--text-muted)] line-through text-[0.75rem]">
+                              NRs. {Number(hasDiscount ? p.discountPrice : p.indicativePrice).toLocaleString()}
+                            </span>
+                            <span className="text-red-400 text-[0.65rem] font-bold uppercase tracking-wider">
+                              Out of Stock
+                            </span>
+                          </div>
+                        ) : hasDiscount ? (
                           <div className="flex flex-col">
                             <span className="text-emerald-400 font-bold">
                               NRs. {Number(p.discountPrice).toLocaleString()}
@@ -412,10 +425,10 @@ export function ProductManagement({
         </div>
       ) : (
         /* Grid Mode */
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((p) => {
             const rawImg = p.images && p.images[0] ? p.images[0] : "";
-            const img = getOptimizedImageUrl(rawImg, { width: 500 });
+            const img = getOptimizedImageUrl(rawImg, { width: 400 });
             const stockNum = p.stock !== undefined ? Number(p.stock) : 0;
             const hasDiscount = p.discountPrice && Number(p.discountPrice) > 0 && Number(p.discountPrice) < Number(p.indicativePrice);
             const effectivePrice = getEffectivePrice(p);
@@ -448,7 +461,16 @@ export function ProductManagement({
                   <div className="flex justify-between items-start">
                     <h4 className="text-sm font-bold m-0">{p.name}</h4>
                     <div className="flex flex-col items-end">
-                      {hasDiscount ? (
+                      {!p.isAvailable || (p.stock !== undefined && Number(p.stock) <= 0) ? (
+                        <>
+                          <span className="text-[var(--text-muted)] line-through font-mono text-xs">
+                            NRs. {Number(hasDiscount ? p.discountPrice : p.indicativePrice).toLocaleString()}
+                          </span>
+                          <span className="text-red-400 text-[0.65rem] font-bold uppercase tracking-wider">
+                            Out of Stock
+                          </span>
+                        </>
+                      ) : hasDiscount ? (
                         <>
                           <span className="font-bold font-mono text-sm text-emerald-400">
                             NRs. {Number(p.discountPrice).toLocaleString()}

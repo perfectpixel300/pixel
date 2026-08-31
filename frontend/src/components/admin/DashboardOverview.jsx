@@ -87,20 +87,27 @@ export function DashboardOverview({
     return rawPrice;
   };
 
-  // 1. Catalog 1: Products & Stationery Goods Profit & Values
-  const totalInventoryValue = safeProducts.reduce(
+  // 1. Catalog 1: Products & Stationery Goods Profit & Values (In-Stock Only)
+  const inStockProducts = safeProducts.filter(
+    (p) => p && p.isAvailable && (p.stock === undefined || Number(p.stock) > 0)
+  );
+  const totalInventoryValue = inStockProducts.reduce(
     (acc, p) => acc + getEffectivePrice(p) * (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
     0
   );
-  const totalInventoryCost = safeProducts.reduce(
+  const totalInventoryCost = inStockProducts.reduce(
     (acc, p) => acc + (Number(p?.costPrice) || 0) * (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
     0
   );
-  const totalStockUnits = safeProducts.reduce(
+  const totalStockUnits = inStockProducts.reduce(
     (acc, p) => acc + (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
     0
   );
   const productEstimatedProfit = totalInventoryValue - totalInventoryCost;
+  const productProfitMargin =
+    totalInventoryValue > 0
+      ? ((productEstimatedProfit / totalInventoryValue) * 100).toFixed(1)
+      : "0.0";
 
   // 2. Catalog 2: Printing & Document Services Profit & Values
   const printingCatalogValue = safePrintingServices.reduce(
@@ -112,6 +119,10 @@ export function DashboardOverview({
     0
   );
   const printingEstimatedProfit = printingCatalogValue - printingTotalCost;
+  const printingProfitMargin =
+    printingCatalogValue > 0
+      ? ((printingEstimatedProfit / printingCatalogValue) * 100).toFixed(1)
+      : "0.0";
 
   // 3. Catalog 3: Digital & IT Capabilities Profit & Values (Matches Services Management tab)
   const itServices = safeServices.filter((s) => s && !s.isWebDevPackage);
@@ -124,6 +135,10 @@ export function DashboardOverview({
     0
   );
   const itEstimatedProfit = itServicesValue - itTotalCost;
+  const itProfitMargin =
+    itServicesValue > 0
+      ? ((itEstimatedProfit / itServicesValue) * 100).toFixed(1)
+      : "0.0";
 
   // Total Combined Estimated Profit
   const totalEstimatedProfit =
@@ -383,8 +398,13 @@ export function DashboardOverview({
               <div className="text-[0.7rem] text-[var(--text-muted)] uppercase font-semibold">
                 Estimated Inventory Profit
               </div>
-              <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight mt-0.5">
-                NRs. {productEstimatedProfit.toLocaleString()}
+              <div className="flex items-center justify-between gap-2 mt-0.5">
+                <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight">
+                  NRs. {productEstimatedProfit.toLocaleString()}
+                </div>
+                <span className="badge badge-success text-[0.68rem] font-bold font-mono px-2 py-0.5">
+                  +{productProfitMargin}% Margin
+                </span>
               </div>
 
               <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.7rem]">
@@ -426,8 +446,13 @@ export function DashboardOverview({
               <div className="text-[0.7rem] text-[var(--text-muted)] uppercase font-semibold">
                 Estimated Printing Profit
               </div>
-              <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight mt-0.5">
-                NRs. {printingEstimatedProfit.toLocaleString()}
+              <div className="flex items-center justify-between gap-2 mt-0.5">
+                <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight">
+                  NRs. {printingEstimatedProfit.toLocaleString()}
+                </div>
+                <span className="badge badge-success text-[0.68rem] font-bold font-mono px-2 py-0.5">
+                  +{printingProfitMargin}% Margin
+                </span>
               </div>
 
               <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.7rem]">
@@ -469,8 +494,13 @@ export function DashboardOverview({
               <div className="text-[0.7rem] text-[var(--text-muted)] uppercase font-semibold">
                 Estimated Services Profit
               </div>
-              <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight mt-0.5">
-                NRs. {itEstimatedProfit.toLocaleString()}
+              <div className="flex items-center justify-between gap-2 mt-0.5">
+                <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight">
+                  NRs. {itEstimatedProfit.toLocaleString()}
+                </div>
+                <span className="badge badge-success text-[0.68rem] font-bold font-mono px-2 py-0.5">
+                  +{itProfitMargin}% Margin
+                </span>
               </div>
 
               <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.7rem]">
@@ -676,7 +706,16 @@ export function DashboardOverview({
                     <span className="badge badge-neutral">{p.category}</span>
                   </td>
                   <td className="p-2.5 font-bold font-mono">
-                    {p.discountPrice && Number(p.discountPrice) > 0 && Number(p.discountPrice) < Number(p.indicativePrice) ? (
+                    {!p.isAvailable || (p.stock !== undefined && Number(p.stock) <= 0) ? (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[var(--text-muted)] line-through text-[0.75rem]">
+                          NRs. {Number(p.discountPrice && Number(p.discountPrice) > 0 ? p.discountPrice : p.indicativePrice).toLocaleString()}
+                        </span>
+                        <span className="text-red-400 text-[0.65rem] font-bold uppercase tracking-wider">
+                          Out of Stock
+                        </span>
+                      </div>
+                    ) : p.discountPrice && Number(p.discountPrice) > 0 && Number(p.discountPrice) < Number(p.indicativePrice) ? (
                       <div className="flex flex-col">
                         <span className="text-emerald-400 font-bold">
                           NRs. {Number(p.discountPrice).toLocaleString()}
