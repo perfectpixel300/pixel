@@ -554,8 +554,11 @@ export function AdminDashboardPage({
             <DashboardOverview
               stats={stats}
               products={products}
+              printingServices={printingServices}
+              printingCategories={printingCategories}
               categories={categories}
               services={services}
+              serviceCategories={serviceCategories}
               banners={banners}
               inquiries={inquiries}
               setActiveTab={setActiveTab}

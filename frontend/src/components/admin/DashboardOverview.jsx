@@ -15,13 +15,17 @@ import {
   Coins,
   BarChart3,
   TrendingUp,
+  Printer,
 } from "lucide-react";
 
 export function DashboardOverview({
   stats,
   products = [],
+  printingServices = [],
+  printingCategories = [],
   categories = [],
   services = [],
+  serviceCategories = [],
   banners = [],
   inquiries = [],
   setActiveTab,
@@ -35,6 +39,8 @@ export function DashboardOverview({
   onToggleProductFeatured,
 }) {
   const safeProducts = Array.isArray(products) ? products : [];
+  const safePrintingServices = Array.isArray(printingServices) ? printingServices : [];
+  const safePrintingCategories = Array.isArray(printingCategories) ? printingCategories : [];
   const safeCategories = Array.isArray(categories) ? categories : [];
   const safeServices = Array.isArray(services) ? services : [];
   const safeBanners = Array.isArray(banners) ? banners : [];
@@ -58,6 +64,30 @@ export function DashboardOverview({
     return Number(p?.indicativePrice) || 0;
   };
 
+  const getEffectivePrintingPrice = (s) => {
+    if (
+      s?.discountPrice &&
+      Number(s.discountPrice) > 0 &&
+      Number(s.discountPrice) < Number(s.indicativePrice)
+    ) {
+      return Number(s.discountPrice);
+    }
+    return Number(s?.indicativePrice || s?.price) || 0;
+  };
+
+  const getEffectiveServicePrice = (s) => {
+    const rawPrice = Number(s?.price !== undefined ? s.price : s?.indicativePrice) || 0;
+    if (
+      s?.discountPrice &&
+      Number(s.discountPrice) > 0 &&
+      Number(s.discountPrice) < rawPrice
+    ) {
+      return Number(s.discountPrice);
+    }
+    return rawPrice;
+  };
+
+  // 1. Catalog 1: Products & Stationery Goods Profit & Values
   const totalInventoryValue = safeProducts.reduce(
     (acc, p) => acc + getEffectivePrice(p) * (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
     0
@@ -70,6 +100,34 @@ export function DashboardOverview({
     (acc, p) => acc + (p?.stock !== undefined ? Number(p.stock) || 0 : 0),
     0
   );
+  const productEstimatedProfit = totalInventoryValue - totalInventoryCost;
+
+  // 2. Catalog 2: Printing & Document Services Profit & Values
+  const printingCatalogValue = safePrintingServices.reduce(
+    (acc, s) => acc + getEffectivePrintingPrice(s),
+    0
+  );
+  const printingTotalCost = safePrintingServices.reduce(
+    (acc, s) => acc + (Number(s?.costPrice) || 0),
+    0
+  );
+  const printingEstimatedProfit = printingCatalogValue - printingTotalCost;
+
+  // 3. Catalog 3: Digital & IT Capabilities Profit & Values (Matches Services Management tab)
+  const itServices = safeServices.filter((s) => s && !s.isWebDevPackage);
+  const itServicesValue = itServices.reduce(
+    (acc, s) => acc + getEffectiveServicePrice(s),
+    0
+  );
+  const itTotalCost = itServices.reduce(
+    (acc, s) => acc + (Number(s?.costPrice) || 0),
+    0
+  );
+  const itEstimatedProfit = itServicesValue - itTotalCost;
+
+  // Total Combined Estimated Profit
+  const totalEstimatedProfit =
+    productEstimatedProfit + printingEstimatedProfit + itEstimatedProfit;
 
   // Processed products for sorted horizontal bar chart
   const processedProducts = safeProducts.map((p) => {
@@ -277,6 +335,159 @@ export function DashboardOverview({
           </div>
           <div className="text-[0.7rem] text-[var(--text-secondary)]">
             {safeInquiries.filter((i) => i && i.status === "unread").length} unread
+          </div>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          ESTIMATED PROFIT & VALUATION BY CATALOG (All 3 Disciplines)
+          ========================================================================= */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <TrendingUp size={16} className="text-emerald-400" />
+              <h3 className="text-sm font-extrabold uppercase tracking-[0.05em] text-[var(--text-primary)] m-0">
+                Estimated Profit & Valuation by Catalog
+              </h3>
+            </div>
+            <p className="text-[0.725rem] text-[var(--text-muted)] mt-0.5 mb-0">
+              Live estimated profit calculations and asset valuation across all 3 business disciplines. Click any card to navigate directly.
+            </p>
+          </div>
+          <span className="badge badge-success text-[0.7rem] px-2.5 py-1 font-mono font-bold">
+            Total Combined Potential: NRs. {totalEstimatedProfit.toLocaleString()}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          {/* Card 1: Products & Stationery Catalog */}
+          <div
+            onClick={() => setActiveTab("products")}
+            className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-5 border border-[var(--border-subtle)] hover:border-amber-500/50 hover:shadow-xl transition-all duration-200 cursor-pointer group flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-amber-500/10 transition-all" />
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
+                    <Package size={14} />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                    Catalog 1: Products & Stationery
+                  </span>
+                </div>
+                <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-amber-400 group-hover:translate-x-1 transition-all" />
+              </div>
+
+              <div className="text-[0.7rem] text-[var(--text-muted)] uppercase font-semibold">
+                Estimated Inventory Profit
+              </div>
+              <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight mt-0.5">
+                NRs. {productEstimatedProfit.toLocaleString()}
+              </div>
+
+              <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.7rem]">
+                <span className="text-[var(--text-secondary)] font-mono">
+                  Valuation: <strong>NRs. {totalInventoryValue.toLocaleString()}</strong>
+                </span>
+                <span className="text-[var(--text-muted)]">•</span>
+                <span className="text-[var(--text-muted)]">
+                  Cost: <strong>NRs. {totalInventoryCost.toLocaleString()}</strong>
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-2.5 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.7rem] text-amber-400/90 font-medium group-hover:text-amber-300">
+              <span>Manage Products Catalog</span>
+              <span className="font-mono font-bold">Open Tab →</span>
+            </div>
+          </div>
+
+          {/* Card 2: Printing & Document Services */}
+          <div
+            onClick={() => setActiveTab("printing")}
+            className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-5 border border-[var(--border-subtle)] hover:border-emerald-500/50 hover:shadow-xl transition-all duration-200 cursor-pointer group flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/10 transition-all" />
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+                    <Printer size={14} />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                    Catalog 2: Printing & Docs
+                  </span>
+                </div>
+                <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
+              </div>
+
+              <div className="text-[0.7rem] text-[var(--text-muted)] uppercase font-semibold">
+                Estimated Printing Profit
+              </div>
+              <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight mt-0.5">
+                NRs. {printingEstimatedProfit.toLocaleString()}
+              </div>
+
+              <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.7rem]">
+                <span className="text-[var(--text-secondary)] font-mono">
+                  Catalog Value: <strong>NRs. {printingCatalogValue.toLocaleString()}</strong>
+                </span>
+                <span className="text-[var(--text-muted)]">•</span>
+                <span className="text-[var(--text-muted)]">
+                  Cost: <strong>NRs. {printingTotalCost.toLocaleString()}</strong>
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-2.5 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.7rem] text-emerald-400/90 font-medium group-hover:text-emerald-300">
+              <span>Manage Printing Catalog</span>
+              <span className="font-mono font-bold">Open Tab →</span>
+            </div>
+          </div>
+
+          {/* Card 3: IT Disciplines & Digital Services */}
+          <div
+            onClick={() => setActiveTab("services")}
+            className="bg-[var(--bg-card)] rounded-[var(--radius-md)] p-5 border border-[var(--border-subtle)] hover:border-blue-500/50 hover:shadow-xl transition-all duration-200 cursor-pointer group flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-blue-500/10 transition-all" />
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400">
+                    <Code size={14} />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
+                    Catalog 3: IT & Digital Services
+                  </span>
+                </div>
+                <ArrowRight size={14} className="text-[var(--text-muted)] group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+              </div>
+
+              <div className="text-[0.7rem] text-[var(--text-muted)] uppercase font-semibold">
+                Estimated Services Profit
+              </div>
+              <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight mt-0.5">
+                NRs. {itEstimatedProfit.toLocaleString()}
+              </div>
+
+              <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.7rem]">
+                <span className="text-[var(--text-secondary)] font-mono">
+                  Catalog Value: <strong>NRs. {itServicesValue.toLocaleString()}</strong>
+                </span>
+                <span className="text-[var(--text-muted)]">•</span>
+                <span className="text-[var(--text-muted)]">
+                  Cost: <strong>NRs. {itTotalCost.toLocaleString()}</strong>
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-2.5 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.7rem] text-blue-400/90 font-medium group-hover:text-blue-300">
+              <span>Manage IT Services Catalog</span>
+              <span className="font-mono font-bold">Open Tab →</span>
+            </div>
           </div>
         </div>
       </div>
