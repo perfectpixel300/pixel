@@ -29,10 +29,10 @@ export function HeroBannerCarousel({ banners = [], onCtaClick }) {
       style={{ backgroundImage: `url(${optimizedBgUrl})` }}
     >
       {/* High-Contrast Monochrome Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/85" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/85" />
 
-      {/* Main Banner Content */}
-      <div className="storefront-container relative z-10 w-full sm:px-6">
+      {/* Main Banner Content - Generous safe padding keeps content clear of nav buttons */}
+      <div className="storefront-container relative z-10 w-full px-12 sm:px-16 md:px-20 lg:px-24 py-14">
         <div
           className={`max-w-[680px] ${
             currentBanner.alignment === "center"
@@ -43,7 +43,15 @@ export function HeroBannerCarousel({ banners = [], onCtaClick }) {
           }`}
         >
           {currentBanner.badge && (
-            <div className="mb-4">
+            <div
+              className={`mb-4 flex ${
+                currentBanner.alignment === "center"
+                  ? "justify-center"
+                  : currentBanner.alignment === "right"
+                  ? "justify-end"
+                  : "justify-start"
+              }`}
+            >
               <span className="badge badge-white text-[0.725rem] px-3 py-1 tracking-[0.1em]">
                 {currentBanner.badge}
               </span>
@@ -55,14 +63,26 @@ export function HeroBannerCarousel({ banners = [], onCtaClick }) {
           </h1>
 
           {currentBanner.subtitle && (
-            <p className="text-base sm:text-lg leading-relaxed text-white/90 mb-7 max-w-[540px] drop-shadow-sm">
+            <p
+              className={`text-base sm:text-lg leading-relaxed text-white/90 mb-7 max-w-[540px] drop-shadow-sm ${
+                currentBanner.alignment === "center"
+                  ? "mx-auto text-center"
+                  : currentBanner.alignment === "right"
+                  ? "ml-auto mr-0 text-right"
+                  : "mr-auto ml-0 text-left"
+              }`}
+            >
               {currentBanner.subtitle}
             </p>
           )}
 
           <div
             className={`flex gap-3 ${
-              currentBanner.alignment === "center" ? "justify-center" : "justify-start"
+              currentBanner.alignment === "center"
+                ? "justify-center"
+                : currentBanner.alignment === "right"
+                ? "justify-end"
+                : "justify-start"
             }`}
           >
             <button
@@ -76,14 +96,14 @@ export function HeroBannerCarousel({ banners = [], onCtaClick }) {
         </div>
       </div>
 
-      {/* Navigation Controls - Sleek, Fixed Position Buttons */}
+      {/* Navigation Controls - Sleek, Fixed Position Buttons with safe clearance */}
       {activeBanners.length > 1 && (
         <>
           <button
             onClick={() =>
               setCurrentSlide((prev) => (prev > 0 ? prev - 1 : activeBanners.length - 1))
             }
-            className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-9.5 h-9.5 sm:w-11 sm:h-11 rounded-full bg-black/65 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-200 shadow-xl cursor-pointer"
+            className="absolute left-2.5 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/70 hover:bg-black/95 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-200 shadow-xl cursor-pointer"
             title="Previous Banner"
             aria-label="Previous Slide"
           >
@@ -91,7 +111,7 @@ export function HeroBannerCarousel({ banners = [], onCtaClick }) {
           </button>
           <button
             onClick={() => setCurrentSlide((prev) => (prev + 1) % activeBanners.length)}
-            className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-9.5 h-9.5 sm:w-11 sm:h-11 rounded-full bg-black/65 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-200 shadow-xl cursor-pointer"
+            className="absolute right-2.5 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/70 hover:bg-black/95 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-200 shadow-xl cursor-pointer"
             title="Next Banner"
             aria-label="Next Slide"
           >

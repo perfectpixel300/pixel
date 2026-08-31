@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { HeroBannerCarousel } from "../components/storefront/HeroBannerCarousel";
 import { FeaturedSection } from "../components/storefront/FeaturedSection";
+import { FeaturedPrintingSection } from "../components/storefront/FeaturedPrintingSection";
 import { CategoryGrid } from "../components/storefront/CategoryGrid";
 import { ProductCard } from "../components/storefront/ProductCard";
 import { WebTierCard } from "../components/storefront/WebTierCard";
@@ -33,6 +34,7 @@ export function HomePage({
   banners,
   products,
   printingServices = [],
+  printingCategories = [],
   categories = [],
   services = [],
   onViewProduct,
@@ -44,15 +46,13 @@ export function HomePage({
 }) {
   const [selectedHomeCategory, setSelectedHomeCategory] = useState("All");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
+  const [selectedPrintingDetail, setSelectedPrintingDetail] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 8;
-  const featuredPrinting = (printingServices || []).filter(
-    (s) => (s.featured || s.isFeatured) && s.isAvailable !== false
-  );
-  const displayPrintingServices =
-    featuredPrinting.length > 0
-      ? featuredPrinting
-      : (printingServices || []).filter((s) => s.isAvailable !== false);
+  const ITEMS_PER_PAGE = 12;
+
+  const [selectedPrintingCategory, setSelectedPrintingCategory] = useState("All");
+  const [currentPrintingPage, setCurrentPrintingPage] = useState(1);
+  const PRINTING_ITEMS_PER_PAGE = 6;
 
   const handleCategoryClick = (category) => {
     onSelectCategory(category);
@@ -60,7 +60,7 @@ export function HomePage({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Products with pagination for Home Page
+  // Products with pagination for Home Page (12 products per page)
   const filteredHomeProducts = (products || []).filter((p) => {
     if (selectedHomeCategory !== "All" && p.category !== selectedHomeCategory) {
       return false;
@@ -77,6 +77,40 @@ export function HomePage({
   const handlePageChange = (page) => {
     setCurrentPage(page);
     const el = document.getElementById("home-products-section");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  // Printing services with category filter & pagination for Home Page
+  const allPrintCategories = Array.from(
+    new Set([
+      ...(printingCategories || []).map((c) => (typeof c === "string" ? c : c.name)),
+      ...(printingServices || []).map((s) => s.category).filter(Boolean),
+    ])
+  );
+
+  const availablePrintingServices = (printingServices || []).filter(
+    (s) => s.isAvailable !== false
+  );
+
+  const filteredHomePrintingServices = availablePrintingServices.filter((s) => {
+    if (selectedPrintingCategory !== "All" && s.category !== selectedPrintingCategory) {
+      return false;
+    }
+    return true;
+  });
+
+  const totalPrintingPages =
+    Math.ceil(filteredHomePrintingServices.length / PRINTING_ITEMS_PER_PAGE) || 1;
+  const paginatedPrintingServices = filteredHomePrintingServices.slice(
+    (currentPrintingPage - 1) * PRINTING_ITEMS_PER_PAGE,
+    currentPrintingPage * PRINTING_ITEMS_PER_PAGE
+  );
+
+  const handlePrintingPageChange = (page) => {
+    setCurrentPrintingPage(page);
+    const el = document.getElementById("home-all-printing-section");
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -122,6 +156,15 @@ export function HomePage({
     window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
   };
 
+  const handleOpenWhatsAppPrinting = (title, price, priceUnit) => {
+    const text = encodeURIComponent(
+      `Hello Pixel Perfect! I am interested in inquiring about your "${title}" printing service (${
+        price ? `NRs. ${Number(price).toLocaleString()} ${priceUnit || ""}` : "Custom Quote"
+      }). Could you please guide me on file preparation and turnaround?`
+    );
+    window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
+  };
+
   return (
     <div>
       {/* Dynamic Database Hero Banners */}
@@ -160,185 +203,19 @@ export function HomePage({
         onBrowseAll={() => onNavigate("products")}
       />
 
-      {/* =========================================================================
-          FEATURED PRINTING SERVICES SECTION (BELOW FEATURED PRODUCTS)
-          ========================================================================= */}
-      {displayPrintingServices && displayPrintingServices.length > 0 && (
-        <section id="home-featured-printing" className="py-20 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)] relative overflow-hidden">
-          <div className="storefront-container relative z-10">
-            {/* Section Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[0.7rem] font-bold uppercase tracking-[0.14em] text-[var(--text-primary)] mb-3">
-                  <Printer size={13} />
-                  <span>Spotlight • Featured Printing Services</span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.03em] text-[var(--text-primary)]">
-                  Custom Printing & Document Services
-                </h2>
-                <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[640px]">
-                  High-resolution photo prints, architectural blueprints, bookbinding, document copies, and custom packaging.
-                </p>
-              </div>
-
-              <button
-                onClick={() => {
-                  onNavigate("printing");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                className="btn btn-secondary gap-1.5 self-start md:self-auto"
-              >
-                <span>View All Printing Services</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
-
-            {/* Grid of Featured Printing Services */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 sm:gap-7">
-              {displayPrintingServices
-                .slice(0, 6)
-                .map((service) => {
-                  const rawImg = service.images && service.images[0] ? service.images[0] : "";
-                  const img = getOptimizedImageUrl(rawImg, { width: 800 });
-                  const hasDiscount =
-                    service.discountPrice &&
-                    Number(service.discountPrice) > 0 &&
-                    Number(service.discountPrice) < Number(service.indicativePrice);
-                  const discountPercent = hasDiscount
-                    ? Math.round(
-                        ((Number(service.indicativePrice) - Number(service.discountPrice)) /
-                          Number(service.indicativePrice)) *
-                          100
-                      )
-                    : 0;
-                  const activePrice = hasDiscount
-                    ? Number(service.discountPrice)
-                    : Number(service.indicativePrice);
-
-                  return (
-                    <div
-                      key={service._id}
-                      className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-lg)] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-lg)] group"
-                    >
-                      {/* Image Preview */}
-                      <div className="h-48 relative overflow-hidden bg-[var(--bg-sidebar)] flex items-center justify-center">
-                        {img ? (
-                          <img
-                            src={img}
-                            alt={service.name}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          />
-                        ) : (
-                          <Printer size={36} className="text-[var(--text-muted)] opacity-30" />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent opacity-80 pointer-events-none" />
-
-                        <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
-                          <span className="badge badge-dark text-[0.625rem] backdrop-blur-sm shadow-sm">
-                            {service.category}
-                          </span>
-                          {hasDiscount && (
-                            <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 shadow-sm">
-                              {discountPercent}% OFF
-                            </span>
-                          )}
-                        </div>
-
-                        {(service.featured || service.isFeatured) && (
-                          <div className="absolute top-3 right-3">
-                            <span className="badge badge-white text-[0.6rem] gap-1 shadow-sm">
-                              <Star size={10} fill="currentColor" />
-                              <span>Featured</span>
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="absolute bottom-3 right-3 badge badge-dark backdrop-blur-sm text-[0.65rem] px-2 py-0.5 rounded font-mono flex items-center gap-1 shadow-sm">
-                          <Clock size={11} />
-                          <span>{service.turnaroundTime || "24-48h"}</span>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-5 sm:p-6 flex flex-col flex-1 gap-3">
-                        <div>
-                          <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug">
-                            {service.name}
-                          </h3>
-                          <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-1.5 line-clamp-2">
-                            {service.shortDescription || service.description}
-                          </p>
-                        </div>
-
-                        {/* Price Display */}
-                        <div className="pt-3 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
-                          <div>
-                            <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider block font-bold">
-                              Investment ({service.priceUnit || "per page"})
-                            </span>
-                            <div className="flex items-baseline gap-1.5 mt-0.5">
-                              <span className={`font-mono text-lg font-extrabold ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
-                                NRs. {activePrice.toLocaleString()}
-                              </span>
-                              {hasDiscount && (
-                                <span className="font-mono text-xs text-[var(--text-muted)] line-through">
-                                  NRs. {Number(service.indicativePrice).toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {service.specs?.paperGsm && (
-                            <div className="text-right">
-                              <span className="text-[0.625rem] text-[var(--text-muted)] uppercase tracking-wider block font-bold">
-                                Media
-                              </span>
-                              <span className="text-xs font-mono text-[var(--text-secondary)] truncate max-w-[120px] block">
-                                {service.specs.paperGsm.split(" ")[0]} GSM
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--border-subtle)]">
-                          <button
-                            onClick={() => {
-                              onNavigate("printing");
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                            }}
-                            className="btn btn-secondary btn-sm text-[0.75rem]"
-                          >
-                            Details
-                          </button>
-                          <button
-                            onClick={() => {
-                              const handler = onInquirePrinting || onInquireProduct;
-                              if (handler) {
-                                handler({
-                                  name: service.name,
-                                  indicativePrice: activePrice,
-                                  type: "service",
-                                  category: service.category || "Printing Service",
-                                  description: service.shortDescription || service.description,
-                                });
-                              }
-                            }}
-                            className="btn btn-primary btn-sm text-[0.75rem]"
-                          >
-                            Inquire
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* Spotlight Featured Printing Services Carousel */}
+      <FeaturedPrintingSection
+        printingServices={printingServices}
+        onViewDetails={(service) => setSelectedPrintingDetail(service)}
+        onInquire={(service) => {
+          const handler = onInquirePrinting || onInquireProduct;
+          if (handler) handler(service);
+        }}
+        onBrowseAll={() => {
+          onNavigate("printing");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
 
       {/* Disciplines Category Grid */}
       <CategoryGrid
@@ -485,6 +362,301 @@ export function HomePage({
           )}
         </div>
       </section>
+
+      {/* =========================================================================
+          ALL PRINTING & DOCUMENT SERVICES SECTION BELOW ALL PRODUCTS
+          ========================================================================= */}
+      {availablePrintingServices.length > 0 && (
+        <section id="home-all-printing-section" className="py-22 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)]">
+          <div className="storefront-container">
+            {/* Section Header with Category Dropdown */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 pb-6 border-b border-[var(--border-subtle)]">
+              <div>
+                <span className="text-[0.75rem] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
+                  Complete Print Catalog
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-[-0.03em]">
+                  All Printing & Document Services
+                </h2>
+                <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[620px]">
+                  Explore fine art prints, architectural CAD blueprints, corporate stationery, hardcover bookbinding, and custom packaging.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 flex-wrap self-start md:self-auto">
+                <CategoryDropdown
+                  categories={allPrintCategories.map((cat) => ({
+                    id: cat,
+                    name: cat,
+                    count: availablePrintingServices.filter((s) => s.category === cat).length,
+                  }))}
+                  selectedCategory={selectedPrintingCategory}
+                  onSelectCategory={(catName) => {
+                    setSelectedPrintingCategory(catName);
+                    setCurrentPrintingPage(1);
+                  }}
+                  totalCount={availablePrintingServices.length}
+                  label="Category"
+                  allLabel="All Categories"
+                />
+
+                <button
+                  onClick={() => {
+                    onNavigate("printing");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="btn btn-secondary gap-1.5"
+                >
+                  <span>View Full Print Catalog</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Printing Services Grid */}
+            {paginatedPrintingServices.length === 0 ? (
+              <div className="py-20 px-8 text-center border border-dashed border-[var(--border-medium)] rounded-[var(--radius-lg)]">
+                <Printer size={32} className="text-[var(--text-muted)] mb-3 mx-auto" />
+                <h3 className="text-lg font-bold">No printing services in this category</h3>
+                <button
+                  onClick={() => {
+                    setSelectedPrintingCategory("All");
+                    setCurrentPrintingPage(1);
+                  }}
+                  className="btn btn-secondary btn-sm mt-3"
+                >
+                  View All Printing Services
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+                {paginatedPrintingServices.map((service) => {
+                  const rawImg = service.images && service.images[0] ? service.images[0] : "";
+                  const img = getOptimizedImageUrl(rawImg, { width: 800 });
+                  const hasDiscount =
+                    service.discountPrice &&
+                    Number(service.discountPrice) > 0 &&
+                    Number(service.discountPrice) < Number(service.indicativePrice);
+                  const discountPercent = hasDiscount
+                    ? Math.round(
+                        ((Number(service.indicativePrice) - Number(service.discountPrice)) /
+                          Number(service.indicativePrice)) *
+                          100
+                      )
+                    : 0;
+                  const activePrice = hasDiscount
+                    ? Number(service.discountPrice)
+                    : Number(service.indicativePrice);
+
+                  return (
+                    <div
+                      key={service._id}
+                      className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-lg)] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-xl)] group"
+                    >
+                      {/* Image Preview */}
+                      <div className="h-52 relative overflow-hidden bg-[var(--bg-sidebar)] flex items-center justify-center">
+                        {img ? (
+                          <img
+                            src={img}
+                            alt={service.name}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                        ) : (
+                          <Printer size={40} className="text-[var(--text-muted)] opacity-30" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent opacity-80 pointer-events-none" />
+
+                        <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
+                          <span className="badge badge-dark text-[0.625rem] backdrop-blur-sm shadow-sm">
+                            {service.category}
+                          </span>
+                          {hasDiscount && (
+                            <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 shadow-sm">
+                              {discountPercent}% OFF
+                            </span>
+                          )}
+                        </div>
+
+                        {(service.featured || service.isFeatured) && (
+                          <div className="absolute top-3 right-3">
+                            <span className="badge badge-white text-[0.6rem] gap-1 shadow-sm">
+                              <Star size={10} fill="currentColor" />
+                              <span>Featured</span>
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="absolute bottom-3 right-3 badge badge-dark backdrop-blur-sm text-[0.65rem] px-2.5 py-1 rounded-[var(--radius-xs)] font-mono flex items-center gap-1.5 shadow-sm">
+                          <Clock size={11} />
+                          <span>{service.turnaroundTime || "24-48 Hours"}</span>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-5 sm:p-6 flex flex-col flex-1 gap-3.5">
+                        <div>
+                          <h3 className="text-lg font-extrabold text-[var(--text-primary)] m-0 tracking-tight leading-snug">
+                            {service.name}
+                          </h3>
+                          <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2">
+                            {service.shortDescription || service.description}
+                          </p>
+                        </div>
+
+                        {/* Price Display */}
+                        <div className="p-3 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-baseline justify-between mt-auto">
+                          <div>
+                            <span className="text-[0.625rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
+                              Investment ({service.priceUnit || "per page"})
+                            </span>
+                            <div className="flex items-baseline gap-2 mt-0.5">
+                              <span
+                                className={`font-mono text-xl font-extrabold ${
+                                  hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"
+                                }`}
+                              >
+                                NRs. {activePrice.toLocaleString()}
+                              </span>
+                              {hasDiscount && (
+                                <span className="font-mono text-xs text-[var(--text-muted)] line-through">
+                                  NRs. {Number(service.indicativePrice).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {service.minOrderQuantity && service.minOrderQuantity > 1 && (
+                            <div className="text-right">
+                              <span className="text-[0.625rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
+                                Min Order
+                              </span>
+                              <span className="text-xs font-mono font-semibold text-[var(--text-secondary)]">
+                                {service.minOrderQuantity} units
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Specs snippet */}
+                        {service.specs && (service.specs.paperGsm || service.specs.printTechnology) && (
+                          <div className="flex flex-col gap-1 text-xs text-[var(--text-muted)] font-mono border-t border-[var(--border-subtle)] pt-2.5">
+                            {service.specs.paperGsm && (
+                              <div className="flex items-center gap-1.5 truncate">
+                                <Layers size={12} className="shrink-0 text-[var(--text-primary)]" />
+                                <span className="truncate">{service.specs.paperGsm}</span>
+                              </div>
+                            )}
+                            {service.specs.printTechnology && (
+                              <div className="flex items-center gap-1.5 truncate">
+                                <Printer size={12} className="shrink-0 text-[var(--text-primary)]" />
+                                <span className="truncate">{service.specs.printTechnology}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--border-subtle)]">
+                          <button
+                            onClick={() => setSelectedPrintingDetail(service)}
+                            className="btn btn-secondary btn-sm text-[0.75rem]"
+                          >
+                            View Specs
+                          </button>
+                          <button
+                            onClick={() => {
+                              const handler = onInquirePrinting || onInquireProduct;
+                              if (handler) {
+                                handler({
+                                  name: service.name,
+                                  indicativePrice: activePrice,
+                                  type: "service",
+                                  category: service.category || "Printing Service",
+                                  description: service.shortDescription || service.description,
+                                });
+                              }
+                            }}
+                            className="btn btn-primary btn-sm text-[0.75rem] gap-1"
+                          >
+                            <span>Inquire</span>
+                            <ArrowRight size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPrintingPages > 1 && (
+              <div className="mt-12 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span className="text-xs text-[var(--text-muted)] font-mono order-2 sm:order-1">
+                  Showing {(currentPrintingPage - 1) * PRINTING_ITEMS_PER_PAGE + 1}–
+                  {Math.min(
+                    currentPrintingPage * PRINTING_ITEMS_PER_PAGE,
+                    filteredHomePrintingServices.length
+                  )}{" "}
+                  of {filteredHomePrintingServices.length} printing services
+                </span>
+
+                <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                  <button
+                    onClick={() => handlePrintingPageChange(currentPrintingPage - 1)}
+                    disabled={currentPrintingPage === 1}
+                    className={`btn btn-sm btn-secondary gap-1 !px-3 ${
+                      currentPrintingPage === 1
+                        ? "opacity-30 cursor-not-allowed"
+                        : "hover:!bg-white hover:!text-black"
+                    }`}
+                    aria-label="Previous Page"
+                  >
+                    <ChevronLeft size={14} />
+                    <span className="hidden sm:inline">Previous</span>
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPrintingPages }).map((_, idx) => {
+                      const pageNumber = idx + 1;
+                      const isActive = currentPrintingPage === pageNumber;
+                      return (
+                        <button
+                          key={pageNumber}
+                          onClick={() => handlePrintingPageChange(pageNumber)}
+                          className={`w-8 h-8 rounded-[var(--radius-xs)] text-xs font-mono font-bold flex items-center justify-center transition-all ${
+                            isActive
+                              ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] shadow-sm"
+                              : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input-focus)]"
+                          }`}
+                        >
+                          {pageNumber}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => handlePrintingPageChange(currentPrintingPage + 1)}
+                    disabled={currentPrintingPage >= totalPrintingPages}
+                    className={`btn btn-sm btn-secondary gap-1 !px-3 ${
+                      currentPrintingPage >= totalPrintingPages
+                        ? "opacity-30 cursor-not-allowed"
+                        : "hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
+                    }`}
+                    aria-label="Next Page"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* =========================================================================
           FEATURED IT SERVICES BELOW THE PRODUCTS SECTION
@@ -933,6 +1105,199 @@ export function HomePage({
                       indicativePrice: s.price,
                       type: "service",
                       category: s.category,
+                      description: s.shortDescription || s.description,
+                    });
+                  }
+                }}
+                className="btn btn-primary btn-sm gap-1.5"
+              >
+                <span>Inquire Service Now</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Printing Service Detail Full Modal */}
+      {selectedPrintingDetail && (
+        <div className="modal-overlay" onClick={() => setSelectedPrintingDetail(null)}>
+          <div className="modal-card max-w-[680px]" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded bg-[var(--bg-elevated)] flex items-center justify-center">
+                  <Printer size={16} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold m-0">{selectedPrintingDetail.name}</h3>
+                  <span className="badge badge-neutral text-[0.6rem] mt-0.5">
+                    {selectedPrintingDetail.category}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedPrintingDetail(null)}
+                className="btn-icon btn-ghost"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="modal-body flex flex-col gap-5">
+              {selectedPrintingDetail.images && selectedPrintingDetail.images[0] && (
+                <img
+                  src={getOptimizedImageUrl(selectedPrintingDetail.images[0], { width: 800 })}
+                  alt={selectedPrintingDetail.name}
+                  className="w-full h-48 object-cover rounded-[var(--radius-sm)] border border-[var(--border-subtle)]"
+                />
+              )}
+
+              {/* Price & Turnaround Bar */}
+              <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
+                    Investment ({selectedPrintingDetail.priceUnit || "per piece"})
+                  </span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
+                      NRs.{" "}
+                      {(
+                        selectedPrintingDetail.discountPrice && Number(selectedPrintingDetail.discountPrice) > 0
+                          ? Number(selectedPrintingDetail.discountPrice)
+                          : Number(selectedPrintingDetail.indicativePrice)
+                      ).toLocaleString()}
+                    </span>
+                    {selectedPrintingDetail.discountPrice && Number(selectedPrintingDetail.discountPrice) > 0 && (
+                      <span className="font-mono text-xs text-[var(--text-muted)] line-through">
+                        NRs. {Number(selectedPrintingDetail.indicativePrice).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
+                    Production Timeline
+                  </span>
+                  <span className="text-xs font-mono text-[var(--text-secondary)] font-semibold flex items-center gap-1">
+                    <Clock size={12} />
+                    <span>{selectedPrintingDetail.turnaroundTime || "24-48 Hours"}</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
+                  Detailed Overview
+                </h4>
+                <p className="text-[0.85rem] text-[var(--text-secondary)] leading-relaxed m-0 whitespace-pre-line">
+                  {selectedPrintingDetail.description || selectedPrintingDetail.shortDescription}
+                </p>
+              </div>
+
+              {/* Paper & Finish Options */}
+              {selectedPrintingDetail.paperOptions && selectedPrintingDetail.paperOptions.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
+                    Available Substrates & Paper Media
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedPrintingDetail.paperOptions.map((paper, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[0.725rem] px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)]"
+                      >
+                        {paper}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedPrintingDetail.finishOptions && selectedPrintingDetail.finishOptions.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
+                    Finishing & Embellishment Options
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedPrintingDetail.finishOptions.map((finish, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[0.725rem] px-2.5 py-1 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)]"
+                      >
+                        {finish}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Specifications Table */}
+              {selectedPrintingDetail.specs && (
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
+                    Technical Specifications
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    {selectedPrintingDetail.specs.paperGsm && (
+                      <div className="p-2 rounded bg-[var(--bg-elevated)] flex justify-between">
+                        <span className="text-[var(--text-muted)]">Weight / GSM:</span>
+                        <span className="font-semibold text-[var(--text-primary)]">{selectedPrintingDetail.specs.paperGsm}</span>
+                      </div>
+                    )}
+                    {selectedPrintingDetail.specs.printTechnology && (
+                      <div className="p-2 rounded bg-[var(--bg-elevated)] flex justify-between">
+                        <span className="text-[var(--text-muted)]">Technology:</span>
+                        <span className="font-semibold text-[var(--text-primary)]">{selectedPrintingDetail.specs.printTechnology}</span>
+                      </div>
+                    )}
+                    {selectedPrintingDetail.specs.maxResolution && (
+                      <div className="p-2 rounded bg-[var(--bg-elevated)] flex justify-between">
+                        <span className="text-[var(--text-muted)]">Resolution:</span>
+                        <span className="font-semibold text-[var(--text-primary)]">{selectedPrintingDetail.specs.maxResolution}</span>
+                      </div>
+                    )}
+                    {selectedPrintingDetail.specs.binding && (
+                      <div className="p-2 rounded bg-[var(--bg-elevated)] flex justify-between">
+                        <span className="text-[var(--text-muted)]">Binding / Finish:</span>
+                        <span className="font-semibold text-[var(--text-primary)]">{selectedPrintingDetail.specs.binding}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button
+                onClick={() =>
+                  handleOpenWhatsAppPrinting(
+                    selectedPrintingDetail.name,
+                    selectedPrintingDetail.discountPrice || selectedPrintingDetail.indicativePrice,
+                    selectedPrintingDetail.priceUnit
+                  )
+                }
+                className="btn btn-secondary btn-sm gap-1.5"
+              >
+                <MessageCircle size={14} />
+                <span>WhatsApp</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const s = selectedPrintingDetail;
+                  setSelectedPrintingDetail(null);
+                  const handler = onInquirePrinting || onInquireProduct;
+                  if (handler) {
+                    handler({
+                      name: s.name,
+                      indicativePrice:
+                        s.discountPrice && Number(s.discountPrice) > 0
+                          ? Number(s.discountPrice)
+                          : Number(s.indicativePrice),
+                      type: "service",
+                      category: s.category || "Printing Service",
                       description: s.shortDescription || s.description,
                     });
                   }

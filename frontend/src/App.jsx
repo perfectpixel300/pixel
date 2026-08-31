@@ -226,11 +226,16 @@ function AppContent() {
 
   // Open printing inquiry modal with pre-filled specs
   const handleOpenPrintingInquiry = (service) => {
+    const activePrice =
+      service.discountPrice && Number(service.discountPrice) > 0 && Number(service.discountPrice) < Number(service.indicativePrice)
+        ? Number(service.discountPrice)
+        : Number(service.indicativePrice);
+
     setInquiryProduct({
       name: service.name,
-      indicativePrice: service.indicativePrice,
+      indicativePrice: activePrice,
       type: "printing",
-      category: service.category,
+      category: service.category || "Printing Service",
       description: service.shortDescription || service.description,
     });
     setInquiryModalOpen(true);
@@ -303,12 +308,13 @@ function AppContent() {
                 banners={banners}
                 products={products}
                 printingServices={printingServices}
+                printingCategories={printingCategories}
                 categories={categories}
                 services={services}
                 onViewProduct={handleViewProduct}
                 onInquireProduct={handleOpenInquiry}
                 onInquireService={handleOpenInquiry}
-                onInquirePrinting={handleOpenInquiry}
+                onInquirePrinting={handleOpenPrintingInquiry}
                 onNavigate={setActivePage}
                 onSelectCategory={setSelectedCategory}
               />
@@ -330,7 +336,7 @@ function AppContent() {
             {activePage === "printing" && (
               <PrintingPage
                 printingServices={printingServices}
-                onInquirePrinting={handleOpenInquiry}
+                onInquirePrinting={handleOpenPrintingInquiry}
                 onNavigate={setActivePage}
               />
             )}
