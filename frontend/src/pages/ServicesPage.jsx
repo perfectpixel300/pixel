@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
 import { WebTierCard } from "../components/storefront/WebTierCard";
+import { DynamicPromoStrip } from "../components/storefront/DynamicPromoStrip";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 
 // Helper to map icon string to Lucide React component
@@ -74,6 +75,7 @@ export function ServicesPage({
   services = [],
   printingServices = [],
   serviceCategories = [],
+  promoBanners = [],
   onInquireService,
   onInquirePrinting,
   onNavigate,
@@ -157,8 +159,22 @@ export function ServicesPage({
   };
 
   return (
-    <div className="py-14 sm:py-18 pb-28">
-      <div className="storefront-container">
+    <div>
+      {/* Dynamic Promo, Philosophy, Offer & Advertisement Strip with Countdown Timer */}
+      <DynamicPromoStrip
+        promoBanners={promoBanners}
+        onCtaClick={(link) => {
+          if (link.includes("services")) onNavigate("services");
+          else if (link.includes("printing")) onNavigate("printing");
+          else if (link.includes("products")) onNavigate("products");
+          else if (link.includes("contact")) onNavigate("contact");
+          else if (link.includes("about")) onNavigate("about");
+          else onNavigate("products");
+        }}
+      />
+
+      <div className="py-14 sm:py-18 pb-28">
+        <div className="storefront-container">
         {/* =========================================================================
             HEADER INTRO SECTION
             ========================================================================= */}
@@ -633,6 +649,7 @@ Reset Filters
           </div>
         </div>
       </div>
+    </div>
 
       {/* =========================================================================
           SERVICE DETAIL MODAL (FULL SCOPE VIEW)

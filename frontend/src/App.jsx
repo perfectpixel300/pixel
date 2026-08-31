@@ -352,6 +352,7 @@ function AppContent() {
                 services={services}
                 printingServices={printingServices}
                 serviceCategories={serviceCategories}
+                promoBanners={promoBanners}
                 onInquireService={handleOpenInquiry}
                 onInquirePrinting={handleOpenInquiry}
                 onNavigate={setActivePage}
