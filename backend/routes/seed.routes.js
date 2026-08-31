@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Product = require("../models/product.model");
 const Banner = require("../models/banner.model");
+const PromoBanner = require("../models/promoBanner.model");
 const Category = require("../models/category.model");
 const Service = require("../models/service.model");
 const ServiceCategory = require("../models/serviceCategory.model");
@@ -11,6 +12,7 @@ const {
   sampleCategories,
   sampleProducts,
   sampleBanners,
+  samplePromoBanners,
   sampleServices,
   sampleServiceCategories,
   samplePrintingServices,
@@ -57,6 +59,7 @@ router.post("/", async (req, res) => {
       await Category.deleteMany({});
       await Product.deleteMany({});
       await Banner.deleteMany({});
+      await PromoBanner.deleteMany({});
       await Service.deleteMany({});
       await ServiceCategory.deleteMany({});
       await PrintingService.deleteMany({});
@@ -66,6 +69,7 @@ router.post("/", async (req, res) => {
     let seededCategories = [];
     let seededProducts = [];
     let seededBanners = [];
+    let seededPromoBanners = [];
     let seededServices = [];
     let seededServiceCategories = [];
     let seededPrintingServices = [];
@@ -78,6 +82,10 @@ router.post("/", async (req, res) => {
     }
     if (bannerCount === 0 || overwrite) {
       seededBanners = await Banner.insertMany(sampleBanners);
+    }
+    const promoBannerCount = await PromoBanner.countDocuments();
+    if (promoBannerCount === 0 || overwrite) {
+      seededPromoBanners = await PromoBanner.insertMany(samplePromoBanners);
     }
     if (serviceCount === 0 || overwrite) {
       seededServices = await Service.insertMany(sampleServices);
@@ -95,10 +103,11 @@ router.post("/", async (req, res) => {
     res.status(200).json({
       success: true,
       message:
-        "Curated sample categories, products, banners, IT services, service categories, printing services, and shop status seeded successfully in NRs. currency!",
+        "Curated sample categories, products, banners, promo strips, IT services, service categories, printing services, and shop status seeded successfully in NRs. currency!",
       categoryCount: seededCategories.length || categoryCount,
       productCount: seededProducts.length || productCount,
       bannerCount: seededBanners.length || bannerCount,
+      promoBannerCount: seededPromoBanners.length || promoBannerCount,
       serviceCount: seededServices.length || serviceCount,
       serviceCategoryCount: seededServiceCategories.length || serviceCatCount,
       printingServiceCount: seededPrintingServices.length || printingServiceCount,

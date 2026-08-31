@@ -18,6 +18,7 @@ const shopStatusRoutes = require("./routes/shopStatus.routes");
 const uploadRoutes = require("./routes/upload.routes");
 const printingServiceRoutes = require("./routes/printingService.routes");
 const printingCategoryRoutes = require("./routes/printingCategory.routes");
+const promoBannerRoutes = require("./routes/promoBanner.routes");
 
 
 const PORT = process.env.PORT || 5000;
@@ -53,6 +54,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/banners", bannerRoutes);
+app.use("/api/promo-banners", promoBannerRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/service-categories", serviceCategoryRoutes);
 app.use("/api/printing-services", printingServiceRoutes);

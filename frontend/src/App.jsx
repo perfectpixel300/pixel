@@ -54,6 +54,7 @@ function AppContent() {
   const [shopStatus, setShopStatus] = useState(null);
   const [isStatusLoading, setIsStatusLoading] = useState(true);
   const [banners, setBanners] = useState([]);
+  const [promoBanners, setPromoBanners] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [isLiveBackend, setIsLiveBackend] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -123,6 +124,7 @@ function AppContent() {
         serviceCategoriesRes,
         shopStatusRes,
         bannersRes,
+        promoBannersRes,
       ] = await Promise.all([
         api.getProducts(),
         api.getPrintingServices(),
@@ -132,6 +134,7 @@ function AppContent() {
         api.getServiceCategories(),
         api.getShopStatus(),
         api.getBanners(),
+        api.getPromoBanners(),
       ]);
 
       setProducts(productsRes.products || []);
@@ -145,6 +148,7 @@ function AppContent() {
       setShopStatus(currentShopStatus);
       setIsStatusLoading(false);
       setBanners(bannersRes.banners || []);
+      setPromoBanners(promoBannersRes.promoBanners || []);
       setIsLiveBackend(Boolean(productsRes?.fromServer));
 
       // Check if popup should be shown on initial site load based on status configuration
@@ -306,6 +310,7 @@ function AppContent() {
             {activePage === "home" && (
               <HomePage
                 banners={banners}
+                promoBanners={promoBanners}
                 products={products}
                 printingServices={printingServices}
                 printingCategories={printingCategories}
@@ -385,6 +390,7 @@ function AppContent() {
             shopStatus={shopStatus}
             onUpdateShopStatus={handleUpdateShopStatus}
             banners={banners}
+            promoBanners={promoBanners}
             inquiries={inquiries}
             isLiveBackend={isLiveBackend}
             onRefreshData={() => loadData(false)}

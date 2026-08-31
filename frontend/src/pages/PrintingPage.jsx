@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
+import { PrintingCard } from "../components/storefront/PrintingCard";
 
 const DEFAULT_PRINTING_CATEGORIES = [
   "Fine Art & Giclée",
@@ -204,148 +205,15 @@ export function PrintingPage({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
-            {filteredServices.map((service) => {
-              const rawImg = service.images && service.images[0] ? service.images[0] : "";
-              const img = getOptimizedImageUrl(rawImg, { width: 800 });
-              const hasDiscount =
-                service.discountPrice &&
-                Number(service.discountPrice) > 0 &&
-                Number(service.discountPrice) < Number(service.indicativePrice);
-              const discountPercent = hasDiscount
-                ? Math.round(
-                    ((Number(service.indicativePrice) - Number(service.discountPrice)) /
-                      Number(service.indicativePrice)) *
-                      100
-                  )
-                : 0;
-              const activePrice = hasDiscount ? Number(service.discountPrice) : Number(service.indicativePrice);
-
-              return (
-                <div
-                  key={service._id}
-                  className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-lg)] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-xl)] group"
-                >
-                  {/* Top Image Preview with Badges */}
-                  <div className="h-52 relative overflow-hidden bg-[var(--bg-sidebar)] flex items-center justify-center">
-                    {img ? (
-                      <img
-                        src={img}
-                        alt={service.name}
-                        loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                    ) : (
-                      <Printer size={40} className="text-[var(--text-muted)] opacity-30" />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent opacity-80 pointer-events-none" />
-
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
-                      <span className="badge badge-dark text-[0.625rem] backdrop-blur-sm shadow-sm">
-                        {service.category}
-                      </span>
-                      {hasDiscount && (
-                        <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 shadow-sm">
-                          {discountPercent}% OFF
-                        </span>
-                      )}
-                    </div>
-
-                    {service.featured && (
-                      <div className="absolute top-3 right-3">
-                        <span className="badge badge-white text-[0.6rem] gap-1 shadow-sm">
-                          <Star size={10} fill="currentColor" />
-                          <span>Featured</span>
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="absolute bottom-3 right-3 badge badge-dark backdrop-blur-sm text-[0.65rem] px-2.5 py-1 rounded-[var(--radius-xs)] font-mono flex items-center gap-1.5 shadow-sm">
-                      <Clock size={11} />
-                      <span>{service.turnaroundTime || "24-48 Hours"}</span>
-                    </div>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="p-5 sm:p-6 flex flex-col flex-1 gap-3.5">
-                    <div>
-                      <h3 className="text-lg font-extrabold text-[var(--text-primary)] m-0 tracking-tight leading-snug">
-                        {service.name}
-                      </h3>
-                      <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2">
-                        {service.shortDescription || service.description}
-                      </p>
-                    </div>
-
-                    {/* Price & Unit Block */}
-                    <div className="p-3 rounded-[var(--radius-md)] bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-baseline justify-between mt-auto">
-                      <div>
-                        <span className="text-[0.625rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
-                          Investment ({service.priceUnit || "per page"})
-                        </span>
-                        <div className="flex items-baseline gap-2 mt-0.5">
-                          <span className={`font-mono text-xl font-extrabold ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
-                            NRs. {activePrice.toLocaleString()}
-                          </span>
-                          {hasDiscount && (
-                            <span className="font-mono text-xs text-[var(--text-muted)] line-through">
-                              NRs. {Number(service.indicativePrice).toLocaleString()}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {service.minOrderQuantity && service.minOrderQuantity > 1 && (
-                        <div className="text-right">
-                          <span className="text-[0.625rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
-                            Min Order
-                          </span>
-                          <span className="text-xs font-mono font-semibold text-[var(--text-secondary)]">
-                            {service.minOrderQuantity} units
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Paper & Specs Snippet */}
-                    {service.specs && (service.specs.paperGsm || service.specs.printTechnology) && (
-                      <div className="flex flex-col gap-1 text-xs text-[var(--text-muted)] font-mono border-t border-[var(--border-subtle)] pt-2.5">
-                        {service.specs.paperGsm && (
-                          <div className="flex items-center gap-1.5 truncate">
-                            <Layers size={12} className="shrink-0 text-[var(--text-primary)]" />
-                            <span className="truncate">{service.specs.paperGsm}</span>
-                          </div>
-                        )}
-                        {service.specs.printTechnology && (
-                          <div className="flex items-center gap-1.5 truncate">
-                            <Printer size={12} className="shrink-0 text-[var(--text-primary)]" />
-                            <span className="truncate">{service.specs.printTechnology}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Actions */}
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--border-subtle)]">
-                      <button
-                        onClick={() => setSelectedServiceDetail(service)}
-                        className="btn btn-secondary btn-sm text-[0.75rem]"
-                      >
-                        View Specs
-                      </button>
-                      <button
-                        onClick={() => handleInquire(service)}
-                        className="btn btn-primary btn-sm text-[0.75rem] gap-1"
-                      >
-                        <span>Inquire</span>
-                        <ArrowRight size={12} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
+            {filteredServices.map((service) => (
+              <PrintingCard
+                key={service._id}
+                service={service}
+                onViewDetails={(s) => setSelectedServiceDetail(s)}
+                onInquire={(s) => handleInquire(s)}
+              />
+            ))}
           </div>
         )}
 

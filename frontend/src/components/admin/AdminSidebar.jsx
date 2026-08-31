@@ -29,6 +29,7 @@ export function AdminSidebar({
   serviceCategoriesCount = 0,
   printingServicesCount = 0,
   printingCategoriesCount = 0,
+  promoBannersCount = 0,
   inquiriesCount,
   shopStatus = { isOpen: true },
   isCollapsed,
@@ -102,9 +103,16 @@ export function AdminSidebar({
     },
     {
       id: "banners",
-      label: "Home Banners",
+      label: "Home Hero Banners",
       icon: <BannerIcon size={17} />,
       badge: stats?.banners?.active ? `${stats.banners.active} live` : 0,
+      badgeColor: "success",
+    },
+    {
+      id: "promos",
+      label: "Promo & Offer Strips",
+      icon: <Sparkles size={17} />,
+      badge: promoBannersCount || 0,
       badgeColor: "success",
     },
     {

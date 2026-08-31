@@ -20,7 +20,7 @@ export function ProductsPage({
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [availabilityOnly, setAvailabilityOnly] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 8;
+  const ITEMS_PER_PAGE = 12;
 
   // Reset to page 1 whenever filters change
   useEffect(() => {

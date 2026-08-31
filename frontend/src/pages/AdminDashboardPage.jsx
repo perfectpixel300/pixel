@@ -12,6 +12,7 @@ import { ServicesManagement } from "../components/admin/ServicesManagement";
 import { ServiceCategoryManagement } from "../components/admin/ServiceCategoryManagement";
 import { ShopStatusManagement } from "../components/admin/ShopStatusManagement";
 import { BannerManagement } from "../components/admin/BannerManagement";
+import { PromoManagement } from "../components/admin/PromoManagement";
 import { InquiriesManagement } from "../components/admin/InquiriesManagement";
 import { ProductFormModal } from "../components/admin/ProductFormModal";
 import { PrintingFormModal } from "../components/admin/PrintingFormModal";
@@ -20,6 +21,7 @@ import { CategoryFormModal } from "../components/admin/CategoryFormModal";
 import { ServiceCategoryFormModal } from "../components/admin/ServiceCategoryFormModal";
 import { ServiceFormModal } from "../components/admin/ServiceFormModal";
 import { BannerFormModal } from "../components/admin/BannerFormModal";
+import { PromoFormModal } from "../components/admin/PromoFormModal";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 import { api } from "../services/api";
 
@@ -34,6 +36,7 @@ export function AdminDashboardPage({
   shopStatus = { isOpen: true },
   onUpdateShopStatus,
   banners = [],
+  promoBanners = [],
   inquiries = [],
   isLiveBackend = false,
   onRefreshData,
@@ -55,6 +58,7 @@ export function AdminDashboardPage({
   const [serviceCategoryModal, setServiceCategoryModal] = useState({ isOpen: false, category: null });
   const [serviceModal, setServiceModal] = useState({ isOpen: false, service: null });
   const [bannerModal, setBannerModal] = useState({ isOpen: false, banner: null });
+  const [promoModal, setPromoModal] = useState({ isOpen: false, promo: null });
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: "product", id: null, name: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -399,6 +403,59 @@ export function AdminDashboardPage({
     }
   };
 
+  // Promo / Offers CRUD
+  const handleOpenCreatePromo = () => setPromoModal({ isOpen: true, promo: null });
+  const handleOpenEditPromo = (promo) => setPromoModal({ isOpen: true, promo });
+
+  const handleSubmitPromo = async (promoData) => {
+    try {
+      setIsSubmitting(true);
+      const targetId = promoModal.promo?._id || promoData._id;
+      if (targetId && targetId !== "undefined") {
+        await api.updatePromoBanner(targetId, promoData);
+        showToast(`Promo strip "${promoData.title}" updated!`);
+      } else {
+        await api.createPromoBanner(promoData);
+        showToast(`Promo strip "${promoData.title}" created!`);
+      }
+      setPromoModal({ isOpen: false, promo: null });
+      onRefreshData();
+    } catch (err) {
+      showToast(err.message || "Failed to save promo strip", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeletePromoPrompt = (promo) => {
+    setDeleteModal({
+      isOpen: true,
+      type: "promo",
+      id: promo._id,
+      name: promo.title,
+    });
+  };
+
+  const handleTogglePromoActive = async (promoId) => {
+    try {
+      await api.togglePromoBannerActive(promoId);
+      showToast("Promo strip status updated!");
+      onRefreshData();
+    } catch (err) {
+      showToast("Failed to toggle promo status", "error");
+    }
+  };
+
+  const handleReorderPromos = async (orderList) => {
+    try {
+      await api.reorderPromoBanners(orderList);
+      showToast("Promo strips reordered!");
+      onRefreshData();
+    } catch (err) {
+      showToast("Failed to reorder promo strips", "error");
+    }
+  };
+
   // Inquiries
   const handleDeleteInquiryPrompt = (inquiry) => {
     setDeleteModal({
@@ -434,6 +491,9 @@ export function AdminDashboardPage({
       } else if (deleteModal.type === "banner") {
         await api.deleteBanner(deleteModal.id);
         showToast("Banner deleted.");
+      } else if (deleteModal.type === "promo") {
+        await api.deletePromoBanner(deleteModal.id);
+        showToast("Promo strip deleted.");
       } else if (deleteModal.type === "inquiry") {
         await api.deleteInquiry(deleteModal.id);
         showToast("Inquiry archived.");
@@ -456,6 +516,7 @@ export function AdminDashboardPage({
         categoriesCount={(categories || []).length}
         printingServicesCount={(printingServices || []).length}
         printingCategoriesCount={(printingCategories || []).length}
+        promoBannersCount={(promoBanners || []).length}
         webTiersCount={webTiersCount}
         servicesCount={itServicesCount}
         serviceCategoriesCount={(serviceCategories || []).length}
@@ -611,6 +672,17 @@ export function AdminDashboardPage({
             />
           )}
 
+          {activeTab === "promos" && (
+            <PromoManagement
+              promoBanners={promoBanners}
+              onOpenCreateModal={handleOpenCreatePromo}
+              onEditPromo={handleOpenEditPromo}
+              onDeletePromo={handleDeletePromoPrompt}
+              onToggleActive={handleTogglePromoActive}
+              onReorderPromos={handleReorderPromos}
+            />
+          )}
+
           {activeTab === "inquiries" && (
             <InquiriesManagement
               inquiries={inquiries}
@@ -677,6 +749,14 @@ export function AdminDashboardPage({
         onClose={() => setBannerModal({ isOpen: false, banner: null })}
         onSubmit={handleSubmitBanner}
         editingBanner={bannerModal.banner}
+        isSubmitting={isSubmitting}
+      />
+
+      <PromoFormModal
+        isOpen={promoModal.isOpen}
+        onClose={() => setPromoModal({ isOpen: false, promo: null })}
+        onSubmit={handleSubmitPromo}
+        editingPromo={promoModal.promo}
         isSubmitting={isSubmitting}
       />
 

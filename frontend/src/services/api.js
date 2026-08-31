@@ -321,13 +321,97 @@ class ApiService {
 
   async reorderBanners(orders) {
     const res = await fetch(`${API_BASE_URL}/banners/reorder`, {
-      method: "PUT",
+      method: "PATCH",
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ orders }),
+      body: JSON.stringify({ orderList: orders }),
     });
     const data = await res.json();
     if (!res.ok) {
       throw new Error(data.message || "Failed to reorder banners");
+    }
+    return data;
+  }
+
+  /* ==========================================================================
+     PROMO BANNERS / STRIPS / OFFERS API
+     ========================================================================== */
+
+  async getPromoBanners(activeOnly = false) {
+    try {
+      const url = activeOnly
+        ? `${API_BASE_URL}/promo-banners?activeOnly=true`
+        : `${API_BASE_URL}/promo-banners`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        return { promoBanners: data.promoBanners || [], fromServer: true };
+      }
+      return { promoBanners: [], fromServer: false };
+    } catch (error) {
+      console.error("Error fetching promo banners:", error);
+      return { promoBanners: [], fromServer: false };
+    }
+  }
+
+  async createPromoBanner(promoData) {
+    const res = await fetch(`${API_BASE_URL}/promo-banners`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(promoData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to create promo banner");
+    }
+    return data;
+  }
+
+  async updatePromoBanner(id, promoData) {
+    const res = await fetch(`${API_BASE_URL}/promo-banners/${id}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(promoData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update promo banner");
+    }
+    return data;
+  }
+
+  async deletePromoBanner(id) {
+    const res = await fetch(`${API_BASE_URL}/promo-banners/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete promo banner");
+    }
+    return data;
+  }
+
+  async togglePromoBannerActive(id) {
+    const res = await fetch(`${API_BASE_URL}/promo-banners/${id}/toggle-active`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to toggle promo banner status");
+    }
+    return data;
+  }
+
+  async reorderPromoBanners(orderList) {
+    const res = await fetch(`${API_BASE_URL}/promo-banners/reorder`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ orderList }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to reorder promo banners");
     }
     return data;
   }

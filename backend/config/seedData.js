@@ -749,10 +749,30 @@ const defaultShopStatus = {
   contactEmail: "perfectpixel300@gmail.com",
 };
 
+const samplePromoBanners = [
+  {
+    badge: "Our Philosophy",
+    title: '"Quality materials, thoughtful design, and tools built to last."',
+    subtitle:
+      "Pixel Perfect designs and delivers premium stationery, solid writing instruments, leather desk accessories, and modern digital services.",
+    imageUrl: "",
+    hasTimer: false,
+    timerEndDate: null,
+    timerTitle: "Offer Ends In",
+    ctaText: "Explore Collection",
+    ctaLink: "/products",
+    alignment: "center",
+    style: "philosophy",
+    order: 1,
+    isActive: true,
+  },
+];
+
 module.exports = {
   sampleCategories,
   sampleProducts,
   sampleBanners,
+  samplePromoBanners,
   sampleServices,
   sampleServiceCategories,
   samplePrintingServices,

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { PrintingCard } from "./PrintingCard";
+import { ServiceCard } from "./ServiceCard";
 
-export function FeaturedPrintingSection({
-  printingServices = [],
+export function FeaturedServicesSection({
+  services = [],
   onViewDetails,
   onInquire,
   onBrowseAll,
@@ -16,14 +16,10 @@ export function FeaturedPrintingSection({
   const [dragStartX, setDragStartX] = useState(0);
   const [dragDeltaX, setDragDeltaX] = useState(0);
 
-  // Dynamic featured printing services (fallbacks to all available if none explicitly marked featured)
-  const featuredServices = (printingServices || []).filter(
-    (s) => (s.featured || s.isFeatured) && s.isAvailable !== false
-  );
-  const displayItems =
-    featuredServices.length > 0
-      ? featuredServices
-      : (printingServices || []).filter((s) => s.isAvailable !== false);
+  // Dynamic featured IT services (exclude 3-tier web packages which have their own pricing table)
+  const nonWebServices = (services || []).filter((s) => !s.isWebDevPackage && s.isActive !== false);
+  const featuredServices = nonWebServices.filter((s) => s.isFeatured || s.featured);
+  const displayItems = featuredServices.length > 0 ? featuredServices : nonWebServices;
 
   // Responsive items per view (matching products section: 2 on mobile, 2 on sm, 3 on lg, 4 on xl)
   const updateItemsPerView = useCallback(() => {
@@ -122,8 +118,8 @@ export function FeaturedPrintingSection({
 
   return (
     <section
-      id="home-featured-printing"
-      className="py-20 border-b border-[var(--border-subtle)] bg-[var(--bg-app)] overflow-hidden"
+      id="home-featured-services"
+      className="py-20 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)] overflow-hidden"
     >
       <div className="storefront-container">
         {/* Section Header */}
@@ -133,10 +129,10 @@ export function FeaturedPrintingSection({
               Spotlight
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-[-0.03em] text-[var(--text-primary)]">
-              Featured Printing Services
+              Featured IT Services & Disciplines
             </h2>
             <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[640px]">
-              High-resolution photo prints, architectural blueprints, hardcover bookbinding, and custom packaging.
+              Specialized software engineering: mobile apps, UI/UX systems, cloud architecture, and AI automation.
             </p>
           </div>
 
@@ -152,7 +148,7 @@ export function FeaturedPrintingSection({
                       ? "opacity-30 cursor-not-allowed"
                       : "hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] hover:border-transparent cursor-pointer shadow-md"
                   }`}
-                  aria-label="Previous featured printing service"
+                  aria-label="Previous featured IT service"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -164,7 +160,7 @@ export function FeaturedPrintingSection({
                       ? "opacity-30 cursor-not-allowed"
                       : "hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] hover:border-transparent cursor-pointer shadow-md"
                   }`}
-                  aria-label="Next featured printing service"
+                  aria-label="Next featured IT service"
                 >
                   <ChevronRight size={18} />
                 </button>
@@ -172,7 +168,7 @@ export function FeaturedPrintingSection({
             )}
 
             <button onClick={onBrowseAll} className="btn btn-secondary gap-1.5">
-              <span>View All Printing</span>
+              <span>View All Services</span>
               <ArrowRight size={14} />
             </button>
           </div>
@@ -203,7 +199,7 @@ export function FeaturedPrintingSection({
                   className="px-2 sm:px-3 shrink-0 flex flex-col"
                   style={{ width: `${100 / itemsPerView}%` }}
                 >
-                  <PrintingCard
+                  <ServiceCard
                     service={service}
                     onViewDetails={onViewDetails}
                     onInquire={onInquire}
