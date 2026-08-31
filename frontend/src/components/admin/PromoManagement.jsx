@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Sparkles,
   Plus,
@@ -14,6 +14,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
+import { calculateTimeRemaining } from "../../utils/timezone";
 
 export function PromoManagement({
   promoBanners = [],
@@ -24,10 +25,31 @@ export function PromoManagement({
   onReorderPromos,
 }) {
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [simTimeLeft, setSimTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isExpired: false,
+  });
 
   const sorted = [...promoBanners].sort((a, b) => (a.order || 0) - (b.order || 0));
   const activePromos = sorted.filter((p) => p.isActive);
   const currentPromo = activePromos.length > 0 ? activePromos[activeSlideIndex % activePromos.length] : sorted[0];
+
+  // Real-time ticking simulator timer
+  useEffect(() => {
+    if (!currentPromo || !currentPromo.hasTimer || !currentPromo.timerEndDate) return;
+
+    const updateSimTimer = () => {
+      const remaining = calculateTimeRemaining(currentPromo.timerEndDate);
+      setSimTimeLeft(remaining);
+    };
+
+    updateSimTimer();
+    const interval = setInterval(updateSimTimer, 1000);
+    return () => clearInterval(interval);
+  }, [currentPromo?.timerEndDate, currentPromo?.hasTimer]);
 
   const handleMoveUp = (index) => {
     if (index === 0) return;
@@ -122,11 +144,17 @@ export function PromoManagement({
                   {currentPromo.subtitle}
                 </p>
               )}
-              {currentPromo.hasTimer && (
+              {currentPromo.hasTimer && currentPromo.timerEndDate && (
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded bg-[var(--bg-card)] border border-amber-500/30 text-amber-400 text-xs font-mono font-bold">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[var(--bg-card)] border border-amber-500/30 text-amber-400 text-xs font-mono font-bold shadow-sm">
                     <Clock size={12} />
-                    <span>{currentPromo.timerTitle || "Ends in"}: 02d 18h 45m 12s</span>
+                    {!simTimeLeft.isExpired ? (
+                      <span>
+                        {currentPromo.timerTitle || "Ends in"}: {String(simTimeLeft.days).padStart(2, "0")}d {String(simTimeLeft.hours).padStart(2, "0")}h {String(simTimeLeft.minutes).padStart(2, "0")}m {String(simTimeLeft.seconds).padStart(2, "0")}s
+                      </span>
+                    ) : (
+                      <span className="text-zinc-400">Offer Concluded</span>
+                    )}
                   </div>
                 </div>
               )}

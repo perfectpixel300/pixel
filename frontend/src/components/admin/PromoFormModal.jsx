@@ -46,6 +46,27 @@ export function PromoFormModal({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [showManualUrl, setShowManualUrl] = useState(false);
+  const [previewTimeLeft, setPreviewTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isExpired: false,
+  });
+
+  // Real-time ticking preview timer for modal
+  useEffect(() => {
+    if (!formData.hasTimer || !formData.timerEndDate) return;
+
+    const updatePreviewTimer = () => {
+      const remaining = calculateTimeRemaining(formData.timerEndDate);
+      setPreviewTimeLeft(remaining);
+    };
+
+    updatePreviewTimer();
+    const interval = setInterval(updatePreviewTimer, 1000);
+    return () => clearInterval(interval);
+  }, [formData.hasTimer, formData.timerEndDate]);
 
   useEffect(() => {
     if (editingPromo) {
@@ -173,7 +194,7 @@ export function PromoFormModal({
               }`}
             >
               {formData.badge && (
-                <span className="badge badge-white text-[0.625rem] px-2 py-0.5">
+                <span className="badge badge-white text-[0.625rem] px-2 py-0.5 font-bold">
                   {formData.badge}
                 </span>
               )}
@@ -186,9 +207,24 @@ export function PromoFormModal({
                 </p>
               )}
               {formData.hasTimer && formData.timerEndDate && (
-                <div className="flex items-center gap-1.5 text-xs font-mono text-amber-400 bg-[var(--bg-card)] px-2.5 py-1 rounded border border-amber-500/20">
+                <div className="flex items-center gap-1.5 text-xs font-mono text-amber-400 bg-[var(--bg-card)] px-2.5 py-1 rounded border border-amber-500/20 shadow-sm">
                   <Clock size={11} />
-                  <span>{formData.timerTitle || "Ends in"}: 03d 14h 22m 10s</span>
+                  {!previewTimeLeft.isExpired ? (
+                    <span>
+                      {formData.timerTitle || "Offer Ends In"}: {String(previewTimeLeft.days).padStart(2, "0")}d {String(previewTimeLeft.hours).padStart(2, "0")}h {String(previewTimeLeft.minutes).padStart(2, "0")}m {String(previewTimeLeft.seconds).padStart(2, "0")}s
+                    </span>
+                  ) : (
+                    <span className="text-zinc-400">Offer Concluded / Target Expired</span>
+                  )}
+                </div>
+              )}
+              {formData.imageUrl && (
+                <div className="w-full max-w-[260px] h-28 rounded overflow-hidden border border-white/10 mt-1">
+                  <img
+                    src={getOptimizedImageUrl(formData.imageUrl, { width: 300 })}
+                    alt="Artwork"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               )}
               {formData.ctaText && (

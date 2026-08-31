@@ -62,6 +62,16 @@ export function Preloader({ isLoading }) {
         <div className="w-36 h-[2px] bg-zinc-900 rounded-full overflow-hidden relative mt-1">
           <div className="preloader-progress-bar h-full bg-white rounded-full" />
         </div>
+
+        {/* Minimal Animated Loading Text */}
+        <div className="flex items-center gap-0.5 text-[0.625rem] font-mono uppercase tracking-[0.25em] text-zinc-400 opacity-80 mt-1 animate-pulse">
+          <span>Loading</span>
+          <span className="inline-flex">
+            <span className="animate-[pulse_1.2s_ease-in-out_infinite_0.1s]">.</span>
+            <span className="animate-[pulse_1.2s_ease-in-out_infinite_0.3s]">.</span>
+            <span className="animate-[pulse_1.2s_ease-in-out_infinite_0.5s]">.</span>
+          </span>
+        </div>
       </div>
     </div>
   );

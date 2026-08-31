@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowRight, Clock, Sparkles, Flame, Tag, CheckCircle2 } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
+import { calculateTimeRemaining } from "../../utils/timezone";
 
 export function DynamicPromoStrip({ promoBanners = [], onCtaClick }) {
   const [timeLeft, setTimeLeft] = useState({
@@ -17,43 +18,21 @@ export function DynamicPromoStrip({ promoBanners = [], onCtaClick }) {
 
   const currentPromo = activePromos.length > 0 ? activePromos[0] : null;
 
-  // Real-time Countdown Timer logic (Kathmandu Timezone NPT / UTC+05:45)
+  // Real-time Countdown Timer logic (GMT+5:45 Kathmandu Time)
   useEffect(() => {
     if (!currentPromo || !currentPromo.hasTimer || !currentPromo.timerEndDate) {
       return;
     }
 
-    const parseTargetDate = (dateStr) => {
-      if (!dateStr) return 0;
-      if (typeof dateStr === "string" && dateStr.includes("T") && !dateStr.includes("+") && !dateStr.endsWith("Z")) {
-        const withSecs = dateStr.length === 16 ? `${dateStr}:00` : dateStr;
-        return new Date(`${withSecs}+05:45`).getTime();
-      }
-      return new Date(dateStr).getTime();
+    const updateCountdown = () => {
+      const remaining = calculateTimeRemaining(currentPromo.timerEndDate);
+      setTimeLeft(remaining);
     };
 
-    const calculateTimeLeft = () => {
-      const targetTime = parseTargetDate(currentPromo.timerEndDate);
-      const now = new Date().getTime();
-      const difference = targetTime - now;
-
-      if (difference <= 0) {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
-        return;
-      }
-
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-      setTimeLeft({ days, hours, minutes, seconds, isExpired: false });
-    };
-
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 1000);
-    return () => clearInterval(timer);
-  }, [currentPromo]);
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [currentPromo?.timerEndDate, currentPromo?.hasTimer]);
 
   // Fallback to Default Philosophy if no custom promo banner is configured or active
   if (!currentPromo) {
