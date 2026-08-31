@@ -37,14 +37,15 @@ export function Navbar({
   onStatusAutoClose,
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showStatusPopover, setShowStatusPopover] = useState(false);
   const [timerText, setTimerText] = useState("");
 
   const headerRef = useRef(null);
   const statusPopoverRef = useRef(null);
+  const searchContainerRef = useRef(null);
+  const searchInputRef = useRef(null);
 
   // GSAP Dynamic Navbar: Scroll down -> hides, Scroll up -> shows smoothly at any position
   useEffect(() => {
@@ -61,7 +62,7 @@ export function Navbar({
       const delta = currentScrollY - lastScrollY;
 
       // Keep open if menu or search or status popover is open
-      if (mobileMenuOpen || isSearchFocused || showStatusPopover) {
+      if (mobileMenuOpen || isSearchOpen || showStatusPopover) {
         if (isHidden) {
           gsap.to(headerRef.current, {
             yPercent: 0,
@@ -125,7 +126,7 @@ export function Navbar({
       window.removeEventListener("touchmove", handleScroll);
       gsap.killTweensOf(headerRef.current);
     };
-  }, [mobileMenuOpen, isSearchFocused, showStatusPopover]);
+  }, [mobileMenuOpen, isSearchOpen, showStatusPopover]);
 
   // Real-time ticking for navbar timer chip (Kathmandu Timezone NPT / UTC+05:45)
   useEffect(() => {
@@ -194,10 +195,6 @@ export function Navbar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const searchContainerRef = useRef(null);
-  const desktopInputRef = useRef(null);
-  const mobileInputRef = useRef(null);
-
   const navLinks = [
     { id: "home", label: "Home" },
     { id: "products", label: "Products" },
@@ -220,23 +217,23 @@ export function Navbar({
         .slice(0, 5)
     : [];
 
-  // Focus mobile input when mobile search is opened
+  // Focus search input when search bar is opened
   useEffect(() => {
-    if (mobileSearchOpen && mobileInputRef.current) {
-      setTimeout(() => mobileInputRef.current?.focus(), 50);
+    if (isSearchOpen && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 60);
     }
-  }, [mobileSearchOpen]);
+  }, [isSearchOpen]);
 
   // Global keyboard shortcut (⌘K or Ctrl+K) to focus search
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        desktopInputRef.current?.focus();
-        setMobileSearchOpen(true);
+        setIsSearchOpen((prev) => !prev);
       } else if (e.key === "Escape") {
-        setIsSearchFocused(false);
-        setMobileSearchOpen(false);
+        setIsSearchOpen(false);
+        setShowStatusPopover(false);
+        setMobileMenuOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -248,9 +245,10 @@ export function Navbar({
     const handleClickOutside = (e) => {
       if (
         searchContainerRef.current &&
-        !searchContainerRef.current.contains(e.target)
+        !searchContainerRef.current.contains(e.target) &&
+        !e.target.closest('button[aria-label="Search"]')
       ) {
-        setIsSearchFocused(false);
+        setIsSearchOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -260,8 +258,7 @@ export function Navbar({
   const handleNavClick = (id) => {
     setActivePage(id);
     setMobileMenuOpen(false);
-    setMobileSearchOpen(false);
-    setIsSearchFocused(false);
+    setIsSearchOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -270,8 +267,7 @@ export function Navbar({
       onViewProduct(product);
     }
     setSearchQuery("");
-    setIsSearchFocused(false);
-    setMobileSearchOpen(false);
+    setIsSearchOpen(false);
     setMobileMenuOpen(false);
   };
 
@@ -283,8 +279,7 @@ export function Navbar({
     } else {
       setActivePage("products");
     }
-    setIsSearchFocused(false);
-    setMobileSearchOpen(false);
+    setIsSearchOpen(false);
     setMobileMenuOpen(false);
   };
 
@@ -331,106 +326,8 @@ export function Navbar({
           })}
         </nav>
 
-        {/* Desktop Search Bar with Live Suggestions Dropdown */}
-        <div
-          ref={searchContainerRef}
-          className="hidden md:flex relative flex-1 max-w-55 mx-2"
-        >
-          <form onSubmit={handleSearchFormSubmit} className="w-full relative">
-            <Search
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-            />
-            <input
-              ref={desktopInputRef}
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
-              className="form-input !pl-8.5 !pr-13 text-[0.8rem] py-1.5 bg-[var(--bg-input)] rounded-full border border-[var(--border-subtle)] focus:border-[var(--border-bright)] transition-all"
-            />
-            {searchQuery ? (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-0 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer p-0.5"
-              >
-                <X size={13} />
-              </button>
-            ) : (
-              <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[0.625rem] font-mono text-[var(--text-muted)] bg-[var(--bg-card)] px-1.5 py-0.5 rounded border border-[var(--border-subtle)] pointer-events-none">
-                ⌘K
-              </kbd>
-            )}
-          </form>
-
-          {/* Live Search Results Dropdown (Desktop) */}
-          {isSearchFocused && searchQuery.trim() && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] overflow-hidden z-50 animate-[scaleUp_0.15s_ease-out]">
-              <div className="p-2 border-b border-[var(--border-subtle)] flex justify-between items-center text-[0.68rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider px-3">
-                <span>Matching Products</span>
-                <span>{searchResults.length} Results</span>
-              </div>
-
-              {searchResults.length === 0 ? (
-                <div className="p-6 text-center text-[var(--text-muted)] text-[0.825rem]">
-                  No items found for "{searchQuery}"
-                </div>
-              ) : (
-                <div className="flex flex-col max-h-[340px] overflow-y-auto divide-y divide-[var(--border-subtle)]">
-                  {searchResults.map((product) => (
-                    <div
-                      key={product._id}
-                      onClick={() => handleSelectResult(product)}
-                      className="p-3 flex items-center gap-3 cursor-pointer hover:bg-[var(--bg-elevated)] transition-colors"
-                    >
-                      {product.images?.[0] ? (
-                        <img
-                          src={getOptimizedImageUrl(product.images[0], { width: 100 })}
-                          alt={product.name}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-10 h-10 rounded-[var(--radius-xs)] object-cover bg-black shrink-0"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-[var(--radius-xs)] bg-[var(--bg-app)] flex items-center justify-center shrink-0 text-[var(--text-muted)]">
-                          <Package size={16} />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[0.825rem] font-bold text-[var(--text-primary)] truncate">
-                          {product.name}
-                        </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="badge badge-neutral text-[0.6rem]">
-                            {product.category}
-                          </span>
-                          <span className="font-mono text-[0.75rem] text-[var(--text-secondary)] font-semibold">
-                            NRs. {Number(product.indicativePrice).toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                      <ArrowRight size={13} className="text-[var(--text-muted)] shrink-0" />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* View All in Catalog Link */}
-              <button
-                onClick={handleSearchFormSubmit}
-                className="w-full py-2.5 px-3 bg-[var(--bg-secondary)] border-t border-[var(--border-subtle)] text-[0.75rem] font-bold text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <span>View all results for "{searchQuery}"</span>
-                <ArrowRight size={12} />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Right Side - Shop Status, Phone inquiry, Search trigger (Mobile), Theme Toggle */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        {/* Right Side - Shop Status, Phone inquiry, Search trigger, Theme Toggle, Mobile Menu */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Live Shop Status Indicator Pill or Loader */}
           {isStatusLoading || !shopStatus ? (
             <div className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[0.7rem] sm:text-[0.75rem] font-medium border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-muted)] animate-pulse">
@@ -634,17 +531,21 @@ export function Navbar({
             <span className="font-mono">+977 9808950275</span>
           </a>
 
-          {/* Mobile Search Button Toggle */}
+          {/* Universal Search Trigger Button (Desktop & Mobile) */}
           <button
             onClick={() => {
-              setMobileSearchOpen(!mobileSearchOpen);
+              setIsSearchOpen(!isSearchOpen);
               setMobileMenuOpen(false);
             }}
-            className="btn-icon btn-ghost md:!hidden inline-flex"
-            title="Search Catalog"
+            className={`btn-icon transition-colors ${
+              isSearchOpen
+                ? "bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)]"
+                : "btn-ghost"
+            }`}
+            title="Search Products & Services (⌘K)"
             aria-label="Search"
           >
-            <Search size={17} />
+            <Search size={16} />
           </button>
 
           {/* Theme Switcher */}
@@ -660,7 +561,7 @@ export function Navbar({
           <button
             onClick={() => {
               setMobileMenuOpen(!mobileMenuOpen);
-              setMobileSearchOpen(false);
+              setIsSearchOpen(false);
             }}
             className="btn-icon btn-ghost lg:!hidden inline-flex"
             aria-label="Toggle navigation menu"
@@ -670,100 +571,123 @@ export function Navbar({
         </div>
       </div>
 
-      {/* Mobile Search Expansion Bar (Slides right under topbar) */}
-      {mobileSearchOpen && (
-        <div className="md:hidden bg-[var(--bg-card)] border-b border-[var(--border-medium)] p-3 animate-[fadeIn_0.2s_ease-out]">
-          <form onSubmit={handleSearchFormSubmit} className="relative">
-            <Search
-              size={15}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-            />
-            <input
-              ref={mobileInputRef}
-              type="text"
-              placeholder="Search notebooks, pens, leather objects..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="form-input !pl-9.5 !pr-9 text-[0.875rem] py-2 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)]"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                if (searchQuery) setSearchQuery("");
-                else setMobileSearchOpen(false);
-              }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-0 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer p-1"
-            >
-              <X size={16} />
-            </button>
-          </form>
+      {/* Universal Search Expansion Bar (Slides right under topbar for all screens) */}
+      {isSearchOpen && (
+        <div
+          ref={searchContainerRef}
+          className="bg-[var(--bg-card)]/98 backdrop-blur-md border-b border-[var(--border-medium)] p-3 sm:p-4 shadow-2xl animate-[fadeIn_0.15s_ease-out] z-50 relative"
+        >
+          <div className="storefront-container max-w-[760px] mx-auto">
+            <form onSubmit={handleSearchFormSubmit} className="relative flex items-center">
+              <Search
+                size={16}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
+              />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search products, stationery, custom prints, IT disciplines..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="form-input !pl-10 !pr-20 text-xs sm:text-sm py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
+              />
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="btn-icon btn-ghost !w-6 !h-6 text-[var(--text-muted)] hover:text-white"
+                    title="Clear search text"
+                  >
+                    <X size={14} />
+                  </button>
+                ) : (
+                  <kbd className="hidden sm:inline-block text-[0.625rem] font-mono text-[var(--text-muted)] bg-[var(--bg-card)] px-1.5 py-0.5 rounded border border-[var(--border-subtle)] pointer-events-none">
+                    ESC
+                  </kbd>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsSearchOpen(false)}
+                  className="btn-icon btn-ghost !w-7 !h-7 text-[var(--text-muted)] hover:text-white"
+                  title="Close search"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </form>
 
-          {/* Live Mobile Search Results */}
-          {searchQuery.trim() && (
-            <div className="mt-2.5 bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] overflow-hidden max-h-[280px] overflow-y-auto divide-y divide-[var(--border-subtle)]">
-              {searchResults.length === 0 ? (
-                <div className="p-4 text-center text-xs text-[var(--text-muted)]">
-                  No products match "{searchQuery}"
-                </div>
-              ) : (
-                <>
-                  {searchResults.map((product) => (
-                    <div
-                      key={product._id}
-                      onClick={() => handleSelectResult(product)}
-                      className="p-2.5 flex items-center gap-3 cursor-pointer hover:bg-[var(--bg-card)]"
-                    >
-                      {product.images?.[0] ? (
-                        <img
-                          src={getOptimizedImageUrl(product.images[0], { width: 100 })}
-                          alt={product.name}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-9 h-9 rounded-[var(--radius-xs)] object-cover bg-black shrink-0"
-                        />
-                      ) : (
-                        <div className="w-9 h-9 rounded-[var(--radius-xs)] bg-[var(--bg-app)] flex items-center justify-center shrink-0 text-[var(--text-muted)]">
-                          <Package size={14} />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[0.8rem] font-bold text-[var(--text-primary)] truncate">
-                          {product.name}
-                        </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="badge badge-neutral text-[0.55rem]">
-                            {product.category}
-                          </span>
-                          {product.discountPrice && Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.indicativePrice) ? (
-                            <div className="flex items-center gap-1 font-mono text-[0.7rem]">
-                              <span className="text-emerald-400 font-bold">
-                                NRs. {Number(product.discountPrice).toLocaleString()}
-                              </span>
-                              <span className="text-[var(--text-muted)] line-through text-[0.6rem]">
+            {/* Live Search Results Dropdown */}
+            {searchQuery.trim() && (
+              <div className="mt-2.5 bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] overflow-hidden max-h-[320px] overflow-y-auto divide-y divide-[var(--border-subtle)] shadow-xl">
+                {searchResults.length === 0 ? (
+                  <div className="p-5 text-center text-xs text-[var(--text-muted)]">
+                    No products match "{searchQuery}"
+                  </div>
+                ) : (
+                  <>
+                    <div className="p-2.5 px-3.5 border-b border-[var(--border-subtle)] flex justify-between items-center text-[0.65rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider bg-[var(--bg-card)]">
+                      <span>Matching Catalog Items</span>
+                      <span>{searchResults.length} Results</span>
+                    </div>
+                    {searchResults.map((product) => (
+                      <div
+                        key={product._id}
+                        onClick={() => handleSelectResult(product)}
+                        className="p-3 flex items-center gap-3 cursor-pointer hover:bg-[var(--bg-card)] transition-colors"
+                      >
+                        {product.images?.[0] ? (
+                          <img
+                            src={getOptimizedImageUrl(product.images[0], { width: 100 })}
+                            alt={product.name}
+                            loading="lazy"
+                            decoding="async"
+                            className="w-10 h-10 rounded-[var(--radius-xs)] object-cover bg-black shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-[var(--radius-xs)] bg-[var(--bg-app)] flex items-center justify-center shrink-0 text-[var(--text-muted)]">
+                            <Package size={16} />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs sm:text-[0.825rem] font-bold text-[var(--text-primary)] truncate">
+                            {product.name}
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="badge badge-neutral text-[0.55rem]">
+                              {product.category}
+                            </span>
+                            {product.discountPrice && Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.indicativePrice) ? (
+                              <div className="flex items-center gap-1.5 font-mono text-[0.75rem]">
+                                <span className="text-emerald-400 font-bold">
+                                  NRs. {Number(product.discountPrice).toLocaleString()}
+                                </span>
+                                <span className="text-[var(--text-muted)] line-through text-[0.65rem]">
+                                  NRs. {Number(product.indicativePrice).toLocaleString()}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="font-mono text-[0.75rem] text-[var(--text-secondary)] font-semibold">
                                 NRs. {Number(product.indicativePrice).toLocaleString()}
                               </span>
-                            </div>
-                          ) : (
-                            <span className="font-mono text-[0.7rem] text-[var(--text-secondary)] font-semibold">
-                              NRs. {Number(product.indicativePrice).toLocaleString()}
-                            </span>
-                          )}
+                            )}
+                          </div>
                         </div>
+                        <ArrowRight size={14} className="text-[var(--text-muted)] shrink-0" />
                       </div>
-                      <ArrowRight size={12} className="text-[var(--text-muted)] shrink-0" />
-                    </div>
-                  ))}
-                  <button
-                    onClick={handleSearchFormSubmit}
-                    className="w-full py-2.5 px-3 bg-[var(--bg-card)] text-[0.75rem] font-bold text-[var(--text-primary)] flex items-center justify-center gap-1.5 border-0 cursor-pointer"
-                  >
-                    <span>View all results for "{searchQuery}"</span>
-                    <ArrowRight size={12} />
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+                    ))}
+                    <button
+                      onClick={handleSearchFormSubmit}
+                      className="w-full py-2.5 px-3 bg-[var(--bg-card)] border-t border-[var(--border-subtle)] text-xs font-bold text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <span>View all results for "{searchQuery}"</span>
+                      <ArrowRight size={12} />
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

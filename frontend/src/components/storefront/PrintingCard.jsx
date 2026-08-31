@@ -1,5 +1,5 @@
 import React from "react";
-import { MessageSquare, ArrowUpRight, Printer, Star } from "lucide-react";
+import { MessageSquare, ArrowUpRight, Printer, Star, Clock } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function PrintingCard({ service, onViewDetails, onInquire }) {
@@ -100,13 +100,16 @@ export function PrintingCard({ service, onViewDetails, onInquire }) {
 
         {/* Card Footer Actions */}
         <div className="mt-auto pt-2.5 sm:pt-3 flex flex-col xs:flex-row sm:flex-row items-start sm:items-center justify-between gap-2 border-t border-[var(--border-subtle)]">
-          <span
-            className={`text-[0.65rem] sm:text-[0.725rem] font-semibold ${
-              service.isAvailable !== false ? "text-[var(--color-success)]" : "text-[var(--text-muted)]"
-            }`}
-          >
-            ● {service.isAvailable !== false ? service.turnaroundTime || "24-48h" : "Unavailable"}
-          </span>
+          <div className="flex items-center gap-1.5 text-[0.65rem] sm:text-[0.725rem] font-semibold">
+            {service.isAvailable !== false ? (
+              <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium">
+                <Clock size={11} className="shrink-0" />
+                <span>Est. Time: {service.turnaroundTime || "24-48h"}</span>
+              </span>
+            ) : (
+              <span className="text-[var(--text-muted)] font-normal">● Unavailable</span>
+            )}
+          </div>
 
           <div className="flex gap-1 sm:gap-1.5 w-full sm:w-auto">
             <button
