@@ -253,6 +253,31 @@ function AppContent() {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   };
 
+  // Dynamic automatic transition to closed when shop status timer ends
+  const handleStatusAutoClose = async () => {
+    setShopStatus((prev) => {
+      if (!prev) return prev;
+      if (prev.status === "closed" && !prev.isOpen) return prev;
+      return {
+        ...prev,
+        isOpen: false,
+        status: "closed",
+        timerEnabled: false,
+        title: prev.closedTitle || "We're Currently Closed",
+      };
+    });
+
+    try {
+      await api.updateShopStatus({
+        status: "closed",
+        isOpen: false,
+        timerEnabled: false,
+      });
+    } catch (e) {
+      console.warn("Auto-close sync:", e.message);
+    }
+  };
+
   const isAdminView = activePage === "admin";
 
   return (
@@ -304,6 +329,7 @@ function AppContent() {
             shopStatus={shopStatus}
             isStatusLoading={isStatusLoading || !shopStatus}
             onOpenShopClosedModal={() => setShopClosedModalOpen(true)}
+            onStatusAutoClose={handleStatusAutoClose}
           />
 
           <main className="flex-1 min-w-0 w-full">

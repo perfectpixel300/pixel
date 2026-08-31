@@ -36,7 +36,25 @@ const getOrCreateShopStatus = async () => {
 // @route   GET /api/shop-status
 exports.getShopStatus = async (req, res) => {
   try {
-    const status = await getOrCreateShopStatus();
+    let status = await getOrCreateShopStatus();
+
+    // Dynamic timer auto-transition check
+    if (status.timerEnabled && status.timerTarget && new Date() >= new Date(status.timerTarget)) {
+      if (status.timerAction === "close" || status.status === "open" || status.status === "partial") {
+        status.isOpen = false;
+        status.status = "closed";
+        status.timerEnabled = false;
+        if (status.closedTitle) status.title = status.closedTitle;
+        await status.save();
+      } else if (status.timerAction === "reopen" || status.status === "closed") {
+        status.isOpen = true;
+        status.status = "open";
+        status.timerEnabled = false;
+        if (status.openTitle) status.title = status.openTitle;
+        await status.save();
+      }
+    }
+
     res.status(200).json({
       success: true,
       status,

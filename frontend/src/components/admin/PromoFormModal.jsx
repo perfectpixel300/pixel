@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { api } from "../../services/api";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
+import { formatToKathmanduInput, parseKathmanduInputToISO } from "../../utils/timezone";
 
 export function PromoFormModal({
   isOpen,
@@ -48,13 +49,9 @@ export function PromoFormModal({
 
   useEffect(() => {
     if (editingPromo) {
-      let formattedDate = "";
-      if (editingPromo.timerEndDate) {
-        const d = new Date(editingPromo.timerEndDate);
-        if (!isNaN(d.getTime())) {
-          formattedDate = d.toISOString().slice(0, 16);
-        }
-      }
+      const formattedDate = editingPromo.timerEndDate
+        ? formatToKathmanduInput(editingPromo.timerEndDate)
+        : "";
 
       setFormData({
         badge: editingPromo.badge || "Our Philosophy",
@@ -112,27 +109,20 @@ export function PromoFormModal({
         }));
       }
     } catch (err) {
-      console.error("Promo image upload failed:", err);
-      setUploadError(err.message || "Failed to upload image to Cloudinary.");
+      setUploadError(err.message || "Failed to upload image.");
     } finally {
       setUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
   };
 
   const validate = () => {
     const errs = {};
-    const trimmedTitle = formData.title.trim();
-    if (!trimmedTitle) {
-      errs.title = "Headline is required";
+    if (!formData.title || !formData.title.trim()) {
+      errs.title = "Headline title is required";
     }
-
     if (formData.hasTimer && !formData.timerEndDate) {
-      errs.timerEndDate = "Expiration date/time is required when timer is enabled";
+      errs.timerEndDate = "Please select an expiration date & time";
     }
-
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -140,7 +130,11 @@ export function PromoFormModal({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    onSubmit(formData);
+    const payload = {
+      ...formData,
+      timerEndDate: formData.hasTimer ? parseKathmanduInputToISO(formData.timerEndDate) : null,
+    };
+    onSubmit(payload);
   };
 
   return (
@@ -379,10 +373,10 @@ export function PromoFormModal({
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">
-                    Offer Expiration Date & Time *
+                  <label className="form-label flex items-center justify-between">
+                    <span>Expiration Date & Time (Kathmandu / NPT) *</span>
                     {errors.timerEndDate && (
-                      <span className="text-[var(--color-danger)] ml-1 text-xs block">{errors.timerEndDate}</span>
+                      <span className="text-[var(--color-danger)] text-xs">{errors.timerEndDate}</span>
                     )}
                   </label>
                   <input
@@ -391,6 +385,9 @@ export function PromoFormModal({
                     value={formData.timerEndDate}
                     onChange={(e) => setFormData({ ...formData, timerEndDate: e.target.value })}
                   />
+                  <span className="text-[0.65rem] text-[var(--text-muted)] mt-1 block">
+                    Target timezone: Nepal Standard Time (UTC+05:45)
+                  </span>
                 </div>
               </div>
             )}

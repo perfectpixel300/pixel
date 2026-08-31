@@ -11,6 +11,7 @@ import {
   Calendar,
   Info,
 } from "lucide-react";
+import { formatKathmanduDisplay } from "../../utils/timezone";
 
 export function ShopClosedModal({
   isOpen,
@@ -38,8 +39,17 @@ export function ShopClosedModal({
       return;
     }
 
+    const parseTargetDate = (dateStr) => {
+      if (!dateStr) return 0;
+      if (typeof dateStr === "string" && dateStr.includes("T") && !dateStr.includes("+") && !dateStr.endsWith("Z")) {
+        const withSecs = dateStr.length === 16 ? `${dateStr}:00` : dateStr;
+        return new Date(`${withSecs}+05:45`).getTime();
+      }
+      return new Date(dateStr).getTime();
+    };
+
     const calculateTimeLeft = () => {
-      const targetTime = new Date(timerTarget).getTime();
+      const targetTime = parseTargetDate(timerTarget);
       const now = new Date().getTime();
       const difference = targetTime - now;
 
@@ -72,16 +82,7 @@ export function ShopClosedModal({
     window.open(`https://wa.me/9779808950275?text=${text}`, "_blank");
   };
 
-  const formattedTargetDate = timerTarget
-    ? new Date(timerTarget).toLocaleString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-    : null;
+  const formattedTargetDate = timerTarget ? formatKathmanduDisplay(timerTarget) : null;
 
   return (
     <div className="modal-overlay z-[200] p-4 sm:p-6" onClick={onClose}>

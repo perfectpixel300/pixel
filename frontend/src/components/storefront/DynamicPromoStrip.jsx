@@ -17,14 +17,25 @@ export function DynamicPromoStrip({ promoBanners = [], onCtaClick }) {
 
   const currentPromo = activePromos.length > 0 ? activePromos[0] : null;
 
-  // Real-time Countdown Timer logic
+  // Real-time Countdown Timer logic (Kathmandu Timezone NPT / UTC+05:45)
   useEffect(() => {
     if (!currentPromo || !currentPromo.hasTimer || !currentPromo.timerEndDate) {
       return;
     }
 
+    const parseTargetDate = (dateStr) => {
+      if (!dateStr) return 0;
+      if (typeof dateStr === "string" && dateStr.includes("T") && !dateStr.includes("+") && !dateStr.endsWith("Z")) {
+        const withSecs = dateStr.length === 16 ? `${dateStr}:00` : dateStr;
+        return new Date(`${withSecs}+05:45`).getTime();
+      }
+      return new Date(dateStr).getTime();
+    };
+
     const calculateTimeLeft = () => {
-      const difference = new Date(currentPromo.timerEndDate).getTime() - new Date().getTime();
+      const targetTime = parseTargetDate(currentPromo.timerEndDate);
+      const now = new Date().getTime();
+      const difference = targetTime - now;
 
       if (difference <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
@@ -32,9 +43,9 @@ export function DynamicPromoStrip({ promoBanners = [], onCtaClick }) {
       }
 
       const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((difference / 1000 / 60) % 60);
-      const seconds = Math.floor((difference / 1000) % 60);
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
       setTimeLeft({ days, hours, minutes, seconds, isExpired: false });
     };

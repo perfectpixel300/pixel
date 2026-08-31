@@ -34,6 +34,7 @@ export function Navbar({
   shopStatus = { isOpen: true },
   isStatusLoading = false,
   onOpenShopClosedModal,
+  onStatusAutoClose,
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -126,20 +127,40 @@ export function Navbar({
     };
   }, [mobileMenuOpen, isSearchFocused, showStatusPopover]);
 
-  // Real-time ticking for navbar timer chip
+  // Real-time ticking for navbar timer chip (Kathmandu Timezone NPT / UTC+05:45)
   useEffect(() => {
     if (!shopStatus?.timerEnabled || !shopStatus?.timerTarget) {
       setTimerText("");
       return;
     }
 
+    const parseTargetDate = (dateStr) => {
+      if (!dateStr) return 0;
+      if (typeof dateStr === "string" && dateStr.includes("T") && !dateStr.includes("+") && !dateStr.endsWith("Z")) {
+        const withSecs = dateStr.length === 16 ? `${dateStr}:00` : dateStr;
+        return new Date(`${withSecs}+05:45`).getTime();
+      }
+      return new Date(dateStr).getTime();
+    };
+
     const updateTimer = () => {
-      const targetTime = new Date(shopStatus.timerTarget).getTime();
+      const targetTime = parseTargetDate(shopStatus.timerTarget);
       const now = new Date().getTime();
       const difference = targetTime - now;
 
       if (difference <= 0) {
-        setTimerText("Soon");
+        setTimerText("");
+        // Dynamically auto-close if shop is currently open/partial and timer ends
+        if (
+          shopStatus?.status === "open" ||
+          shopStatus?.status === "partial" ||
+          shopStatus?.isOpen !== false ||
+          shopStatus?.timerAction === "close"
+        ) {
+          if (onStatusAutoClose) {
+            onStatusAutoClose();
+          }
+        }
         return;
       }
 
@@ -160,7 +181,7 @@ export function Navbar({
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [shopStatus?.timerEnabled, shopStatus?.timerTarget]);
+  }, [shopStatus?.timerEnabled, shopStatus?.timerTarget, shopStatus?.status, shopStatus?.isOpen, onStatusAutoClose]);
 
   // Click outside status popover
   useEffect(() => {
@@ -420,15 +441,7 @@ export function Navbar({
           ) : (
             <div className="relative" ref={statusPopoverRef}>
               <button
-                onClick={() => {
-                  if (shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)) {
-                    if (onOpenShopClosedModal) onOpenShopClosedModal();
-                  } else if (shopStatus?.status === "partial") {
-                    setShowStatusPopover(!showStatusPopover);
-                  } else {
-                    setShowStatusPopover(!showStatusPopover);
-                  }
-                }}
+                onClick={() => setShowStatusPopover(!showStatusPopover)}
                 className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[0.7rem] sm:text-[0.75rem] font-bold border transition-all cursor-pointer ${
                   shopStatus?.status === "partial"
                     ? "bg-blue-500/15 border-blue-500/40 text-blue-300 hover:bg-blue-500/25"
@@ -441,7 +454,7 @@ export function Navbar({
                     ? "Some services limited / unavailable • Click for schedule & details"
                     : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
                     ? "Store is currently closed • Click to view reopen timer"
-                    : "Store is currently open • Click for operating hours"
+                    : "Store is currently open • Click for operating hours & schedule"
                 }
               >
                 <span className="relative flex h-2 w-2 shrink-0">
@@ -482,13 +495,15 @@ export function Navbar({
                   </>
                 )}
 
-                {/* Countdown text if timer set */}
-                {timerText && (shopStatus?.status === "partial" || shopStatus?.status === "closed" || !shopStatus?.isOpen) && (
+                {/* Countdown text chip if timer set (Shown for Open, Partial, and Closed) */}
+                {timerText && (
                   <span
                     className={`text-[0.625rem] sm:text-[0.675rem] font-mono font-normal opacity-90 border-l pl-1 sm:pl-1.5 flex items-center gap-0.5 ${
                       shopStatus?.status === "partial"
                         ? "border-blue-500/40 text-blue-300"
-                        : "border-red-500/30 text-red-300"
+                        : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
+                        ? "border-red-500/30 text-red-300"
+                        : "border-emerald-500/30 text-emerald-300"
                     }`}
                   >
                     <Clock size={10} />
@@ -497,10 +512,45 @@ export function Navbar({
                 )}
               </button>
 
-              {/* Popover on click for Open / Partial store info (responsive on mobile & desktop) */}
-              {showStatusPopover && (shopStatus?.status === "partial" || shopStatus?.isOpen !== false) && (
-                <div className="fixed top-[68px] left-3 right-3 max-w-[320px] ml-auto sm:ml-0 sm:max-w-none sm:left-auto sm:right-0 sm:absolute sm:top-full mt-2 sm:w-76 p-3.5 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
-                  {shopStatus?.status === "partial" ? (
+              {/* Popover on click for Open / Partial / Closed store info */}
+              {showStatusPopover && (
+                <div className="fixed top-[68px] left-3 right-3 max-w-[320px] ml-auto sm:ml-0 sm:max-w-none sm:left-auto sm:right-0 sm:absolute sm:top-full mt-2 sm:w-80 p-4 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
+                  {shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen) ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
+                        <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-red-400">
+                          {shopStatus?.closedTitle || shopStatus?.title || "Store Currently Closed"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed m-0">
+                        {shopStatus?.closedMessage ||
+                          "We are currently closed for off-hours / maintenance. You can still explore our catalog and submit project inquiries or WhatsApp messages."}
+                      </p>
+                      {timerText && (
+                        <div className="mt-2.5 p-2 rounded bg-red-500/10 border border-red-500/25 flex items-center justify-between text-[0.7rem]">
+                          <span className="text-red-300 flex items-center gap-1 font-semibold">
+                            <Clock size={11} />
+                            <span>{shopStatus?.timerLabel || "Reopening In:"}</span>
+                          </span>
+                          <span className="font-mono font-bold text-red-400">{timerText}</span>
+                        </div>
+                      )}
+                      <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.7rem] text-[var(--text-muted)]">
+                        <span>Storefront Status</span>
+                        <span className="font-mono text-red-400">● Offline / Inquiries Queued</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowStatusPopover(false);
+                          if (onOpenShopClosedModal) onOpenShopClosedModal();
+                        }}
+                        className="w-full mt-3 py-1.5 text-center text-xs font-semibold text-white bg-red-500/20 hover:bg-red-500/30 rounded border border-red-500/30 cursor-pointer transition-colors"
+                      >
+                        View Full Notice & Contacts
+                      </button>
+                    </>
+                  ) : shopStatus?.status === "partial" ? (
                     <>
                       <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
                         <div className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse" />
@@ -525,12 +575,21 @@ export function Navbar({
                         <span>Storefront Status</span>
                         <span className="font-mono text-blue-400">● Selected Services Active</span>
                       </div>
+                      <button
+                        onClick={() => {
+                          setShowStatusPopover(false);
+                          if (onOpenShopClosedModal) onOpenShopClosedModal();
+                        }}
+                        className="w-full mt-3 py-1.5 text-center text-xs font-semibold text-white bg-blue-500/20 hover:bg-blue-500/30 rounded border border-blue-500/30 cursor-pointer transition-colors"
+                      >
+                        View Schedule Notice & Details
+                      </button>
                     </>
                   ) : (
                     <>
                       <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--border-subtle)]">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
                           {shopStatus?.openTitle || "Storefront Live & Operating"}
                         </span>
                       </div>
@@ -538,10 +597,28 @@ export function Navbar({
                         {shopStatus?.openMessage ||
                           "We are currently open and taking orders and consulting inquiries."}
                       </p>
+                      {timerText && (
+                        <div className="mt-2.5 p-2.5 rounded bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-[0.7rem]">
+                          <span className="text-emerald-300 flex items-center gap-1 font-semibold">
+                            <Clock size={11} />
+                            <span>{shopStatus?.timerLabel || "Open For Next:"}</span>
+                          </span>
+                          <span className="font-mono font-bold text-emerald-400">{timerText}</span>
+                        </div>
+                      )}
                       <div className="mt-3 pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between text-[0.7rem] text-[var(--text-muted)]">
                         <span>Inquiries Active</span>
                         <span className="font-mono text-emerald-400">● 100% Online</span>
                       </div>
+                      <button
+                        onClick={() => {
+                          setShowStatusPopover(false);
+                          if (onOpenShopClosedModal) onOpenShopClosedModal();
+                        }}
+                        className="w-full mt-3 py-1.5 text-center text-xs font-semibold text-white bg-emerald-500/20 hover:bg-emerald-500/30 rounded border border-emerald-500/30 cursor-pointer transition-colors"
+                      >
+                        View Operating Notice
+                      </button>
                     </>
                   )}
                 </div>

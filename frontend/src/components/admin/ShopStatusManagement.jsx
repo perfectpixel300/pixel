@@ -14,6 +14,7 @@ import {
   Zap,
   Info,
 } from "lucide-react";
+import { formatToKathmanduInput, parseKathmanduInputToISO, formatKathmanduDisplay } from "../../utils/timezone";
 
 export function ShopStatusManagement({
   shopStatus,
@@ -50,17 +51,9 @@ export function ShopStatusManagement({
   // Sync state with incoming shopStatus prop
   useEffect(() => {
     if (shopStatus) {
-      let localDatetimeStr = "";
-      if (shopStatus.timerTarget) {
-        try {
-          const date = new Date(shopStatus.timerTarget);
-          if (!isNaN(date.getTime())) {
-            const offset = date.getTimezoneOffset() * 60000;
-            const localISODate = new Date(date.getTime() - offset).toISOString().slice(0, 16);
-            localDatetimeStr = localISODate;
-          }
-        } catch {}
-      }
+      const localDatetimeStr = shopStatus.timerTarget
+        ? formatToKathmanduInput(shopStatus.timerTarget)
+        : "";
 
       const currentStatus =
         shopStatus.status || (shopStatus.isOpen !== false ? "open" : "closed");
@@ -150,25 +143,34 @@ export function ShopStatusManagement({
     return () => clearInterval(interval);
   }, [formData.timerEnabled, formData.timerTarget]);
 
-  // Preset helper for quick timer dates
+  // Preset helper for quick timer dates in Kathmandu time
   const applyPreset = (hoursOffset, fixedHour = null) => {
     const now = new Date();
     let target = new Date(now.getTime() + hoursOffset * 60 * 60 * 1000);
 
     if (fixedHour !== null) {
-      target.setHours(fixedHour, 0, 0, 0);
-      if (target.getTime() <= now.getTime()) {
-        target = new Date(target.getTime() + 24 * 60 * 60 * 1000);
+      const nptDateStr = formatToKathmanduInput(now);
+      const datePart = nptDateStr.split("T")[0];
+      const hourStr = String(fixedHour).padStart(2, "0");
+      let targetNptStr = `${datePart}T${hourStr}:00`;
+      let targetISO = parseKathmanduInputToISO(targetNptStr);
+      if (targetISO && new Date(targetISO).getTime() <= now.getTime()) {
+        const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const tomorrowPart = formatToKathmanduInput(tomorrow).split("T")[0];
+        targetNptStr = `${tomorrowPart}T${hourStr}:00`;
       }
+      setFormData((prev) => ({
+        ...prev,
+        timerEnabled: true,
+        timerTarget: targetNptStr,
+      }));
+      return;
     }
-
-    const offset = target.getTimezoneOffset() * 60000;
-    const localISODate = new Date(target.getTime() - offset).toISOString().slice(0, 16);
 
     setFormData((prev) => ({
       ...prev,
       timerEnabled: true,
-      timerTarget: localISODate,
+      timerTarget: formatToKathmanduInput(target),
     }));
   };
 
@@ -211,7 +213,7 @@ export function ShopStatusManagement({
         timerEnabled: Boolean(formData.timerEnabled),
         timerTarget:
           formData.timerEnabled && formData.timerTarget
-            ? new Date(formData.timerTarget).toISOString()
+            ? parseKathmanduInputToISO(formData.timerTarget)
             : null,
         showPopupWhenOpen: Boolean(formData.showPopupWhenOpen),
         showPopupWhenClosed: Boolean(formData.showPopupWhenClosed),
