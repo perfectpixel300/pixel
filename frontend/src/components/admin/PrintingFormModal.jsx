@@ -101,7 +101,7 @@ export function PrintingFormModal({
       setFormData({
         name: "",
         slug: "",
-        category: DEFAULT_CATEGORIES[0],
+        category: availableCategories[0] || "",
         customCategory: "",
         shortDescription: "",
         description: "",
