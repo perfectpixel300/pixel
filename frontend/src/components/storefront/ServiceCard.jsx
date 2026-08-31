@@ -85,7 +85,7 @@ export function ServiceCard({ service, onViewDetails, onInquire }) {
         </div>
 
         {/* Pricing in NRs & Delivery Time */}
-        <div className="pt-2.5 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto">
+        <div className="pt-2.5 flex justify-between items-baseline border-t border-[var(--border-subtle)] mt-auto gap-2 flex-wrap">
           <div>
             <span className="text-[0.65rem] text-[var(--text-muted)] uppercase tracking-wider block">
               {service.priceType === "hourly"
@@ -94,16 +94,16 @@ export function ServiceCard({ service, onViewDetails, onInquire }) {
                 ? "Fixed Investment"
                 : "Starting From"}
             </span>
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex items-baseline gap-2 flex-wrap mt-0.5">
               <span
-                className={`font-mono text-base font-bold ${
+                className={`font-mono text-base font-bold whitespace-nowrap ${
                   hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"
                 }`}
               >
                 NRs. {activePrice.toLocaleString()}
               </span>
               {hasDiscount && (
-                <span className="font-mono text-xs text-[var(--text-muted)] line-through">
+                <span className="font-mono text-xs text-[var(--text-muted)] line-through whitespace-nowrap">
                   NRs. {regPrice.toLocaleString()}
                 </span>
               )}

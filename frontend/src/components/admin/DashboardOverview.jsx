@@ -398,12 +398,12 @@ export function DashboardOverview({
               <div className="text-[0.7rem] text-[var(--text-muted)] uppercase font-semibold">
                 Estimated Inventory Profit
               </div>
-              <div className="flex items-center justify-between gap-2 mt-0.5">
-                <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight">
+              <div className="flex items-baseline justify-between gap-2 mt-1 flex-wrap">
+                <div className="text-xl sm:text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight whitespace-nowrap">
                   NRs. {productEstimatedProfit.toLocaleString()}
                 </div>
-                <span className="badge badge-success text-[0.68rem] font-bold font-mono px-2 py-0.5">
-                  +{productProfitMargin}% Margin
+                <span className="badge badge-success text-[0.68rem] font-bold font-mono px-2 py-0.5 shrink-0 whitespace-nowrap">
+                  {Number(productProfitMargin) > 0 ? `+${productProfitMargin}%` : `${productProfitMargin}%`} Margin
                 </span>
               </div>
 
@@ -446,12 +446,12 @@ export function DashboardOverview({
               <div className="text-[0.7rem] text-[var(--text-muted)] uppercase font-semibold">
                 Estimated Printing Profit
               </div>
-              <div className="flex items-center justify-between gap-2 mt-0.5">
-                <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight">
+              <div className="flex items-baseline justify-between gap-2 mt-1 flex-wrap">
+                <div className="text-xl sm:text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight whitespace-nowrap">
                   NRs. {printingEstimatedProfit.toLocaleString()}
                 </div>
-                <span className="badge badge-success text-[0.68rem] font-bold font-mono px-2 py-0.5">
-                  +{printingProfitMargin}% Margin
+                <span className="badge badge-success text-[0.68rem] font-bold font-mono px-2 py-0.5 shrink-0 whitespace-nowrap">
+                  {Number(printingProfitMargin) > 0 ? `+${printingProfitMargin}%` : `${printingProfitMargin}%`} Margin
                 </span>
               </div>
 
@@ -494,12 +494,12 @@ export function DashboardOverview({
               <div className="text-[0.7rem] text-[var(--text-muted)] uppercase font-semibold">
                 Estimated Services Profit
               </div>
-              <div className="flex items-center justify-between gap-2 mt-0.5">
-                <div className="text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight">
+              <div className="flex items-baseline justify-between gap-2 mt-1 flex-wrap">
+                <div className="text-xl sm:text-2xl font-black font-mono text-[var(--text-primary)] tracking-tight whitespace-nowrap">
                   NRs. {itEstimatedProfit.toLocaleString()}
                 </div>
-                <span className="badge badge-success text-[0.68rem] font-bold font-mono px-2 py-0.5">
-                  +{itProfitMargin}% Margin
+                <span className="badge badge-success text-[0.68rem] font-bold font-mono px-2 py-0.5 shrink-0 whitespace-nowrap">
+                  {Number(itProfitMargin) > 0 ? `+${itProfitMargin}%` : `${itProfitMargin}%`} Margin
                 </span>
               </div>
 

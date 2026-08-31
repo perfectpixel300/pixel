@@ -449,21 +449,22 @@ export function PrintingPage({
                   <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
                     Investment ({selectedServiceDetail.priceUnit || "per piece"})
                   </span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
-                      NRs.{" "}
-                      {(
-                        selectedServiceDetail.discountPrice && Number(selectedServiceDetail.discountPrice) > 0
-                          ? Number(selectedServiceDetail.discountPrice)
-                          : Number(selectedServiceDetail.indicativePrice)
-                      ).toLocaleString()}
-                    </span>
-                    {selectedServiceDetail.discountPrice && Number(selectedServiceDetail.discountPrice) > 0 && (
+                  {selectedServiceDetail.discountPrice &&
+                  Number(selectedServiceDetail.discountPrice) > 0 &&
+                  Number(selectedServiceDetail.discountPrice) < Number(selectedServiceDetail.indicativePrice) ? (
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="font-mono text-xl font-extrabold text-emerald-400">
+                        NRs. {Number(selectedServiceDetail.discountPrice).toLocaleString()}
+                      </span>
                       <span className="font-mono text-xs text-[var(--text-muted)] line-through">
                         NRs. {Number(selectedServiceDetail.indicativePrice).toLocaleString()}
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
+                      NRs. {Number(selectedServiceDetail.indicativePrice).toLocaleString()}
+                    </span>
+                  )}
                 </div>
 
                 <div className="text-right">

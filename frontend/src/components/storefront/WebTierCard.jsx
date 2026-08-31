@@ -79,16 +79,16 @@ export function WebTierCard({
         <span className="text-[0.675rem] uppercase font-bold tracking-wider text-[var(--text-muted)]">
           {tier.priceType === "starting_at" ? "Starting From" : tier.priceType === "hourly" ? "Hourly Rate" : "Package Investment"}
         </span>
-        <div className="flex items-baseline gap-2 mt-1">
-          <span className={`font-mono text-3xl sm:text-4xl font-extrabold tracking-tight ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
+        <div className="flex items-baseline gap-2 mt-1 flex-wrap">
+          <span className={`font-mono text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight whitespace-nowrap ${hasDiscount ? "text-emerald-400" : "text-[var(--text-primary)]"}`}>
             NRs. {activePrice.toLocaleString()}
           </span>
           {hasDiscount && (
-            <span className="font-mono text-sm text-[var(--text-muted)] line-through">
+            <span className="font-mono text-sm sm:text-base text-[var(--text-muted)] line-through whitespace-nowrap">
               NRs. {regPrice.toLocaleString()}
             </span>
           )}
-          <span className="text-[0.75rem] text-[var(--text-muted)] font-mono">
+          <span className="text-[0.75rem] text-[var(--text-muted)] font-mono whitespace-nowrap">
             NPR
           </span>
         </div>

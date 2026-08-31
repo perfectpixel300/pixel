@@ -37,18 +37,18 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
         )}
 
         {/* Top Badges */}
-        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex justify-between items-center gap-1">
-          <span className="badge badge-dark backdrop-blur-sm text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 truncate max-w-[110px]">
+        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex justify-between items-center gap-1.5 flex-wrap pointer-events-none">
+          <span className="badge badge-dark backdrop-blur-sm text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 truncate max-w-[120px]">
             {product.category}
           </span>
           <div className="flex items-center gap-1">
             {hasDiscount && discountPercent > 0 && (
-              <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 shadow-sm">
+              <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 shadow-sm whitespace-nowrap">
                 {discountPercent}% OFF
               </span>
             )}
             {product.featured && (
-              <span className="badge badge-white text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1">
+              <span className="badge badge-white text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 whitespace-nowrap">
                 Featured
               </span>
             )}
@@ -63,21 +63,22 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
       </div>
 
       {/* Info Body */}
-      <div className="p-3 sm:p-5 flex flex-col gap-1.5 sm:gap-2 flex-1">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-2.5">
+      <div className="p-3.5 sm:p-5 flex flex-col gap-2 flex-1">
+        <div>
           <h3
             onClick={() => onViewDetails(product)}
-            className="text-xs sm:text-base font-bold m-0 leading-snug cursor-pointer hover:text-zinc-400 transition-colors capitalize line-clamp-1 sm:line-clamp-2 sm:min-h-[44px] flex-1"
+            className="text-xs sm:text-base font-bold m-0 leading-snug cursor-pointer hover:text-zinc-400 transition-colors capitalize line-clamp-2 min-h-[34px] sm:min-h-[44px]"
           >
             {product.name}
           </h3>
-          <div className="flex flex-col items-start sm:items-end shrink-0">
+
+          <div className="mt-2 flex items-baseline gap-2 flex-wrap">
             {hasDiscount ? (
               <>
                 <span className="font-bold font-mono text-xs sm:text-[0.95rem] whitespace-nowrap text-emerald-400">
                   NRs. {discPrice.toLocaleString()}
                 </span>
-                <span className="text-[0.625rem] sm:text-[0.7rem] text-[var(--text-muted)] line-through font-mono">
+                <span className="text-[0.625rem] sm:text-[0.725rem] text-[var(--text-muted)] line-through font-mono whitespace-nowrap">
                   NRs. {regPrice.toLocaleString()}
                 </span>
               </>
