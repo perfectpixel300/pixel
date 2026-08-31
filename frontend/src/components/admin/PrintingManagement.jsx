@@ -3,15 +3,6 @@ import { Search, Plus, List, LayoutGrid, Star, Edit2, Trash2, Printer, Coins, Tr
 import { CategoryDropdown } from "../common/CategoryDropdown";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
-const DEFAULT_PRINTING_CATEGORIES = [
-  "Fine Art & Giclée",
-  "Technical & CAD",
-  "Document & Bookbinding",
-  "Large Format & Signage",
-  "Commercial & Corporate",
-  "Packaging & Labels",
-];
-
 export function PrintingManagement({
   printingServices = [],
   printingCategories = [],
@@ -28,11 +19,10 @@ export function PrintingManagement({
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [viewMode, setViewMode] = useState("table");
 
-  // Derive all unique categories from printingCategories, existing services and defaults
+  // Derive all unique categories dynamically
   const allCategories = Array.from(
     new Set([
       ...(printingCategories || []).map((c) => (typeof c === "string" ? c : c.name)).filter(Boolean),
-      ...DEFAULT_PRINTING_CATEGORIES,
       ...printingServices.map((s) => s.category).filter(Boolean),
     ])
   );

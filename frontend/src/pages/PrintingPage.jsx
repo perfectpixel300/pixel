@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Printer,
   Sparkles,
@@ -15,33 +15,34 @@ import {
   Compass,
   Star,
   Info,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
 import { PrintingCard } from "../components/storefront/PrintingCard";
 
-const DEFAULT_PRINTING_CATEGORIES = [
-  "Fine Art & Giclée",
-  "Technical & CAD",
-  "Document & Bookbinding",
-  "Large Format & Signage",
-  "Commercial & Corporate",
-  "Packaging & Labels",
-];
-
 export function PrintingPage({
   printingServices = [],
+  printingCategories = [],
   onInquirePrinting,
   onNavigate,
 }) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
 
-  // Derive unique categories
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, searchTerm]);
+
+  // Derive unique categories dynamically
   const allCategories = Array.from(
     new Set([
-      ...DEFAULT_PRINTING_CATEGORIES,
+      ...(printingCategories || []).map((c) => (typeof c === "string" ? c : c.name)),
       ...printingServices.map((s) => s.category).filter(Boolean),
     ])
   );
@@ -66,6 +67,22 @@ export function PrintingPage({
 
     return true;
   });
+
+  const totalPages = Math.ceil(filteredServices.length / ITEMS_PER_PAGE) || 1;
+  const paginatedServices = filteredServices.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    const el = document.getElementById("printing-catalog-grid");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 400, behavior: "smooth" });
+    }
+  };
 
   const handleOpenWhatsApp = (title, price, priceUnit) => {
     const text = encodeURIComponent(
@@ -187,35 +204,114 @@ export function PrintingPage({
         {/* =========================================================================
             PRINTING SERVICES GRID
             ========================================================================= */}
-        {filteredServices.length === 0 ? (
-          <div className="p-18 text-center border border-dashed border-[var(--border-medium)] rounded-[var(--radius-lg)]">
-            <Printer size={36} className="text-[var(--text-muted)] mb-3 mx-auto" />
-            <h3 className="text-lg font-bold">No printing services found</h3>
-            <p className="text-[var(--text-muted)] text-[0.85rem] mt-1">
-              Try selecting a different category or resetting your search filter.
-            </p>
-            <button
-              onClick={() => {
-                setSelectedCategory("All");
-                setSearchTerm("");
-              }}
-              className="btn btn-secondary btn-sm mt-4"
-            >
-              View All Services
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
-            {filteredServices.map((service) => (
-              <PrintingCard
-                key={service._id}
-                service={service}
-                onViewDetails={(s) => setSelectedServiceDetail(s)}
-                onInquire={(s) => handleInquire(s)}
-              />
-            ))}
-          </div>
-        )}
+        <div id="printing-catalog-grid">
+          {filteredServices.length === 0 ? (
+            <div className="p-18 text-center border border-dashed border-[var(--border-medium)] rounded-[var(--radius-lg)]">
+              <Printer size={36} className="text-[var(--text-muted)] mb-3 mx-auto" />
+              <h3 className="text-lg font-bold">No printing services found</h3>
+              <p className="text-[var(--text-muted)] text-[0.85rem] mt-1">
+                Try selecting a different category or resetting your search filter.
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedCategory("All");
+                  setSearchTerm("");
+                }}
+                className="btn btn-secondary btn-sm mt-4"
+              >
+                View All Services
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
+                {paginatedServices.map((service) => (
+                  <PrintingCard
+                    key={service._id}
+                    service={service}
+                    onViewDetails={(s) => setSelectedServiceDetail(s)}
+                    onInquire={(s) => handleInquire(s)}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-12 pt-8 border-t border-[var(--border-subtle)]">
+                  <span className="text-xs sm:text-sm text-[var(--text-muted)] order-2 sm:order-1">
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredServices.length)} of{" "}
+                    <strong className="text-[var(--text-primary)]">{filteredServices.length}</strong> printing services
+                  </span>
+
+                  <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className={`btn-icon btn-secondary !w-9 !h-9 !rounded-full ${
+                        currentPage === 1
+                          ? "opacity-30 cursor-not-allowed"
+                          : "cursor-pointer hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)]"
+                      }`}
+                      aria-label="Previous Page"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+
+                    {Array.from({ length: totalPages }).map((_, idx) => {
+                      const pageNumber = idx + 1;
+                      const isActive = currentPage === pageNumber;
+
+                      // Compress long pagination lists
+                      if (
+                        totalPages > 7 &&
+                        pageNumber !== 1 &&
+                        pageNumber !== totalPages &&
+                        Math.abs(pageNumber - currentPage) > 1
+                      ) {
+                        if (pageNumber === 2 || pageNumber === totalPages - 1) {
+                          return (
+                            <span key={pageNumber} className="text-[var(--text-muted)] px-1">
+                              …
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <button
+                          key={pageNumber}
+                          onClick={() => handlePageChange(pageNumber)}
+                          className={`!w-9 !h-9 !rounded-full font-mono text-xs sm:text-sm font-bold transition-all border cursor-pointer ${
+                            isActive
+                              ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] border-[var(--btn-primary-bg)] shadow-sm"
+                              : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] border-[var(--border-medium)] hover:bg-[var(--bg-input-focus)] hover:text-[var(--text-primary)]"
+                          }`}
+                        >
+                          {pageNumber}
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage >= totalPages}
+                      className={`btn-icon btn-secondary !w-9 !h-9 !rounded-full ${
+                        currentPage >= totalPages
+                          ? "opacity-30 cursor-not-allowed"
+                          : "cursor-pointer hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)]"
+                      }`}
+                      aria-label="Next Page"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* =========================================================================
             TECHNICAL PRINT & MATERIAL SPECIFICATION GUIDE

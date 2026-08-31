@@ -341,6 +341,7 @@ function AppContent() {
             {activePage === "printing" && (
               <PrintingPage
                 printingServices={printingServices}
+                printingCategories={printingCategories}
                 onInquirePrinting={handleOpenPrintingInquiry}
                 onNavigate={setActivePage}
               />

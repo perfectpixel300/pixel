@@ -3,15 +3,6 @@ import { X, Plus, Trash2, Printer, UploadCloud, Loader2 } from "lucide-react";
 import { api } from "../../services/api";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
-const DEFAULT_CATEGORIES = [
-  "Fine Art & Giclée",
-  "Technical & CAD",
-  "Document & Bookbinding",
-  "Large Format & Signage",
-  "Commercial & Corporate",
-  "Packaging & Labels",
-];
-
 export function PrintingFormModal({
   isOpen,
   onClose,
@@ -23,16 +14,17 @@ export function PrintingFormModal({
   const fileInputRef = useRef(null);
 
   const availableCategories = Array.from(
-    new Set([
-      ...(printingCategories || []).map((c) => (typeof c === "string" ? c : c.name)).filter(Boolean),
-      ...DEFAULT_CATEGORIES,
-    ])
+    new Set(
+      (printingCategories || [])
+        .map((c) => (typeof c === "string" ? c : c.name))
+        .filter(Boolean)
+    )
   );
 
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
-    category: availableCategories[0] || DEFAULT_CATEGORIES[0],
+    category: availableCategories[0] || "",
     customCategory: "",
     shortDescription: "",
     description: "",

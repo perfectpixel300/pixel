@@ -31,15 +31,6 @@ import { CategoryDropdown } from "../components/common/CategoryDropdown";
 import { WebTierCard } from "../components/storefront/WebTierCard";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 
-const DEFAULT_IT_CATEGORIES = [
-  "Mobile Development",
-  "UI/UX Design",
-  "Cloud & DevOps",
-  "Cybersecurity",
-  "AI & Automation",
-  "IT Consulting",
-];
-
 // Helper to map icon string to Lucide React component
 export const getServiceIcon = (iconName, size = 20, className = "") => {
   switch (iconName?.toLowerCase()) {
@@ -97,13 +88,13 @@ export function ServicesPage({
     .filter((s) => s.isWebDevPackage && s.isActive)
     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || (a.price || 0) - (b.price || 0));
 
-  // 2. Filter ONLY Other general IT services (strictly keeping Web Development apart)
-  const itCategories =
-    serviceCategories && serviceCategories.length > 0
-      ? serviceCategories
-          .map((c) => (typeof c === "string" ? c : c.name))
-          .filter((c) => c !== "Web Development")
-      : DEFAULT_IT_CATEGORIES;
+  // 2. Filter ONLY Other general IT services dynamically
+  const itCategories = Array.from(
+    new Set([
+      ...(serviceCategories || []).map((c) => (typeof c === "string" ? c : c.name)),
+      ...(services || []).map((s) => s.category).filter(Boolean),
+    ])
+  ).filter((c) => c !== "Web Development");
 
   const otherItServices = services.filter((s) => {
     if (s.isWebDevPackage || !s.isActive) return false;

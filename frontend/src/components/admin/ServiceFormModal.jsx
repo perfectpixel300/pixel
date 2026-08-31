@@ -2,16 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, Plus, Trash2, UploadCloud, Loader2 } from "lucide-react";
 import { api } from "../../services/api";
 
-const DEFAULT_SERVICE_CATEGORIES = [
-  "Web Development",
-  "Mobile Development",
-  "UI/UX Design",
-  "Cloud & DevOps",
-  "Cybersecurity",
-  "AI & Automation",
-  "IT Consulting",
-];
-
 const ICON_OPTIONS = [
   { label: "Code / Full-Stack", value: "Code" },
   { label: "Globe / Web", value: "Globe" },
@@ -34,11 +24,11 @@ export function ServiceFormModal({
 }) {
   const fileInputRef = useRef(null);
 
-  // Normalize category options
+  // Normalize category options dynamically
   const categoryOptions =
     serviceCategories && serviceCategories.length > 0
-      ? serviceCategories.map((c) => (typeof c === "string" ? c : c.name))
-      : DEFAULT_SERVICE_CATEGORIES;
+      ? serviceCategories.map((c) => (typeof c === "string" ? c : c.name)).filter(Boolean)
+      : [];
 
   // Make sure editing service category is in options if not present
   if (editingService?.category && !categoryOptions.includes(editingService.category)) {

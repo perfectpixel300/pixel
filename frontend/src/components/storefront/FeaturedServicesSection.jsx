@@ -21,18 +21,16 @@ export function FeaturedServicesSection({
   const featuredServices = nonWebServices.filter((s) => s.isFeatured || s.featured);
   const displayItems = featuredServices.length > 0 ? featuredServices : nonWebServices;
 
-  // Responsive items per view (matching products section: 2 on mobile, 2 on sm, 3 on lg, 4 on xl)
+  // Responsive items per view (3 on desktop, 2 on tablet, 1 on mobile)
   const updateItemsPerView = useCallback(() => {
     if (typeof window === "undefined") return;
     const width = window.innerWidth;
-    if (width >= 1280) {
-      setItemsPerView(4);
-    } else if (width >= 1024) {
+    if (width >= 1024) {
       setItemsPerView(3);
     } else if (width >= 640) {
       setItemsPerView(2);
     } else {
-      setItemsPerView(2);
+      setItemsPerView(1);
     }
   }, []);
 

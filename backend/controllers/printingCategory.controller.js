@@ -1,15 +1,6 @@
 const PrintingCategory = require("../models/printingCategory.model");
 const PrintingService = require("../models/printingService.model");
 
-const DEFAULT_PRINTING_CATEGORIES = [
-  { name: "Fine Art & Giclée", description: "Archival quality printing with pigment inks", icon: "Palette", displayOrder: 1 },
-  { name: "Technical & CAD", description: "High-precision architectural line drawings and schematics", icon: "Cpu", displayOrder: 2 },
-  { name: "Document & Bookbinding", description: "Reports, hardbound theses, spiral bound presentations", icon: "Layers", displayOrder: 3 },
-  { name: "Large Format & Signage", description: "Vinyl banners, rigid foam boards, roll-up flex stands", icon: "Sparkles", displayOrder: 4 },
-  { name: "Commercial & Corporate", description: "Business cards, premium stationery, brochures", icon: "Printer", displayOrder: 5 },
-  { name: "Packaging & Labels", description: "Die-cut stickers, product labels, custom box packaging", icon: "Zap", displayOrder: 6 },
-];
-
 const generateSlug = (name) => {
   return name
     .toLowerCase()
@@ -23,22 +14,7 @@ const generateSlug = (name) => {
 // @route   GET /api/printing-categories
 exports.getPrintingCategories = async (req, res) => {
   try {
-    let categories = await PrintingCategory.find().sort({ displayOrder: 1, name: 1 });
-
-    // If no categories in DB, seed defaults automatically
-    if (categories.length === 0) {
-      try {
-        const seedPayload = DEFAULT_PRINTING_CATEGORIES.map((cat) => ({
-          ...cat,
-          slug: generateSlug(cat.name),
-          isActive: true,
-        }));
-        await PrintingCategory.insertMany(seedPayload);
-        categories = await PrintingCategory.find().sort({ displayOrder: 1, name: 1 });
-      } catch (seedErr) {
-        console.warn("Auto-seed printing categories warning:", seedErr.message);
-      }
-    }
+    const categories = await PrintingCategory.find().sort({ displayOrder: 1, name: 1 });
 
     // Aggregate printing services counts per category
     const serviceCounts = await PrintingService.aggregate([

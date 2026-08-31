@@ -17,15 +17,6 @@ import {
 import { CategoryDropdown } from "../common/CategoryDropdown";
 import { getServiceIcon } from "../../pages/ServicesPage";
 
-const DEFAULT_IT_CATEGORIES = [
-  "Mobile Development",
-  "UI/UX Design",
-  "Cloud & DevOps",
-  "Cybersecurity",
-  "AI & Automation",
-  "IT Consulting",
-];
-
 export function ServicesManagement({
   services = [],
   serviceCategories = [],
@@ -42,12 +33,12 @@ export function ServicesManagement({
   const [sortBy, setSortBy] = useState("order_asc");
 
   // Non-web development categories (dynamic)
-  const itCategories =
-    serviceCategories && serviceCategories.length > 0
-      ? serviceCategories
-          .map((c) => (typeof c === "string" ? c : c.name))
-          .filter((c) => c !== "Web Development")
-      : DEFAULT_IT_CATEGORIES;
+  const itCategories = Array.from(
+    new Set([
+      ...(serviceCategories || []).map((c) => (typeof c === "string" ? c : c.name)),
+      ...(services || []).map((s) => s.category).filter(Boolean),
+    ])
+  ).filter((c) => c !== "Web Development");
 
   // Filter only general IT services (strictly keeping Web Development 3-tier packages apart)
   const itServices = services.filter((s) => !s.isWebDevPackage);
