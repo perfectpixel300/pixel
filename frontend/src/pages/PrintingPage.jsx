@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Printer,
   Sparkles,
@@ -17,22 +18,65 @@ import {
   Info,
   ChevronLeft,
   ChevronRight,
+  Share2,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
 import { PrintingCard } from "../components/storefront/PrintingCard";
+import { ShareModal } from "../components/common/ShareModal";
+import { api } from "../services/api";
 
 export function PrintingPage({
   printingServices = [],
   printingCategories = [],
+  initialPrintingSlugOrId: propPrintingIdOrSlug,
   onInquirePrinting,
   onNavigate,
 }) {
+  const params = useParams();
+  const navigate = useNavigate();
+  const printingIdOrSlug = propPrintingIdOrSlug || params?.idOrSlug || params?.slug || params?.id;
+
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
+  const [sharePrintingModalOpen, setSharePrintingModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
+
+  // Sync printing service detail from URL
+  useEffect(() => {
+    if (printingIdOrSlug) {
+      const found = (printingServices || []).find(
+        (s) => s._id === printingIdOrSlug || s.slug === printingIdOrSlug
+      );
+      if (found) {
+        setSelectedServiceDetail(found);
+      } else {
+        let isMounted = true;
+        api.getPrintingServiceById(printingIdOrSlug).then((res) => {
+          if (isMounted && res && (res.printingService || res.service)) {
+            setSelectedServiceDetail(res.printingService || res.service);
+          }
+        }).catch(() => {});
+        return () => {
+          isMounted = false;
+        };
+      }
+    }
+  }, [printingIdOrSlug, printingServices]);
+
+  const handleCloseDetail = () => {
+    setSelectedServiceDetail(null);
+    if (printingIdOrSlug) {
+      navigate("/printing", { replace: true });
+    }
+  };
+
+  const handleViewPrinting = (service) => {
+    setSelectedServiceDetail(service);
+    navigate(`/printing/${service.slug || service._id}`);
+  };
 
   // Reset to page 1 whenever filters change
   useEffect(() => {
@@ -229,7 +273,7 @@ export function PrintingPage({
                   <PrintingCard
                     key={service._id}
                     service={service}
-                    onViewDetails={(s) => setSelectedServiceDetail(s)}
+                    onViewDetails={(s) => handleViewPrinting(s)}
                     onInquire={(s) => handleInquire(s)}
                   />
                 ))}
@@ -412,7 +456,7 @@ export function PrintingPage({
           SERVICE DETAIL FULL MODAL
           ========================================================================= */}
       {selectedServiceDetail && (
-        <div className="modal-overlay" onClick={() => setSelectedServiceDetail(null)}>
+        <div className="modal-overlay" onClick={handleCloseDetail}>
           <div className="modal-card max-w-[680px]" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="flex items-center gap-2.5">
@@ -422,16 +466,29 @@ export function PrintingPage({
                 <div>
                   <h3 className="text-base font-bold m-0">{selectedServiceDetail.name}</h3>
                   <span className="badge badge-neutral text-[0.6rem] mt-0.5">
-                    {selectedServiceDetail.category}
+                    {selectedServiceDetail.category || "Printing Service"}
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedServiceDetail(null)}
-                className="btn-icon btn-ghost"
-              >
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSharePrintingModalOpen(true);
+                  }}
+                  className="btn btn-secondary btn-sm gap-1 !px-2.5 !py-1 text-xs"
+                  title="Share this printing service"
+                >
+                  <Share2 size={13} />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={handleCloseDetail}
+                  className="btn-icon btn-ghost"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             <div className="modal-body flex flex-col gap-5">
@@ -561,25 +618,35 @@ export function PrintingPage({
               )}
             </div>
 
-            <div className="modal-footer">
-              <button
-                onClick={() =>
-                  handleOpenWhatsApp(
-                    selectedServiceDetail.name,
-                    selectedServiceDetail.discountPrice || selectedServiceDetail.indicativePrice,
-                    selectedServiceDetail.priceUnit
-                  )
-                }
-                className="btn btn-secondary btn-sm gap-1.5"
-              >
-                <MessageCircle size={14} />
-                <span>WhatsApp</span>
-              </button>
+            <div className="modal-footer flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSharePrintingModalOpen(true)}
+                  className="btn btn-secondary btn-sm gap-1.5"
+                  title="Share this printing service"
+                >
+                  <Share2 size={14} />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={() =>
+                    handleOpenWhatsApp(
+                      selectedServiceDetail.name,
+                      selectedServiceDetail.discountPrice || selectedServiceDetail.indicativePrice,
+                      selectedServiceDetail.priceUnit
+                    )
+                  }
+                  className="btn btn-secondary btn-sm gap-1.5"
+                >
+                  <MessageCircle size={14} />
+                  <span>WhatsApp</span>
+                </button>
+              </div>
 
               <button
                 onClick={() => {
                   const s = selectedServiceDetail;
-                  setSelectedServiceDetail(null);
+                  handleCloseDetail();
                   handleInquire(s);
                 }}
                 className="btn btn-primary btn-sm gap-1.5"
@@ -590,6 +657,20 @@ export function PrintingPage({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Printing Service Share Modal */}
+      {selectedServiceDetail && (
+        <ShareModal
+          isOpen={sharePrintingModalOpen}
+          onClose={() => setSharePrintingModalOpen(false)}
+          title={selectedServiceDetail.name}
+          url={`/printing/${selectedServiceDetail.slug || selectedServiceDetail._id}`}
+          description={selectedServiceDetail.shortDescription || selectedServiceDetail.description}
+          image={selectedServiceDetail.images && selectedServiceDetail.images.length > 0 ? selectedServiceDetail.images[0] : ""}
+          price={selectedServiceDetail.discountPrice || selectedServiceDetail.indicativePrice}
+          category={selectedServiceDetail.category || "Printing Service"}
+        />
       )}
     </div>
   );

@@ -1,11 +1,21 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight, Layers } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function CategoryGrid({ categories = [], onSelectCategory }) {
+  const navigate = useNavigate();
+
   if (!categories || categories.length === 0) {
     return null;
   }
+
+  const handleCategoryClick = (catName) => {
+    if (onSelectCategory) {
+      onSelectCategory(catName);
+    }
+    navigate(`/products?category=${encodeURIComponent(catName)}`);
+  };
 
   return (
     <section className="py-22 border-b border-[var(--border-subtle)]">
@@ -28,7 +38,7 @@ export function CategoryGrid({ categories = [], onSelectCategory }) {
           {categories.map((cat) => (
             <div
               key={cat._id || cat.name}
-              onClick={() => onSelectCategory(cat.name)}
+              onClick={() => handleCategoryClick(cat.name)}
               className="h-40 sm:h-56 md:h-[260px] relative rounded-[var(--radius-md)] overflow-hidden cursor-pointer border border-[var(--border-subtle)] bg-[var(--bg-card)] group"
             >
               {/* Background Image */}

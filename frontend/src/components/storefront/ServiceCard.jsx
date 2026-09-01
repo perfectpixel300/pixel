@@ -1,9 +1,14 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Star, CheckCircle2, ArrowRight } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 import { getServiceIcon } from "../../pages/ServicesPage";
 
 export function ServiceCard({ service, onViewDetails, onInquire }) {
+  const navigate = useNavigate();
+
+  if (!service) return null;
+
   const regPrice = Number(service?.price) || 0;
   const discPrice = Number(service?.discountPrice) || 0;
   const hasDiscount = Boolean(discPrice > 0 && regPrice > 0 && discPrice < regPrice);
@@ -11,6 +16,31 @@ export function ServiceCard({ service, onViewDetails, onInquire }) {
     ? Math.round(((regPrice - discPrice) / regPrice) * 100)
     : 0;
   const activePrice = hasDiscount ? discPrice : regPrice;
+
+  const serviceUrl = `/services/${service.slug || service._id}`;
+
+  const handleNavigate = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (onViewDetails) {
+      onViewDetails(service);
+    }
+    navigate(serviceUrl);
+  };
+
+  const handleInquire = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (onInquire) {
+      onInquire({
+        name: service.title,
+        indicativePrice: activePrice,
+        type: "service",
+        category: service.category,
+        description: service.shortDescription || service.description,
+      });
+    }
+  };
 
   return (
     <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-md)] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-md)] group h-full">
@@ -74,7 +104,7 @@ export function ServiceCard({ service, onViewDetails, onInquire }) {
 
         <div>
           <h3
-            onClick={() => onViewDetails && onViewDetails(service)}
+            onClick={handleNavigate}
             className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug cursor-pointer hover:text-zinc-400 transition-colors"
           >
             {service.title}
@@ -135,23 +165,13 @@ export function ServiceCard({ service, onViewDetails, onInquire }) {
         {/* Actions */}
         <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--border-subtle)]">
           <button
-            onClick={() => onViewDetails && onViewDetails(service)}
+            onClick={handleNavigate}
             className="btn btn-secondary btn-sm text-[0.75rem]"
           >
             View Details
           </button>
           <button
-            onClick={() => {
-              if (onInquire) {
-                onInquire({
-                  name: service.title,
-                  indicativePrice: activePrice,
-                  type: "service",
-                  category: service.category,
-                  description: service.shortDescription || service.description,
-                });
-              }
-            }}
+            onClick={handleInquire}
             className="btn btn-primary btn-sm text-[0.75rem]"
           >
             Inquire

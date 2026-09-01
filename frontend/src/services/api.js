@@ -179,12 +179,17 @@ class ApiService {
   }
 
   async getProductById(id) {
-    const res = await fetch(`${API_BASE_URL}/products/${id}`);
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to fetch product");
+    try {
+      const res = await fetch(`${API_BASE_URL}/products/${id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, product: null, message: data.message || "Failed to fetch product" };
+      }
+      return data;
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      return { success: false, product: null };
     }
-    return data;
   }
 
   async createProduct(productData) {
@@ -449,6 +454,20 @@ class ApiService {
     }
   }
 
+  async getServiceById(id) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/services/${id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, service: null, message: data.message || "Failed to fetch service" };
+      }
+      return data;
+    } catch (error) {
+      console.error("Error fetching service:", error);
+      return { success: false, service: null };
+    }
+  }
+
   async createService(serviceData) {
     const res = await fetch(`${API_BASE_URL}/services`, {
       method: "POST",
@@ -592,12 +611,17 @@ class ApiService {
   }
 
   async getPrintingServiceById(id) {
-    const res = await fetch(`${API_BASE_URL}/printing-services/${id}`);
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to fetch printing service");
+    try {
+      const res = await fetch(`${API_BASE_URL}/printing-services/${id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, service: null, printingService: null, message: data.message || "Failed to fetch printing service" };
+      }
+      return data;
+    } catch (error) {
+      console.error("Error fetching printing service:", error);
+      return { success: false, service: null, printingService: null };
     }
-    return data;
   }
 
   async createPrintingService(serviceData) {

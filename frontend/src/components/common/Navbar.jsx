@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
@@ -269,8 +270,12 @@ export function Navbar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const navigate = useNavigate();
+
   const handleNavClick = (id) => {
-    setActivePage(id);
+    if (setActivePage) setActivePage(id);
+    if (id === "home") navigate("/");
+    else navigate(`/${id}`);
     setIsMenuDrawerOpen(false);
     setIsSearchOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -280,9 +285,10 @@ export function Navbar({
     if (onViewProduct) {
       onViewProduct(product);
     }
+    navigate(`/products/${product.slug || product._id}`);
     setSearchQuery("");
     setIsSearchOpen(false);
-    setMobileMenuOpen(false);
+    setIsMenuDrawerOpen(false);
   };
 
   const handleSearchFormSubmit = (e) => {
@@ -291,10 +297,11 @@ export function Navbar({
     if (onSearchSubmit) {
       onSearchSubmit(searchQuery.trim());
     } else {
-      setActivePage("products");
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      if (setActivePage) setActivePage("products");
     }
     setIsSearchOpen(false);
-    setMobileMenuOpen(false);
+    setIsMenuDrawerOpen(false);
   };
 
   return (
@@ -320,7 +327,10 @@ export function Navbar({
         {/* Desktop Navigation Links with Dynamic Light/Dark Hover */}
         <nav className="hidden lg:flex items-center gap-1.5 shrink-0">
           {navLinks.map((link) => {
-            const isActive = activePage === link.id;
+            const isActive =
+              activePage === link.id ||
+              (link.id === "products" && activePage === "product-detail") ||
+              (link.id === "blogs" && activePage === "blog-detail");
             return (
               <button
                 key={link.id}

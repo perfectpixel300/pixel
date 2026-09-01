@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Phone,
   Mail,
@@ -9,12 +10,16 @@ import {
 } from "lucide-react";
 
 export function Footer({ setActivePage, categories = [] }) {
+  const navigate = useNavigate();
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleNav = (page) => {
-    setActivePage(page);
+    if (setActivePage) setActivePage(page);
+    if (page === "home") navigate("/");
+    else navigate(`/${page}`);
     scrollToTop();
   };
 
@@ -117,7 +122,10 @@ export function Footer({ setActivePage, categories = [] }) {
             ).map((catName) => (
               <span
                 key={catName}
-                onClick={() => handleNav("products")}
+                onClick={() => {
+                  navigate(`/products?category=${encodeURIComponent(catName)}`);
+                  scrollToTop();
+                }}
                 className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
                 {catName}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard } from "./ProductCard";
 
 export function FeaturedSection({ products = [], onViewDetails, onInquire, onBrowseAll }) {
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(3);
   const [touchStart, setTouchStart] = useState(null);
@@ -158,7 +160,13 @@ export function FeaturedSection({ products = [], onViewDetails, onInquire, onBro
               </div>
             )}
 
-            <button onClick={onBrowseAll} className="btn btn-secondary gap-1.5">
+            <button
+              onClick={() => {
+                if (onBrowseAll) onBrowseAll();
+                navigate("/products");
+              }}
+              className="btn btn-secondary gap-1.5"
+            >
               <span>View All Products</span>
               <ArrowRight size={14} />
             </button>

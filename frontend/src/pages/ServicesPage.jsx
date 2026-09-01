@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Code,
   Globe,
@@ -26,11 +27,14 @@ import {
   ShieldCheck,
   Printer,
   Info,
+  Share2,
 } from "lucide-react";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
 import { WebTierCard } from "../components/storefront/WebTierCard";
 import { DynamicPromoStrip } from "../components/storefront/DynamicPromoStrip";
+import { ShareModal } from "../components/common/ShareModal";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
+import { api } from "../services/api";
 
 // Helper to map icon string to Lucide React component
 export const getServiceIcon = (iconName, size = 20, className = "") => {
@@ -76,14 +80,54 @@ export function ServicesPage({
   printingServices = [],
   serviceCategories = [],
   promoBanners = [],
+  initialServiceSlugOrId: propServiceIdOrSlug,
   onInquireService,
   onInquirePrinting,
   onNavigate,
 }) {
+  const params = useParams();
+  const navigate = useNavigate();
+  const serviceIdOrSlug = propServiceIdOrSlug || params?.idOrSlug || params?.slug || params?.id;
+
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
+  const [shareServiceModalOpen, setShareServiceModalOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState(null);
+
+  // Sync service detail from URL
+  useEffect(() => {
+    if (serviceIdOrSlug) {
+      const found = (services || []).find(
+        (s) => s._id === serviceIdOrSlug || s.slug === serviceIdOrSlug
+      );
+      if (found) {
+        setSelectedServiceDetail(found);
+      } else {
+        let isMounted = true;
+        api.getServiceById(serviceIdOrSlug).then((res) => {
+          if (isMounted && res && res.service) {
+            setSelectedServiceDetail(res.service);
+          }
+        }).catch(() => {});
+        return () => {
+          isMounted = false;
+        };
+      }
+    }
+  }, [serviceIdOrSlug, services]);
+
+  const handleCloseDetail = () => {
+    setSelectedServiceDetail(null);
+    if (serviceIdOrSlug) {
+      navigate("/services", { replace: true });
+    }
+  };
+
+  const handleViewService = (service) => {
+    setSelectedServiceDetail(service);
+    navigate(`/services/${service.slug || service._id}`);
+  };
 
   // 1. Extract ONLY Web Dev 3-tier packages (Kept apart from other IT services)
   const webDevPackages = (services || [])
@@ -495,7 +539,7 @@ Reset Filters
                       {/* Actions */}
                       <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[var(--border-subtle)]">
                         <button
-                          onClick={() => setSelectedServiceDetail(service)}
+                          onClick={() => handleViewService(service)}
                           className="btn btn-secondary btn-sm text-[0.75rem]"
                         >
                           View Details
@@ -655,7 +699,7 @@ Reset Filters
           SERVICE DETAIL MODAL (FULL SCOPE VIEW)
           ========================================================================= */}
       {selectedServiceDetail && (
-        <div className="modal-overlay" onClick={() => setSelectedServiceDetail(null)}>
+        <div className="modal-overlay" onClick={handleCloseDetail}>
           <div
             className="modal-card max-w-[680px]"
             onClick={(e) => e.stopPropagation()}
@@ -673,12 +717,25 @@ Reset Filters
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedServiceDetail(null)}
-                className="btn-icon btn-ghost"
-              >
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShareServiceModalOpen(true);
+                  }}
+                  className="btn btn-secondary btn-sm gap-1 !px-2.5 !py-1 text-xs"
+                  title="Share this service"
+                >
+                  <Share2 size={13} />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={handleCloseDetail}
+                  className="btn-icon btn-ghost"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Modal Body */}
@@ -783,18 +840,29 @@ Reset Filters
             </div>
 
             {/* Modal Footer */}
-            <div className="modal-footer">
-              <button
-                onClick={() => handleOpenWhatsApp(selectedServiceDetail.title, selectedServiceDetail.price)}
-                className="btn btn-secondary btn-sm gap-1.5"
-              >
-                <MessageCircle size={14} />
-                <span>WhatsApp</span>
-              </button>
+            <div className="modal-footer flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShareServiceModalOpen(true)}
+                  className="btn btn-secondary btn-sm gap-1.5"
+                  title="Share this service"
+                >
+                  <Share2 size={14} />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={() => handleOpenWhatsApp(selectedServiceDetail.title, selectedServiceDetail.price)}
+                  className="btn btn-secondary btn-sm gap-1.5"
+                >
+                  <MessageCircle size={14} />
+                  <span>WhatsApp</span>
+                </button>
+              </div>
+
               <button
                 onClick={() => {
                   const s = selectedServiceDetail;
-                  setSelectedServiceDetail(null);
+                  handleCloseDetail();
                   handleSubscribePlan(s);
                 }}
                 className="btn btn-primary btn-sm gap-1.5"
@@ -805,6 +873,20 @@ Reset Filters
             </div>
           </div>
         </div>
+      )}
+
+      {/* Service Detail Share Modal */}
+      {selectedServiceDetail && (
+        <ShareModal
+          isOpen={shareServiceModalOpen}
+          onClose={() => setShareServiceModalOpen(false)}
+          title={selectedServiceDetail.title}
+          url={`/services/${selectedServiceDetail.slug || selectedServiceDetail._id}`}
+          description={selectedServiceDetail.shortDescription || selectedServiceDetail.description}
+          image={selectedServiceDetail.bannerImage || ""}
+          price={selectedServiceDetail.price}
+          category={selectedServiceDetail.category}
+        />
       )}
     </div>
   );

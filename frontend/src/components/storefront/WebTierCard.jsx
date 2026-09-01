@@ -1,11 +1,16 @@
-import React from "react";
-import { CheckCircle2, Clock, Sparkles, ArrowRight, MessageCircle } from "lucide-react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { CheckCircle2, Clock, Sparkles, ArrowRight, MessageCircle, Share2 } from "lucide-react";
+import { ShareModal } from "../common/ShareModal";
 
 export function WebTierCard({
   tier,
   onSubscribe,
   onWhatsApp,
 }) {
+  const navigate = useNavigate();
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+
   if (!tier) return null;
 
   const isPro = tier.packageTier === "professional";
@@ -136,7 +141,15 @@ export function WebTierCard({
       {/* Action Buttons Anchored to Bottom */}
       <div className="flex flex-col gap-2.5 mt-auto pt-2">
         <button
-          onClick={() => onSubscribe && onSubscribe(tier)}
+          onClick={(e) => {
+            e?.preventDefault?.();
+            e?.stopPropagation?.();
+            if (onSubscribe) {
+              onSubscribe(tier);
+            } else {
+              navigate("/services#web-development-plans");
+            }
+          }}
           className={`btn w-full py-3.5 gap-2 font-bold text-[0.875rem] !rounded-[var(--radius-sm)] transition-all ${
             isPro
               ? "btn-primary shadow-md hover:shadow-lg"
@@ -147,14 +160,40 @@ export function WebTierCard({
           <ArrowRight size={15} />
         </button>
 
-        <button
-          onClick={handleWhatsAppClick}
-          className="btn btn-ghost btn-sm text-[0.75rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1.5"
-        >
-          <MessageCircle size={13} />
-          <span>Inquire via WhatsApp</span>
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={handleWhatsAppClick}
+            className="btn btn-ghost btn-sm text-[0.75rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1.5 border border-[var(--border-subtle)]"
+          >
+            <MessageCircle size={13} />
+            <span>WhatsApp</span>
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShareModalOpen(true);
+            }}
+            className="btn btn-ghost btn-sm text-[0.75rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1.5 border border-[var(--border-subtle)]"
+            title="Share this plan"
+          >
+            <Share2 size={13} />
+            <span>Share Plan</span>
+          </button>
+        </div>
       </div>
+
+      {/* Web Tier Share Modal */}
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        title={`${tier.title} - Web Development Plan`}
+        url="/services#web-development-plans"
+        description={tier.shortDescription || tier.description}
+        price={activePrice}
+        category="Web Development"
+      />
     </div>
   );
 }

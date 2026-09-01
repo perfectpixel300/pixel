@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pixel-perfect-v1';
+const CACHE_NAME = 'pixel-perfect-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -12,7 +12,9 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+      return cache.addAll(STATIC_ASSETS).catch((err) => {
+        console.warn('Pre-caching non-fatal warning:', err);
+      });
     })
   );
   self.skipWaiting();
@@ -34,47 +36,88 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - Network-first for API routes, Cache-first / stale-while-revalidate for static assets
+// Fetch event
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
+  if (!request || request.method !== 'GET') return;
 
-  // Skip non-GET requests or browser extension requests
-  if (request.method !== 'GET' || !url.protocol.startsWith('http')) {
+  let url;
+  try {
+    url = new URL(request.url);
+  } catch {
     return;
   }
 
-  // API calls: Network first, fall back to cache
-  if (url.pathname.startsWith('/api/')) {
+  // Skip non-HTTP protocols (browser extensions, data URIs, etc.)
+  if (!url.protocol.startsWith('http')) return;
+
+  // Let API requests pass directly to the network without Service Worker interception
+  if (
+    url.pathname.startsWith('/api') ||
+    url.port === '5000' ||
+    url.hostname.includes('brevo.com') ||
+    url.hostname.includes('cloudinary.com')
+  ) {
+    return;
+  }
+
+  // Let Vite dev-server requests pass directly
+  if (
+    url.pathname.includes('/@vite') ||
+    url.pathname.includes('/@fs') ||
+    url.pathname.includes('/@id') ||
+    url.pathname.includes('/src/') ||
+    url.pathname.includes('hot-update')
+  ) {
+    return;
+  }
+
+  // Navigation requests (HTML SPA routes)
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(() => {
-        return caches.match(request);
+      fetch(request).catch(async () => {
+        try {
+          const cached = (await caches.match('/index.html')) || (await caches.match('/'));
+          if (cached) return cached;
+        } catch {}
+        return new Response('<!DOCTYPE html><html><body>Offline</body></html>', {
+          status: 200,
+          headers: { 'Content-Type': 'text/html' },
+        });
       })
     );
     return;
   }
 
-  // Static assets & navigation: Stale-while-revalidate
+  // Static assets & files: Cache-first with network fallback
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
-      const fetchPromise = fetch(request)
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            networkResponse.type === 'basic'
+          ) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseToCache);
-            });
+              cache.put(request, responseToCache).catch(() => {});
+            }).catch(() => {});
           }
           return networkResponse;
         })
         .catch(() => {
-          // If offline and navigating to a page, serve cached index.html
-          if (request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
+          // Never resolve to undefined in event.respondWith
+          return new Response('', {
+            status: 408,
+            statusText: 'Network request failed and not in cache',
+          });
         });
-
-      return cachedResponse || fetchPromise;
     })
   );
 });
+

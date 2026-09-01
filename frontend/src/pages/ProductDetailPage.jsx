@@ -1,19 +1,110 @@
-import React, { useState } from "react";
-import { ArrowLeft, MessageSquare, MessageCircle, Package } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft, MessageSquare, MessageCircle, Package, Loader2, Share2 } from "lucide-react";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
+import { ShareModal } from "../components/common/ShareModal";
+import { api } from "../services/api";
 
 export function ProductDetailPage({
-  product,
+  product: initialProduct,
+  productIdOrSlug: propIdOrSlug,
+  products = [],
   onBack,
   onInquire,
 }) {
-  const images = product?.images && Array.isArray(product.images) && product.images.length > 0
-    ? product.images
-    : [];
+  const params = useParams();
+  const navigate = useNavigate();
+  const idOrSlug = propIdOrSlug || params?.idOrSlug || params?.slug || params?.id;
 
+  const [product, setProduct] = useState(() => {
+    if (initialProduct) return initialProduct;
+    if (idOrSlug && products && products.length > 0) {
+      return products.find((p) => p._id === idOrSlug || p.slug === idOrSlug) || null;
+    }
+    return null;
+  });
+
+  const [loading, setLoading] = useState(!product && Boolean(idOrSlug));
   const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
-  if (!product) return null;
+  useEffect(() => {
+    if (initialProduct) {
+      setProduct(initialProduct);
+      return;
+    }
+
+    if (idOrSlug) {
+      const found = (products || []).find((p) => p._id === idOrSlug || p.slug === idOrSlug);
+      if (found) {
+        setProduct(found);
+        setLoading(false);
+        return;
+      }
+
+      let isMounted = true;
+      const fetchProduct = async () => {
+        try {
+          setLoading(true);
+          const res = await api.getProductById(idOrSlug);
+          if (isMounted && res && res.product) {
+            setProduct(res.product);
+          }
+        } catch (err) {
+          console.error("Failed to load product detail:", err);
+        } finally {
+          if (isMounted) setLoading(false);
+        }
+      };
+
+      fetchProduct();
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [idOrSlug, initialProduct, products]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [product]);
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate("/products");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="py-24 text-center storefront-container">
+        <div className="w-8 h-8 border-2 border-[var(--text-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-xs text-[var(--text-muted)] font-mono">Loading product details...</p>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="py-24 text-center storefront-container max-w-lg">
+        <Package size={40} className="text-[var(--text-muted)] mx-auto mb-3 opacity-40" />
+        <h2 className="text-2xl font-bold">Product Not Found</h2>
+        <p className="text-sm text-[var(--text-secondary)] mt-2 mb-6">
+          The requested product piece may have been moved or is currently unavailable.
+        </p>
+        <button onClick={handleBack} className="btn btn-primary gap-2">
+          <ArrowLeft size={14} />
+          <span>Back to Collection</span>
+        </button>
+      </div>
+    );
+  }
+
+  const images =
+    product?.images && Array.isArray(product.images) && product.images.length > 0
+      ? product.images
+      : (product?.imageUrl ? [product.imageUrl] : []);
 
   const regPrice = Number(product.indicativePrice || product.price) || 0;
   const discPrice = Number(product.discountPrice) || 0;
@@ -27,19 +118,31 @@ export function ProductDetailPage({
   const whatsAppText = `Hello Pixel Perfect,\nI am inquiring about "${product.name}" (Price: NRs. ${effectivePrice.toLocaleString()}). Please advise on availability.`;
   const whatsAppUrl = `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
 
-  const mainImage = images[activeImgIndex] || "";
+  const safeImgIndex = activeImgIndex < images.length ? activeImgIndex : 0;
+  const mainImage = images[safeImgIndex] || "";
 
   return (
     <div className="py-12 pb-24">
       <div className="storefront-container">
-        {/* Back navigation */}
-        <button
-          onClick={onBack}
-          className="btn btn-ghost btn-sm gap-1.5 mb-8 pl-0 hover:pl-1 transition-all"
-        >
-          <ArrowLeft size={15} />
-          <span>Back to Collection</span>
-        </button>
+        {/* Back navigation & Share Top Bar */}
+        <div className="flex items-center justify-between gap-4 mb-8">
+          <button
+            onClick={handleBack}
+            className="btn btn-ghost btn-sm gap-1.5 pl-0 hover:pl-1 transition-all"
+          >
+            <ArrowLeft size={15} />
+            <span>Back to Collection</span>
+          </button>
+
+          <button
+            onClick={() => setShareModalOpen(true)}
+            className="btn btn-secondary btn-sm gap-1.5"
+            title="Share this product"
+          >
+            <Share2 size={14} />
+            <span>Share</span>
+          </button>
+        </div>
 
         {/* Product Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-14 items-start">
@@ -73,7 +176,7 @@ export function ProductDetailPage({
                     key={idx}
                     onClick={() => setActiveImgIndex(idx)}
                     className={`w-18 h-18 rounded-[var(--radius-sm)] overflow-hidden cursor-pointer shrink-0 transition-all duration-200 ${
-                      activeImgIndex === idx ? "opacity-100 scale-105 ring-2 ring-white" : "opacity-60 hover:opacity-90"
+                      safeImgIndex === idx ? "opacity-100 scale-105 ring-2 ring-white" : "opacity-60 hover:opacity-90"
                     }`}
                   >
                     <img
@@ -206,13 +309,33 @@ export function ProductDetailPage({
                 </button>
               </div>
 
+              <button
+                onClick={() => setShareModalOpen(true)}
+                className="btn btn-ghost py-2.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center justify-center gap-2 border border-[var(--border-subtle)] rounded-[var(--radius-sm)]"
+              >
+                <Share2 size={14} />
+                <span>Share with Friends or Colleagues</span>
+              </button>
+
               <div className="text-[0.75rem] text-[var(--text-muted)] text-center">
-                Direct consultation with our master craftspeople • Limited edition batches
+                Pure. Simple. Limited.
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        title={product.name}
+        url={`/products/${product.slug || product._id}`}
+        description={product.description}
+        image={mainImage}
+        price={effectivePrice}
+        category={product.category}
+      />
     </div>
   );
 }

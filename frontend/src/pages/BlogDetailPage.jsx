@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Calendar,
@@ -20,13 +21,17 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { getYouTubeEmbedUrl } from "../components/admin/BlogFormModal";
+import { ShareModal } from "../components/common/ShareModal";
 import { api } from "../services/api";
 
-export function BlogDetailPage({ blog: initialBlog, blogIdOrSlug, onNavigate, showToast }) {
+export function BlogDetailPage({ blog: initialBlog, blogIdOrSlug: propIdOrSlug, onNavigate, showToast }) {
+  const params = useParams();
+  const navigate = useNavigate();
+  const blogIdOrSlug = propIdOrSlug || params?.slug || params?.idOrSlug || params?.id;
   const [blog, setBlog] = useState(initialBlog || null);
   const [relatedBlogs, setRelatedBlogs] = useState([]);
   const [loading, setLoading] = useState(!initialBlog);
-  const [copied, setCopied] = useState(false);
+  const [shareBlogModalOpen, setShareBlogModalOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -84,7 +89,13 @@ export function BlogDetailPage({ blog: initialBlog, blogIdOrSlug, onNavigate, sh
         <p className="text-sm text-[var(--text-secondary)] mt-2 mb-6">
           The requested blog article may have been moved or unpublished.
         </p>
-        <button onClick={() => onNavigate("blogs")} className="btn btn-primary gap-2">
+        <button
+          onClick={() => {
+            if (onNavigate) onNavigate("blogs");
+            navigate("/blogs");
+          }}
+          className="btn btn-primary gap-2"
+        >
           <ArrowLeft size={14} />
           <span>Back to Blogs</span>
         </button>
@@ -264,31 +275,25 @@ export function BlogDetailPage({ blog: initialBlog, blogIdOrSlug, onNavigate, sh
       <div className="storefront-container max-w-[920px] mb-8">
         <div className="flex items-center justify-between gap-4">
           <button
-            onClick={() => onNavigate("blogs")}
+            onClick={() => {
+              if (onNavigate) onNavigate("blogs");
+              navigate("/blogs");
+            }}
             className="btn btn-secondary !py-1.5 !px-3 text-xs gap-1.5 cursor-pointer inline-flex items-center"
           >
             <ArrowLeft size={13} />
             <span>Back to Blogs</span>
           </button>
 
-          {/* Action pills: Share & Copy */}
+          {/* Action pills: Share */}
           <div className="flex items-center gap-1.5">
             <button
-              onClick={handleShareWhatsApp}
-              className="btn btn-secondary !py-1.5 !px-2.5 text-xs gap-1.5 cursor-pointer text-[#25D366]"
-              title="Share on WhatsApp"
+              onClick={() => setShareBlogModalOpen(true)}
+              className="btn btn-secondary !py-1.5 !px-3 text-xs gap-1.5 cursor-pointer"
+              title="Share this article"
             >
               <Share2 size={13} />
-              <span className="hidden sm:inline">WhatsApp</span>
-            </button>
-
-            <button
-              onClick={handleCopyLink}
-              className="btn btn-secondary !py-1.5 !px-2.5 text-xs gap-1.5 cursor-pointer"
-              title="Copy Article Link"
-            >
-              {copied ? <Check size={13} className="text-emerald-400" /> : <ExternalLink size={13} />}
-              <span className="hidden sm:inline">{copied ? "Copied" : "Copy Link"}</span>
+              <span>Share Article</span>
             </button>
           </div>
         </div>
@@ -558,7 +563,10 @@ export function BlogDetailPage({ blog: initialBlog, blogIdOrSlug, onNavigate, sh
               </h3>
             </div>
             <button
-              onClick={() => onNavigate("blogs")}
+              onClick={() => {
+                if (onNavigate) onNavigate("blogs");
+                navigate("/blogs");
+              }}
               className="text-xs font-semibold text-[#ea580c] dark:text-[#ff7828] hover:underline flex items-center gap-1 cursor-pointer"
             >
               <span>View All</span>
@@ -578,6 +586,7 @@ export function BlogDetailPage({ blog: initialBlog, blogIdOrSlug, onNavigate, sh
                   key={rel._id}
                   onClick={() => {
                     setBlog(rel);
+                    navigate(`/blogs/${rel.slug || rel._id}`);
                     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
                   }}
                   className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] overflow-hidden flex flex-col justify-between hover:border-[var(--border-medium)] transition-all cursor-pointer group shadow-xs"
@@ -606,6 +615,19 @@ export function BlogDetailPage({ blog: initialBlog, blogIdOrSlug, onNavigate, sh
             })}
           </div>
         </div>
+      )}
+
+      {/* Share Modal */}
+      {blog && (
+        <ShareModal
+          isOpen={shareBlogModalOpen}
+          onClose={() => setShareBlogModalOpen(false)}
+          title={blog.title}
+          url={`/blogs/${blog.slug || blog._id}`}
+          description={blog.excerpt || ""}
+          image={blog.thumbnailUrl || (blog.mediaType === "photo" ? blog.mediaUrl : "") || ""}
+          category={blog.category}
+        />
       )}
     </div>
   );

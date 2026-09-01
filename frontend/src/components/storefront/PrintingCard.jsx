@@ -1,8 +1,13 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { MessageSquare, ArrowUpRight, Printer, Star, Clock } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function PrintingCard({ service, onViewDetails, onInquire }) {
+  const navigate = useNavigate();
+
+  if (!service) return null;
+
   const rawImage = service?.images && service.images.length > 0 ? service.images[0] : "";
   const imageUrl = getOptimizedImageUrl(rawImage, { width: 600 });
   const regPrice = Number(service?.indicativePrice || service?.price) || 0;
@@ -13,11 +18,36 @@ export function PrintingCard({ service, onViewDetails, onInquire }) {
     : 0;
   const activePrice = hasDiscount ? discPrice : regPrice;
 
+  const printingUrl = `/printing/${service.slug || service._id}`;
+
+  const handleNavigate = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (onViewDetails) {
+      onViewDetails(service);
+    }
+    navigate(printingUrl);
+  };
+
+  const handleInquire = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (onInquire) {
+      onInquire({
+        name: service.name,
+        indicativePrice: activePrice,
+        type: "service",
+        category: service.category || "Printing Service",
+        description: service.shortDescription || service.description,
+      });
+    }
+  };
+
   return (
     <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col h-full transition-all duration-300 border border-[var(--border-subtle)] hover:shadow-xl group">
       {/* Image Container with zoom */}
       <div
-        onClick={() => onViewDetails && onViewDetails(service)}
+        onClick={handleNavigate}
         className="h-44 sm:h-56 md:h-64 lg:h-72 relative overflow-hidden cursor-pointer bg-[#050505] flex items-center justify-center shrink-0"
       >
         {imageUrl ? (
@@ -68,7 +98,7 @@ export function PrintingCard({ service, onViewDetails, onInquire }) {
       <div className="p-3.5 sm:p-5 flex flex-col gap-2 flex-1">
         <div>
           <h3
-            onClick={() => onViewDetails && onViewDetails(service)}
+            onClick={handleNavigate}
             className="text-xs sm:text-base font-bold m-0 leading-snug cursor-pointer hover:text-zinc-400 transition-colors capitalize line-clamp-2 min-h-[34px] sm:min-h-[44px]"
           >
             {service.name}
@@ -114,17 +144,7 @@ export function PrintingCard({ service, onViewDetails, onInquire }) {
 
           <div className="flex gap-1 sm:gap-1.5 w-full sm:w-auto">
             <button
-              onClick={() => {
-                if (onInquire) {
-                  onInquire({
-                    name: service.name,
-                    indicativePrice: activePrice,
-                    type: "service",
-                    category: service.category || "Printing Service",
-                    description: service.shortDescription || service.description,
-                  });
-                }
-              }}
+              onClick={handleInquire}
               className="btn btn-secondary btn-sm flex-1 sm:flex-initial gap-1 text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5"
               title="Inquire about this printing service"
             >
@@ -132,7 +152,7 @@ export function PrintingCard({ service, onViewDetails, onInquire }) {
               <span>Inquire</span>
             </button>
             <button
-              onClick={() => onViewDetails && onViewDetails(service)}
+              onClick={handleNavigate}
               className="btn btn-primary btn-sm flex-1 sm:flex-initial text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5"
             >
               Specs

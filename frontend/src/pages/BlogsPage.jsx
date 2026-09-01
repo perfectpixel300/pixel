@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   BookOpen,
@@ -42,6 +43,7 @@ export const formatBlogDateTime = (dateString) => {
 };
 
 export function BlogsPage({ onSelectBlog, onNavigate }) {
+  const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
   const [categories, setCategories] = useState(["All"]);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -95,6 +97,13 @@ export function BlogsPage({ onSelectBlog, onNavigate }) {
   const handleCategoryClick = (cat) => {
     setSelectedCategory(cat);
     setCurrentPage(1);
+  };
+
+  const handleBlogClick = (b) => {
+    if (onSelectBlog) {
+      onSelectBlog(b);
+    }
+    navigate(`/blogs/${b.slug || b._id}`);
   };
 
   const handleNewsletterSubmit = (e) => {
@@ -152,7 +161,7 @@ export function BlogsPage({ onSelectBlog, onNavigate }) {
         {/* Spotlight Featured Article (Shown when on Page 1 without active search) */}
         {currentPage === 1 && !searchQuery && selectedCategory === "All" && featuredBlog && (
           <div
-            onClick={() => onSelectBlog(featuredBlog)}
+            onClick={() => handleBlogClick(featuredBlog)}
             className="mb-14 rounded-[var(--radius-xl)] bg-[var(--bg-card)] border border-[var(--border-subtle)] overflow-hidden shadow-lg hover:border-[var(--border-medium)] transition-all cursor-pointer group grid grid-cols-1 lg:grid-cols-12"
           >
             <div className="lg:col-span-7 relative aspect-video lg:aspect-auto overflow-hidden bg-black min-h-[300px]">
@@ -309,7 +318,7 @@ export function BlogsPage({ onSelectBlog, onNavigate }) {
               return (
                 <article
                   key={blog._id}
-                  onClick={() => onSelectBlog(blog)}
+                  onClick={() => handleBlogClick(blog)}
                   className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] overflow-hidden flex flex-col justify-between hover:border-[var(--border-medium)] hover:-translate-y-1 transition-all duration-200 cursor-pointer group shadow-xs"
                 >
                   <div>

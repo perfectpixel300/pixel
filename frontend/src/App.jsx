@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { PWAProvider } from "./context/PWAContext";
 import { PWAInstallModal } from "./components/common/PWAInstallModal";
@@ -23,22 +24,45 @@ import { Preloader } from "./components/common/Preloader";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import { api } from "./services/api";
 
-// Helper to get initial route from URL path
-const getRouteFromPath = () => {
-  const path = window.location.pathname.toLowerCase().replace(/\/+$/, "") || "/";
-  if (path === "/admin" || path === "/admin/login") return "admin";
-  if (path === "/products") return "products";
-  if (path === "/printing") return "printing";
-  if (path === "/services") return "services";
-  if (path === "/blogs" || path === "/journal") return "blogs";
-  if (path.startsWith("/blogs/") || path.startsWith("/blog/")) return "blogs";
-  if (path === "/about") return "about";
-  if (path === "/contact") return "contact";
-  return "home";
+// Helper to get route info from URL path
+const getRouteInfoFromPath = (pathname) => {
+  const rawPath = pathname || (typeof window !== "undefined" ? window.location.pathname : "/");
+  const path = rawPath.toLowerCase().replace(/\/+$/, "") || "/";
+  if (path === "/admin" || path.startsWith("/admin")) return { page: "admin" };
+  if (path === "/products") return { page: "products" };
+  if (path.startsWith("/products/") || path.startsWith("/product/")) {
+    const parts = rawPath.replace(/\/+$/, "").split("/");
+    const idOrSlug = parts.slice(2).join("/") || parts[2] || "";
+    return { page: "product-detail", idOrSlug };
+  }
+  if (path === "/printing" || path.startsWith("/printing/") || path.startsWith("/printing-services/")) {
+    const parts = rawPath.replace(/\/+$/, "").split("/");
+    const idOrSlug = parts.length > 2 ? parts.slice(2).join("/") : null;
+    return { page: "printing", idOrSlug };
+  }
+  if (path === "/services" || path.startsWith("/services/") || path.startsWith("/service/")) {
+    const parts = rawPath.replace(/\/+$/, "").split("/");
+    const idOrSlug = parts.length > 2 ? parts.slice(2).join("/") : null;
+    return { page: "services", idOrSlug };
+  }
+  if (path === "/blogs" || path === "/journal") return { page: "blogs" };
+  if (path.startsWith("/blogs/") || path.startsWith("/blog/")) {
+    const parts = rawPath.replace(/\/+$/, "").split("/");
+    const idOrSlug = parts.slice(2).join("/") || parts[2] || "";
+    return { page: "blog-detail", idOrSlug };
+  }
+  if (path === "/about") return { page: "about" };
+  if (path === "/contact") return { page: "contact" };
+  return { page: "home" };
 };
 
 function AppContent() {
-  const [activePage, setActivePageState] = useState(getRouteFromPath);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const routeInfo = getRouteInfoFromPath(location.pathname);
+  const activePage = routeInfo.page;
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [inquiryProduct, setInquiryProduct] = useState(null);
   const [inquiryModalOpen, setInquiryModalOpen] = useState(false);
@@ -71,36 +95,37 @@ function AppContent() {
 
   const { isAuthenticated } = useAuth();
 
-  // Navigation with URL history sync
-  const setActivePage = (page) => {
-    setActivePageState(page);
-    let path = "/";
-    if (page === "admin") path = "/admin";
-    else if (page === "admin-login") path = "/admin";
-    else if (page === "blogs") path = "/blogs";
-    else if (page === "blog-detail") path = "/blogs";
-    else if (page !== "home") path = `/${page}`;
-
-    if (window.location.pathname !== path) {
-      window.history.pushState(null, "", path);
+  // Navigation helper compatible with existing components
+  const setActivePage = (pageOrPath) => {
+    if (!pageOrPath) return;
+    if (pageOrPath.startsWith("/")) {
+      navigate(pageOrPath);
+    } else if (pageOrPath === "home") {
+      navigate("/");
+    } else if (pageOrPath === "admin" || pageOrPath === "admin-login") {
+      navigate("/admin");
+    } else if (pageOrPath === "product-detail") {
+      if (selectedProduct) {
+        navigate(`/products/${selectedProduct.slug || selectedProduct._id}`);
+      } else {
+        navigate("/products");
+      }
+    } else if (pageOrPath === "blog-detail") {
+      if (selectedBlog) {
+        navigate(`/blogs/${selectedBlog.slug || selectedBlog._id}`);
+      } else {
+        navigate("/blogs");
+      }
+    } else {
+      navigate(`/${pageOrPath}`);
     }
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   };
 
-  // Sync with browser back/forward buttons
-  useEffect(() => {
-    const handlePopState = () => {
-      setActivePageState(getRouteFromPath());
-      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
-
-  // Guarantee scroll to top whenever activePage or selectedProduct changes
+  // Guarantee scroll to top whenever pathname changes
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [activePage, selectedProduct, selectedBlog]);
+  }, [location.pathname]);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -250,21 +275,18 @@ function AppContent() {
   // View single product detail
   const handleViewProduct = (product) => {
     setSelectedProduct(product);
-    setActivePage("product-detail");
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    navigate(`/products/${product.slug || product._id}`);
   };
 
   // View single blog article detail
   const handleSelectBlog = (blog) => {
     setSelectedBlog(blog);
-    setActivePage("blog-detail");
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    navigate(`/blogs/${blog.slug || blog._id}`);
   };
 
   const handleViewBlogLive = (blog) => {
     setSelectedBlog(blog);
-    setActivePage("blog-detail");
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    navigate(`/blogs/${blog.slug || blog._id}`);
   };
 
   // Open direct inquiry modal for product or service
@@ -294,8 +316,7 @@ function AppContent() {
   const handleSearchSubmit = (query) => {
     setSearchQuery(query);
     setSelectedCategory("All");
-    setActivePage("products");
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    navigate(`/products?search=${encodeURIComponent(query)}`);
   };
 
   // Dynamic automatic transition to closed when shop status timer ends
@@ -413,6 +434,7 @@ function AppContent() {
               <PrintingPage
                 printingServices={printingServices}
                 printingCategories={printingCategories}
+                initialPrintingSlugOrId={routeInfo.idOrSlug}
                 onInquirePrinting={handleOpenPrintingInquiry}
                 onNavigate={setActivePage}
               />
@@ -424,6 +446,7 @@ function AppContent() {
                 printingServices={printingServices}
                 serviceCategories={serviceCategories}
                 promoBanners={promoBanners}
+                initialServiceSlugOrId={routeInfo.idOrSlug}
                 onInquireService={handleOpenInquiry}
                 onInquirePrinting={handleOpenInquiry}
                 onNavigate={setActivePage}
@@ -432,7 +455,9 @@ function AppContent() {
 
             {activePage === "product-detail" && (
               <ProductDetailPage
-                product={selectedProduct || products[0]}
+                product={selectedProduct}
+                productIdOrSlug={routeInfo.idOrSlug}
+                products={products}
                 onBack={() => setActivePage("products")}
                 onInquire={handleOpenInquiry}
               />
@@ -449,6 +474,7 @@ function AppContent() {
             {activePage === "blog-detail" && (
               <BlogDetailPage
                 blog={selectedBlog}
+                blogIdOrSlug={routeInfo.idOrSlug}
                 onNavigate={setActivePage}
                 showToast={showToast}
               />

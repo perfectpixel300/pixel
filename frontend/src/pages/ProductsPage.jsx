@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Search, Filter, SlidersHorizontal, Package, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard } from "../components/storefront/ProductCard";
 import { FeaturedSection } from "../components/storefront/FeaturedSection";
@@ -7,16 +8,35 @@ import { CategoryDropdown } from "../components/common/CategoryDropdown";
 export function ProductsPage({
   products,
   categories = [],
-  selectedCategory,
-  setSelectedCategory,
+  selectedCategory: propCategory,
+  setSelectedCategory: propSetCategory,
   onViewProduct,
   onInquireProduct,
   searchTerm: externalSearchTerm,
   setSearchTerm: setExternalSearchTerm,
 }) {
-  const [internalSearchTerm, setInternalSearchTerm] = useState("");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const [localCategory, setLocalCategory] = useState(() => searchParams.get("category") || "All");
+  const selectedCategory = propCategory !== undefined ? propCategory : localCategory;
+  const setSelectedCategory = propSetCategory || setLocalCategory;
+
+  const [internalSearchTerm, setInternalSearchTerm] = useState(() => searchParams.get("search") || "");
   const searchTerm = externalSearchTerm !== undefined ? externalSearchTerm : internalSearchTerm;
   const setSearchTerm = setExternalSearchTerm || setInternalSearchTerm;
+
+  // Sync category or search from searchParams if query string changes
+  useEffect(() => {
+    const catQuery = searchParams.get("category");
+    if (catQuery && catQuery !== selectedCategory) {
+      setSelectedCategory(catQuery);
+    }
+    const searchQuery = searchParams.get("search");
+    if (searchQuery !== null && searchQuery !== searchTerm) {
+      setSearchTerm(searchQuery);
+    }
+  }, [searchParams]);
 
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [availabilityOnly, setAvailabilityOnly] = useState(false);

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   ChevronLeft,
@@ -19,6 +20,7 @@ import {
   Star,
   Printer,
   X,
+  Share2,
 } from "lucide-react";
 import { HeroBannerCarousel } from "../components/storefront/HeroBannerCarousel";
 import { DynamicPromoStrip } from "../components/storefront/DynamicPromoStrip";
@@ -30,6 +32,7 @@ import { ProductCard } from "../components/storefront/ProductCard";
 import { PrintingCard } from "../components/storefront/PrintingCard";
 import { WebTierCard } from "../components/storefront/WebTierCard";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
+import { ShareModal } from "../components/common/ShareModal";
 import { getServiceIcon } from "./ServicesPage";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 
@@ -48,9 +51,12 @@ export function HomePage({
   onNavigate,
   onSelectCategory,
 }) {
+  const navigate = useNavigate();
   const [selectedHomeCategory, setSelectedHomeCategory] = useState("All");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
+  const [shareServiceModalOpen, setShareServiceModalOpen] = useState(false);
   const [selectedPrintingDetail, setSelectedPrintingDetail] = useState(null);
+  const [sharePrintingModalOpen, setSharePrintingModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
 
@@ -59,8 +65,9 @@ export function HomePage({
   const PRINTING_ITEMS_PER_PAGE = 12;
 
   const handleCategoryClick = (category) => {
-    onSelectCategory(category);
-    onNavigate("products");
+    if (onSelectCategory) onSelectCategory(category);
+    if (onNavigate) onNavigate("products");
+    navigate(`/products?category=${encodeURIComponent(category)}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -175,11 +182,13 @@ export function HomePage({
       <HeroBannerCarousel
         banners={banners}
         onCtaClick={(link) => {
-          if (link.includes("services")) onNavigate("services");
-          else if (link.includes("products")) onNavigate("products");
-          else if (link.includes("contact")) onNavigate("contact");
-          else if (link.includes("about")) onNavigate("about");
-          else onNavigate("products");
+          if (link.startsWith("/")) navigate(link);
+          else if (link.includes("services")) navigate("/services");
+          else if (link.includes("printing")) navigate("/printing");
+          else if (link.includes("products")) navigate("/products");
+          else if (link.includes("contact")) navigate("/contact");
+          else if (link.includes("about")) navigate("/about");
+          else navigate("/products");
         }}
       />
 
@@ -187,12 +196,13 @@ export function HomePage({
       <DynamicPromoStrip
         promoBanners={promoBanners}
         onCtaClick={(link) => {
-          if (link.includes("services")) onNavigate("services");
-          else if (link.includes("printing")) onNavigate("printing");
-          else if (link.includes("products")) onNavigate("products");
-          else if (link.includes("contact")) onNavigate("contact");
-          else if (link.includes("about")) onNavigate("about");
-          else onNavigate("products");
+          if (link.startsWith("/")) navigate(link);
+          else if (link.includes("services")) navigate("/services");
+          else if (link.includes("printing")) navigate("/printing");
+          else if (link.includes("products")) navigate("/products");
+          else if (link.includes("contact")) navigate("/contact");
+          else if (link.includes("about")) navigate("/about");
+          else navigate("/products");
         }}
       />
 
@@ -201,19 +211,21 @@ export function HomePage({
         products={products}
         onViewDetails={onViewProduct}
         onInquire={onInquireProduct}
-        onBrowseAll={() => onNavigate("products")}
+        onBrowseAll={() => navigate("/products")}
       />
 
       {/* Spotlight Featured Printing Services Carousel */}
       <FeaturedPrintingSection
         printingServices={printingServices}
-        onViewDetails={(service) => setSelectedPrintingDetail(service)}
+        onViewDetails={(service) => {
+          navigate(`/printing/${service.slug || service._id}`);
+        }}
         onInquire={(service) => {
           const handler = onInquirePrinting || onInquireProduct;
           if (handler) handler(service);
         }}
         onBrowseAll={() => {
-          onNavigate("printing");
+          navigate("/printing");
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       />
@@ -221,13 +233,15 @@ export function HomePage({
       {/* Spotlight Featured IT Services & Disciplines Carousel */}
       <FeaturedServicesSection
         services={services}
-        onViewDetails={(service) => setSelectedServiceDetail(service)}
+        onViewDetails={(service) => {
+          navigate(`/services/${service.slug || service._id}`);
+        }}
         onInquire={(service) => {
           const handler = onInquireService || onInquireProduct;
           if (handler) handler(service);
         }}
         onBrowseAll={() => {
-          onNavigate("services");
+          navigate("/services");
           window.scrollTo({ top: 0, behavior: "smooth" });
         }}
       />
@@ -845,12 +859,25 @@ export function HomePage({
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedServiceDetail(null)}
-                className="btn-icon btn-ghost"
-              >
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShareServiceModalOpen(true);
+                  }}
+                  className="btn btn-secondary btn-sm gap-1 !px-2.5 !py-1 text-xs"
+                  title="Share this service"
+                >
+                  <Share2 size={13} />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={() => setSelectedServiceDetail(null)}
+                  className="btn-icon btn-ghost"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Modal Body */}
@@ -955,14 +982,27 @@ export function HomePage({
             </div>
 
             {/* Modal Footer */}
-            <div className="modal-footer">
-              <button
-                onClick={() => handleOpenWhatsAppService(selectedServiceDetail.title, selectedServiceDetail.price)}
-                className="btn btn-secondary btn-sm gap-1.5"
-              >
-                <MessageCircle size={14} />
-                <span>WhatsApp</span>
-              </button>
+            <div className="modal-footer flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShareServiceModalOpen(true);
+                  }}
+                  className="btn btn-secondary btn-sm gap-1.5"
+                  title="Share this service"
+                >
+                  <Share2 size={14} />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={() => handleOpenWhatsAppService(selectedServiceDetail.title, selectedServiceDetail.price)}
+                  className="btn btn-secondary btn-sm gap-1.5"
+                >
+                  <MessageCircle size={14} />
+                  <span>WhatsApp</span>
+                </button>
+              </div>
               <button
                 onClick={() => {
                   const s = selectedServiceDetail;
@@ -1003,21 +1043,37 @@ export function HomePage({
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedPrintingDetail(null)}
-                className="btn-icon btn-ghost"
-              >
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSharePrintingModalOpen(true);
+                  }}
+                  className="btn btn-secondary btn-sm gap-1 !px-2.5 !py-1 text-xs"
+                  title="Share this printing service"
+                >
+                  <Share2 size={13} />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={() => setSelectedPrintingDetail(null)}
+                  className="btn-icon btn-ghost"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
             <div className="modal-body flex flex-col gap-5">
+              {/* Product Hero Image */}
               {selectedPrintingDetail.images && selectedPrintingDetail.images[0] && (
-                <img
-                  src={getOptimizedImageUrl(selectedPrintingDetail.images[0], { width: 800 })}
-                  alt={selectedPrintingDetail.name}
-                  className="w-full h-48 object-cover rounded-[var(--radius-sm)] border border-[var(--border-subtle)]"
-                />
+                <div className="w-full h-48 bg-[#050505] rounded-[var(--radius-sm)] overflow-hidden border border-[var(--border-subtle)] flex items-center justify-center">
+                  <img
+                    src={getOptimizedImageUrl(selectedPrintingDetail.images[0], { width: 800 })}
+                    alt={selectedPrintingDetail.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               )}
 
               {/* Price & Turnaround Bar */}
@@ -1026,28 +1082,28 @@ export function HomePage({
                   <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
                     Investment ({selectedPrintingDetail.priceUnit || "per piece"})
                   </span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
-                      NRs.{" "}
-                      {(
-                        selectedPrintingDetail.discountPrice && Number(selectedPrintingDetail.discountPrice) > 0
-                          ? Number(selectedPrintingDetail.discountPrice)
-                          : Number(selectedPrintingDetail.indicativePrice)
-                      ).toLocaleString()}
-                    </span>
-                    {selectedPrintingDetail.discountPrice && Number(selectedPrintingDetail.discountPrice) > 0 && (
+                  {selectedPrintingDetail.discountPrice &&
+                  Number(selectedPrintingDetail.discountPrice) > 0 &&
+                  Number(selectedPrintingDetail.discountPrice) < Number(selectedPrintingDetail.indicativePrice) ? (
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-mono text-xl font-extrabold text-emerald-400">
+                        NRs. {Number(selectedPrintingDetail.discountPrice).toLocaleString()}
+                      </span>
                       <span className="font-mono text-xs text-[var(--text-muted)] line-through">
                         NRs. {Number(selectedPrintingDetail.indicativePrice).toLocaleString()}
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <span className="font-mono text-xl font-extrabold text-[var(--text-primary)]">
+                      NRs. {Number(selectedPrintingDetail.indicativePrice).toLocaleString()}
+                    </span>
+                  )}
                 </div>
-
                 <div className="text-right">
                   <span className="text-[0.65rem] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
-                    Production Timeline
+                    Standard Turnaround
                   </span>
-                  <span className="text-xs font-mono text-[var(--text-secondary)] font-semibold flex items-center gap-1">
+                  <span className="text-xs font-mono text-[var(--text-secondary)] font-semibold flex items-center justify-end gap-1">
                     <Clock size={12} />
                     <span>{selectedPrintingDetail.turnaroundTime || "24-48 Hours"}</span>
                   </span>
@@ -1057,18 +1113,18 @@ export function HomePage({
               {/* Description */}
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
-                  Detailed Overview
+                  Specification & Process
                 </h4>
                 <p className="text-[0.85rem] text-[var(--text-secondary)] leading-relaxed m-0 whitespace-pre-line">
                   {selectedPrintingDetail.description || selectedPrintingDetail.shortDescription}
                 </p>
               </div>
 
-              {/* Paper & Finish Options */}
+              {/* Paper Options */}
               {selectedPrintingDetail.paperOptions && selectedPrintingDetail.paperOptions.length > 0 && (
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
-                    Available Substrates & Paper Media
+                    Paper & Substrate Options
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedPrintingDetail.paperOptions.map((paper, idx) => (
@@ -1083,10 +1139,11 @@ export function HomePage({
                 </div>
               )}
 
+              {/* Finishing Options */}
               {selectedPrintingDetail.finishOptions && selectedPrintingDetail.finishOptions.length > 0 && (
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
-                    Finishing & Embellishment Options
+                    Available Finishes
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedPrintingDetail.finishOptions.map((finish, idx) => (
@@ -1137,20 +1194,33 @@ export function HomePage({
               )}
             </div>
 
-            <div className="modal-footer">
-              <button
-                onClick={() =>
-                  handleOpenWhatsAppPrinting(
-                    selectedPrintingDetail.name,
-                    selectedPrintingDetail.discountPrice || selectedPrintingDetail.indicativePrice,
-                    selectedPrintingDetail.priceUnit
-                  )
-                }
-                className="btn btn-secondary btn-sm gap-1.5"
-              >
-                <MessageCircle size={14} />
-                <span>WhatsApp</span>
-              </button>
+            <div className="modal-footer flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSharePrintingModalOpen(true);
+                  }}
+                  className="btn btn-secondary btn-sm gap-1.5"
+                  title="Share this printing service"
+                >
+                  <Share2 size={14} />
+                  <span>Share</span>
+                </button>
+                <button
+                  onClick={() =>
+                    handleOpenWhatsAppPrinting(
+                      selectedPrintingDetail.name,
+                      selectedPrintingDetail.discountPrice || selectedPrintingDetail.indicativePrice,
+                      selectedPrintingDetail.priceUnit
+                    )
+                  }
+                  className="btn btn-secondary btn-sm gap-1.5"
+                >
+                  <MessageCircle size={14} />
+                  <span>WhatsApp</span>
+                </button>
+              </div>
 
               <button
                 onClick={() => {
@@ -1178,6 +1248,33 @@ export function HomePage({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Share Modals for Home Page Services & Printing */}
+      {selectedServiceDetail && (
+        <ShareModal
+          isOpen={shareServiceModalOpen}
+          onClose={() => setShareServiceModalOpen(false)}
+          title={selectedServiceDetail.title}
+          url={`/services/${selectedServiceDetail.slug || selectedServiceDetail._id}`}
+          description={selectedServiceDetail.shortDescription || selectedServiceDetail.description}
+          image={selectedServiceDetail.bannerImage || ""}
+          price={selectedServiceDetail.price}
+          category={selectedServiceDetail.category}
+        />
+      )}
+
+      {selectedPrintingDetail && (
+        <ShareModal
+          isOpen={sharePrintingModalOpen}
+          onClose={() => setSharePrintingModalOpen(false)}
+          title={selectedPrintingDetail.name}
+          url={`/printing/${selectedPrintingDetail.slug || selectedPrintingDetail._id}`}
+          description={selectedPrintingDetail.shortDescription || selectedPrintingDetail.description}
+          image={selectedPrintingDetail.images && selectedPrintingDetail.images.length > 0 ? selectedPrintingDetail.images[0] : ""}
+          price={selectedPrintingDetail.discountPrice || selectedPrintingDetail.indicativePrice}
+          category={selectedPrintingDetail.category || "Printing Service"}
+        />
       )}
     </div>
   );

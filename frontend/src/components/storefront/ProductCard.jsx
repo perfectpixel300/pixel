@@ -1,8 +1,13 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { MessageSquare, ArrowUpRight, Package } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
 export function ProductCard({ product, onViewDetails, onInquire }) {
+  const navigate = useNavigate();
+
+  if (!product) return null;
+
   const rawImage = product?.images && product.images.length > 0 ? product.images[0] : "";
   const imageUrl = getOptimizedImageUrl(rawImage, { width: 600 });
   const regPrice = Number(product?.indicativePrice || product?.price) || 0;
@@ -12,11 +17,30 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
     ? Math.round(((regPrice - discPrice) / regPrice) * 100)
     : 0;
 
+  const productUrl = `/products/${product.slug || product._id}`;
+
+  const handleNavigate = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (onViewDetails) {
+      onViewDetails(product);
+    }
+    navigate(productUrl);
+  };
+
+  const handleInquire = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    if (onInquire) {
+      onInquire(product);
+    }
+  };
+
   return (
     <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col h-full transition-all duration-300 border border-[var(--border-subtle)] hover:shadow-xl group">
       {/* Image Container with zoom */}
       <div
-        onClick={() => onViewDetails(product)}
+        onClick={handleNavigate}
         className="h-44 sm:h-56 md:h-64 lg:h-72 relative overflow-hidden cursor-pointer bg-[#050505] flex items-center justify-center shrink-0"
       >
         {imageUrl ? (
@@ -66,7 +90,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
       <div className="p-3.5 sm:p-5 flex flex-col gap-2 flex-1">
         <div>
           <h3
-            onClick={() => onViewDetails(product)}
+            onClick={handleNavigate}
             className="text-xs sm:text-base font-bold m-0 leading-snug cursor-pointer hover:text-zinc-400 transition-colors capitalize line-clamp-2 min-h-[34px] sm:min-h-[44px]"
           >
             {product.name}
@@ -108,7 +132,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
 
           <div className="flex gap-1 sm:gap-1.5 w-full sm:w-auto">
             <button
-              onClick={() => onInquire(product)}
+              onClick={handleInquire}
               className="btn btn-secondary btn-sm flex-1 sm:flex-initial gap-1 text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5"
               title="Inquire about this piece"
             >
@@ -116,7 +140,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
               <span>Inquire</span>
             </button>
             <button
-              onClick={() => onViewDetails(product)}
+              onClick={handleNavigate}
               className="btn btn-primary btn-sm flex-1 sm:flex-initial text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5"
             >
               Specs
