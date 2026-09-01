@@ -693,7 +693,7 @@ export function Navbar({
 
     {/* Mobile Bottom Navigation Bar (Facebook App Style: First 4 + Hamburger Menu) */}
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-card)]/95 backdrop-blur-lg border-t border-[var(--border-medium)] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] px-1 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))]"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-card)]/95 backdrop-blur-lg border-t border-[var(--border-medium)] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] px-1.5 pt-2.5 pb-[max(0.65rem,calc(env(safe-area-inset-bottom)+0.25rem))]"
       aria-label="Mobile Navigation"
     >
       <div className="grid grid-cols-5 items-center max-w-[500px] mx-auto">
@@ -708,31 +708,45 @@ export function Navbar({
                 setIsMenuDrawerOpen(false);
                 handleNavClick(link.id);
               }}
-              className={`flex flex-col items-center justify-center py-1 px-0.5 relative transition-all duration-200 cursor-pointer ${
+              className={`flex flex-col items-center justify-center py-1.5 px-0.5 relative transition-all duration-200 cursor-pointer ${
                 isActive
-                  ? "text-[var(--text-primary)]"
+                  ? theme === "dark"
+                    ? "text-[#38bdf8]"
+                    : "text-[#2563eb]"
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               }`}
               aria-label={link.label}
               aria-current={isActive ? "page" : undefined}
             >
-              {/* Active top line indicator (Facebook app style) */}
+              {/* Active top line indicator (Facebook app style with mode-specific glow) */}
               {isActive && (
-                <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-[2.5px] bg-[var(--text-primary)] rounded-full shadow-[0_0_8px_var(--text-primary)]" />
+                <span
+                  className={`absolute -top-2.5 left-1/2 -translate-x-1/2 w-8 h-[2.5px] rounded-full transition-all duration-200 ${
+                    theme === "dark"
+                      ? "bg-[#38bdf8] shadow-[0_0_10px_rgba(56,189,248,0.8)]"
+                      : "bg-[#2563eb] shadow-[0_1px_4px_rgba(37,99,235,0.4)]"
+                  }`}
+                />
               )}
 
               <div
                 className={`flex items-center justify-center transition-transform duration-200 ${
-                  isActive ? "scale-110" : ""
+                  isActive
+                    ? theme === "dark"
+                      ? "scale-110 bg-[#38bdf8]/12 p-1 rounded-xl text-[#38bdf8]"
+                      : "scale-110 bg-[#2563eb]/10 p-1 rounded-xl text-[#2563eb]"
+                    : "p-1"
                 }`}
               >
-                <Icon size={19} strokeWidth={isActive ? 2.3 : 1.8} />
+                <Icon size={20} strokeWidth={isActive ? 2.4 : 1.8} />
               </div>
 
               <span
-                className={`text-[0.625rem] tracking-tight truncate w-full text-center leading-none mt-1 ${
+                className={`text-[0.65rem] tracking-tight truncate w-full text-center leading-none mt-1 ${
                   isActive
-                    ? "font-bold text-[var(--text-primary)]"
+                    ? theme === "dark"
+                      ? "font-bold text-[#38bdf8]"
+                      : "font-bold text-[#2563eb]"
                     : "font-medium text-[var(--text-muted)]"
                 }`}
               >
@@ -749,34 +763,48 @@ export function Navbar({
             <button
               type="button"
               onClick={() => setIsMenuDrawerOpen(!isMenuDrawerOpen)}
-              className={`flex flex-col items-center justify-center py-1 px-0.5 relative transition-all duration-200 cursor-pointer ${
+              className={`flex flex-col items-center justify-center py-1.5 px-0.5 relative transition-all duration-200 cursor-pointer ${
                 isMenuTabActive
-                  ? "text-[var(--text-primary)]"
+                  ? theme === "dark"
+                    ? "text-[#38bdf8]"
+                    : "text-[#2563eb]"
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               }`}
               aria-label="Open More Menu"
               aria-expanded={isMenuDrawerOpen}
             >
               {isMenuTabActive && (
-                <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-[2.5px] bg-[var(--text-primary)] rounded-full shadow-[0_0_8px_var(--text-primary)]" />
+                <span
+                  className={`absolute -top-2.5 left-1/2 -translate-x-1/2 w-8 h-[2.5px] rounded-full transition-all duration-200 ${
+                    theme === "dark"
+                      ? "bg-[#38bdf8] shadow-[0_0_10px_rgba(56,189,248,0.8)]"
+                      : "bg-[#2563eb] shadow-[0_1px_4px_rgba(37,99,235,0.4)]"
+                  }`}
+                />
               )}
 
               <div
                 className={`flex items-center justify-center transition-transform duration-200 ${
-                  isMenuTabActive ? "scale-110" : ""
+                  isMenuTabActive
+                    ? theme === "dark"
+                      ? "scale-110 bg-[#38bdf8]/12 p-1 rounded-xl text-[#38bdf8]"
+                      : "scale-110 bg-[#2563eb]/10 p-1 rounded-xl text-[#2563eb]"
+                    : "p-1"
                 }`}
               >
                 {isMenuDrawerOpen ? (
-                  <X size={19} strokeWidth={2.3} />
+                  <X size={20} strokeWidth={2.4} />
                 ) : (
-                  <Menu size={19} strokeWidth={isMenuTabActive ? 2.3 : 1.8} />
+                  <Menu size={20} strokeWidth={isMenuTabActive ? 2.4 : 1.8} />
                 )}
               </div>
 
               <span
-                className={`text-[0.625rem] tracking-tight truncate w-full text-center leading-none mt-1 ${
+                className={`text-[0.65rem] tracking-tight truncate w-full text-center leading-none mt-1 ${
                   isMenuTabActive
-                    ? "font-bold text-[var(--text-primary)]"
+                    ? theme === "dark"
+                      ? "font-bold text-[#38bdf8]"
+                      : "font-bold text-[#2563eb]"
                     : "font-medium text-[var(--text-muted)]"
                 }`}
               >
@@ -840,16 +868,32 @@ export function Navbar({
                   }}
                   className={`w-full flex items-center justify-between p-3.5 rounded-[var(--radius-sm)] border transition-all text-left cursor-pointer ${
                     activePage === "about"
-                      ? "bg-[var(--bg-elevated)] border-[var(--border-bright)]"
+                      ? theme === "dark"
+                        ? "bg-sky-500/10 border-sky-400/40 text-sky-300"
+                        : "bg-blue-500/10 border-blue-500/30 text-blue-600"
                       : "bg-[var(--bg-input)] border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-primary)] shrink-0">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        activePage === "about"
+                          ? theme === "dark"
+                            ? "bg-sky-500/20 text-sky-400"
+                            : "bg-blue-500/20 text-blue-600"
+                          : "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                      }`}
+                    >
                       <Info size={16} />
                     </div>
                     <div>
-                      <div className="text-xs font-bold uppercase tracking-wider">
+                      <div className={`text-xs font-bold uppercase tracking-wider ${
+                        activePage === "about"
+                          ? theme === "dark"
+                            ? "text-sky-300"
+                            : "text-blue-600"
+                          : "text-[var(--text-primary)]"
+                      }`}>
                         About Pixel Perfect
                       </div>
                       <div className="text-[0.7rem] text-[var(--text-muted)]">
@@ -857,7 +901,13 @@ export function Navbar({
                       </div>
                     </div>
                   </div>
-                  <ChevronRight size={15} className="text-[var(--text-muted)] shrink-0" />
+                  <ChevronRight size={15} className={`shrink-0 ${
+                    activePage === "about"
+                      ? theme === "dark"
+                        ? "text-sky-400"
+                        : "text-blue-600"
+                      : "text-[var(--text-muted)]"
+                  }`} />
                 </button>
 
                 {/* Contact Us */}
@@ -869,16 +919,32 @@ export function Navbar({
                   }}
                   className={`w-full flex items-center justify-between p-3.5 rounded-[var(--radius-sm)] border transition-all text-left cursor-pointer ${
                     activePage === "contact"
-                      ? "bg-[var(--bg-elevated)] border-[var(--border-bright)]"
+                      ? theme === "dark"
+                        ? "bg-sky-500/10 border-sky-400/40 text-sky-300"
+                        : "bg-blue-500/10 border-blue-500/30 text-blue-600"
                       : "bg-[var(--bg-input)] border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-primary)] shrink-0">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                        activePage === "contact"
+                          ? theme === "dark"
+                            ? "bg-sky-500/20 text-sky-400"
+                            : "bg-blue-500/20 text-blue-600"
+                          : "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                      }`}
+                    >
                       <MessageSquare size={16} />
                     </div>
                     <div>
-                      <div className="text-xs font-bold uppercase tracking-wider">
+                      <div className={`text-xs font-bold uppercase tracking-wider ${
+                        activePage === "contact"
+                          ? theme === "dark"
+                            ? "text-sky-300"
+                            : "text-blue-600"
+                          : "text-[var(--text-primary)]"
+                      }`}>
                         Contact & Studio Inquiries
                       </div>
                       <div className="text-[0.7rem] text-[var(--text-muted)]">
@@ -886,7 +952,13 @@ export function Navbar({
                       </div>
                     </div>
                   </div>
-                  <ChevronRight size={15} className="text-[var(--text-muted)] shrink-0" />
+                  <ChevronRight size={15} className={`shrink-0 ${
+                    activePage === "contact"
+                      ? theme === "dark"
+                        ? "text-sky-400"
+                        : "text-blue-600"
+                      : "text-[var(--text-muted)]"
+                  }`} />
                 </button>
               </div>
             </div>

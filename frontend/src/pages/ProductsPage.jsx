@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, Filter, SlidersHorizontal, Package, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard } from "../components/storefront/ProductCard";
+import { FeaturedSection } from "../components/storefront/FeaturedSection";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
 
 export function ProductsPage({
@@ -77,8 +78,21 @@ export function ProductsPage({
   };
 
   return (
-    <div className="py-16 pb-24">
-      <div className="storefront-container">
+    <div className="pb-24">
+      {/* Spotlight Featured Products Section */}
+      <FeaturedSection
+        products={products}
+        onViewDetails={onViewProduct}
+        onInquire={onInquireProduct}
+        onBrowseAll={() => {
+          const catalogEl = document.getElementById("catalog-section");
+          if (catalogEl) {
+            catalogEl.scrollIntoView({ behavior: "smooth" });
+          }
+        }}
+      />
+
+      <div className="storefront-container pt-14 sm:pt-18" id="catalog-section">
         {/* Page Header */}
         <div className="mb-12">
           <span className="text-[0.75rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
