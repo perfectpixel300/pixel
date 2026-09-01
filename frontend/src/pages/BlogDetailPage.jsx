@@ -289,11 +289,11 @@ export function BlogDetailPage({ blog: initialBlog, blogIdOrSlug: propIdOrSlug, 
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setShareBlogModalOpen(true)}
-              className="btn btn-sm !py-1.5 !px-3.5 text-xs gap-2 cursor-pointer font-bold bg-orange-500/15 border border-orange-500/40 hover:border-orange-400 text-orange-400 hover:text-orange-300 rounded-full transition-all shadow-xs"
-              title="Share this article"
+              className="btn btn-sm !py-1.5 !px-3.5 text-xs gap-2 cursor-pointer font-bold bg-emerald-500/15 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 rounded-full transition-all shadow-xs"
+              title="Share with Friends"
             >
-              <Share2 size={13} className="text-orange-500" />
-              <span>Share Article</span>
+              <Share2 size={13} className="text-emerald-400" />
+              <span>Share with Friends</span>
             </button>
           </div>
         </div>

@@ -865,11 +865,11 @@ export function HomePage({
                     e.stopPropagation();
                     setShareServiceModalOpen(true);
                   }}
-                  className="btn btn-secondary btn-sm gap-1 !px-2.5 !py-1 text-xs"
-                  title="Share this service"
+                  className="btn btn-sm gap-1.5 !px-3 !py-1.5 bg-emerald-500/15 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 font-bold text-xs rounded-full transition-all shadow-xs"
+                  title="Share with Friends"
                 >
-                  <Share2 size={13} />
-                  <span>Share</span>
+                  <Share2 size={13} className="text-emerald-400" />
+                  <span>Share with Friends</span>
                 </button>
                 <button
                   onClick={() => setSelectedServiceDetail(null)}
@@ -989,11 +989,11 @@ export function HomePage({
                     e.stopPropagation();
                     setShareServiceModalOpen(true);
                   }}
-                  className="btn btn-secondary btn-sm gap-1.5"
-                  title="Share this service"
+                  className="btn btn-sm gap-2 !px-3.5 !py-2 bg-emerald-500/15 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 font-bold transition-all shadow-xs"
+                  title="Share with Friends"
                 >
-                  <Share2 size={14} />
-                  <span>Share</span>
+                  <Share2 size={14} className="text-emerald-400" />
+                  <span>Share with Friends</span>
                 </button>
                 <button
                   onClick={() => handleOpenWhatsAppService(selectedServiceDetail.title, selectedServiceDetail.price)}
@@ -1049,11 +1049,11 @@ export function HomePage({
                     e.stopPropagation();
                     setSharePrintingModalOpen(true);
                   }}
-                  className="btn btn-secondary btn-sm gap-1 !px-2.5 !py-1 text-xs"
-                  title="Share this printing service"
+                  className="btn btn-sm gap-1.5 !px-3 !py-1.5 bg-emerald-500/15 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 font-bold text-xs rounded-full transition-all shadow-xs"
+                  title="Share with Friends"
                 >
-                  <Share2 size={13} />
-                  <span>Share</span>
+                  <Share2 size={13} className="text-emerald-400" />
+                  <span>Share with Friends</span>
                 </button>
                 <button
                   onClick={() => setSelectedPrintingDetail(null)}
@@ -1201,11 +1201,11 @@ export function HomePage({
                     e.stopPropagation();
                     setSharePrintingModalOpen(true);
                   }}
-                  className="btn btn-secondary btn-sm gap-1.5"
-                  title="Share this printing service"
+                  className="btn btn-sm gap-2 !px-3.5 !py-2 bg-emerald-500/15 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 font-bold transition-all shadow-xs"
+                  title="Share with Friends"
                 >
-                  <Share2 size={14} />
-                  <span>Share</span>
+                  <Share2 size={14} className="text-emerald-400" />
+                  <span>Share with Friends</span>
                 </button>
                 <button
                   onClick={() =>

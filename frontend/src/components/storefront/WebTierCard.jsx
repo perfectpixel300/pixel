@@ -175,11 +175,11 @@ export function WebTierCard({
               e.stopPropagation();
               setShareModalOpen(true);
             }}
-            className="btn btn-sm text-[0.75rem] font-bold bg-orange-500/15 border border-orange-500/40 hover:border-orange-400 text-orange-400 hover:text-orange-300 flex items-center justify-center gap-1.5 transition-all shadow-xs"
-            title="Share this plan"
+            className="btn btn-sm text-[0.75rem] font-bold bg-emerald-500/15 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-1.5 transition-all shadow-xs"
+            title="Share with Friends"
           >
-            <Share2 size={13} className="text-orange-500" />
-            <span>Share Plan</span>
+            <Share2 size={13} className="text-emerald-400" />
+            <span>Share with Friends</span>
           </button>
         </div>
       </div>

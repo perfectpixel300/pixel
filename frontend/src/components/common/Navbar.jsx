@@ -310,22 +310,22 @@ export function Navbar({
         ref={headerRef}
         className="fixed top-0 left-0 right-0 z-[100] w-full bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] will-change-transform shadow-xs pt-[env(safe-area-inset-top,0px)]"
       >
-        <div className="storefront-container h-[64px] sm:h-[72px] flex items-center justify-between gap-2 sm:gap-4">
+        <div className="storefront-container h-[64px] sm:h-[72px] flex items-center justify-between gap-1.5 sm:gap-2.5 lg:gap-3 px-3 sm:px-4 md:px-6">
         {/* Brand Logo */}
         <div
           onClick={() => handleNavClick("home")}
-          className="cursor-pointer flex flex-col shrink-0 min-w-0 group"
+          className="cursor-pointer flex flex-col shrink-0 group select-none"
         >
-          <span className="text-[0.8rem] sm:text-[1.15rem] font-extrabold tracking-[0.06em] sm:tracking-[0.08em] uppercase text-[var(--text-primary)] leading-tight group-hover:opacity-85 transition-opacity">
+          <span className="text-[0.85rem] sm:text-[0.95rem] xl:text-[1.1rem] font-extrabold tracking-[0.06em] uppercase text-[var(--text-primary)] leading-tight group-hover:opacity-85 transition-opacity">
             PIXEL PERFECT
           </span>
-          <span className="text-[0.55rem] sm:text-[0.625rem] font-medium tracking-[0.12em] sm:tracking-[0.15em] uppercase text-[var(--text-muted)] mt-0.5 hidden sm:inline group-hover:text-[var(--text-secondary)] transition-colors">
+          <span className="text-[0.525rem] sm:text-[0.575rem] font-medium tracking-[0.12em] uppercase text-[var(--text-muted)] mt-0.5 hidden sm:inline group-hover:text-[var(--text-secondary)] transition-colors">
             Stationery, Studio & IT
           </span>
         </div>
 
-        {/* Desktop Navigation Links with Dynamic Light/Dark Hover */}
-        <nav className="hidden lg:flex items-center gap-1.5 shrink-0">
+        {/* Desktop Navigation Links with Responsive Scaling */}
+        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 2xl:gap-1.5 min-w-0">
           {navLinks.map((link) => {
             const isActive =
               activePage === link.id ||
@@ -335,7 +335,7 @@ export function Navbar({
               <button
                 key={link.id}
                 onClick={() => handleNavClick(link.id)}
-                className={`border-none text-[0.825rem] uppercase tracking-[0.04em] cursor-pointer px-3.5 py-1.5 rounded-[var(--radius-sm)] relative transition-all duration-200 ${
+                className={`border-none text-[0.75rem] xl:text-[0.8rem] 2xl:text-[0.825rem] uppercase tracking-[0.02em] xl:tracking-[0.04em] cursor-pointer px-2 xl:px-2.5 2xl:px-3.5 py-1.5 rounded-[var(--radius-sm)] relative transition-all duration-200 whitespace-nowrap shrink-0 ${
                   isActive
                     ? "font-bold text-[var(--text-primary)] bg-[var(--bg-elevated)] shadow-xs"
                     : "font-medium text-[var(--text-secondary)] bg-transparent hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
@@ -343,27 +343,27 @@ export function Navbar({
               >
                 {link.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-[var(--text-primary)] rounded-full" />
+                  <span className="absolute bottom-0 left-2 right-2 xl:left-2.5 xl:right-2.5 h-[2px] bg-[var(--text-primary)] rounded-full" />
                 )}
               </button>
             );
           })}
         </nav>
 
-        {/* Right Side - Shop Status, Phone inquiry, Search trigger, Theme Toggle, Mobile Menu */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+        {/* Right Side - Shop Status, Phone inquiry, Search trigger, Theme Toggle */}
+        <div className="flex items-center gap-1 sm:gap-1.5 xl:gap-2 shrink-0">
           {/* Live Shop Status Indicator Pill or Loader */}
           {isStatusLoading || !shopStatus ? (
-            <div className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[0.7rem] sm:text-[0.75rem] font-medium border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-muted)] animate-pulse">
+            <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[0.68rem] sm:text-[0.72rem] font-medium border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-muted)] animate-pulse">
               <Loader2 size={11} className="animate-spin text-[var(--text-muted)] shrink-0" />
-              <span className="hidden sm:inline text-[0.7rem]">Status...</span>
-              <span className="sm:hidden text-[0.65rem]">...</span>
+              <span className="hidden sm:inline">Status...</span>
+              <span className="sm:hidden">...</span>
             </div>
           ) : (
             <div className="relative" ref={statusPopoverRef}>
               <button
                 onClick={() => setShowStatusPopover(!showStatusPopover)}
-                className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[0.7rem] sm:text-[0.75rem] font-bold border transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[0.68rem] sm:text-[0.72rem] font-bold border transition-all cursor-pointer ${
                   shopStatus?.status === "partial"
                     ? "bg-blue-500/15 border-blue-500/40 text-blue-300 hover:bg-blue-500/25"
                     : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
@@ -401,17 +401,17 @@ export function Navbar({
 
                 {shopStatus?.status === "partial" ? (
                   <>
-                    <span className="hidden sm:inline">Partial Services</span>
+                    <span className="hidden sm:inline">Partial</span>
                     <span className="sm:hidden">Partial</span>
                   </>
                 ) : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen) ? (
                   <>
-                    <span className="hidden sm:inline">Shop Closed</span>
+                    <span className="hidden sm:inline">Closed</span>
                     <span className="sm:hidden">Closed</span>
                   </>
                 ) : (
                   <>
-                    <span className="hidden sm:inline">Shop Open</span>
+                    <span className="hidden sm:inline">Open</span>
                     <span className="sm:hidden">Open</span>
                   </>
                 )}
@@ -549,7 +549,7 @@ export function Navbar({
 
           <a
             href="tel:+9779808950275"
-            className="hidden xl:inline-flex items-center gap-1.5 text-[0.775rem] font-semibold text-[var(--text-secondary)] tracking-[0.02em] hover:text-[var(--text-primary)] px-2.5 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--bg-elevated)] transition-all"
+            className="hidden 2xl:inline-flex items-center gap-1.5 text-[0.775rem] font-semibold text-[var(--text-secondary)] tracking-[0.02em] hover:text-[var(--text-primary)] px-2.5 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--bg-elevated)] transition-all"
           >
             <Phone size={13} />
             <span className="font-mono">+977 9808950275</span>
@@ -575,7 +575,8 @@ export function Navbar({
           <button
             onClick={toggleTheme}
             className="btn-icon btn-ghost"
-            title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Monochrome`}
+            title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
+            aria-label={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
           >
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </button>

@@ -136,11 +136,11 @@ export function ProductDetailPage({
 
           <button
             onClick={() => setShareModalOpen(true)}
-            className="btn btn-sm gap-2 !px-3.5 !py-2 bg-orange-500/15 border border-orange-500/35 hover:border-orange-400 text-orange-400 hover:text-orange-300 font-bold shadow-xs transition-all rounded-full group"
-            title="Share this product"
+            className="btn btn-sm gap-2 !px-3.5 !py-2 bg-emerald-500/15 border border-emerald-500/35 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 font-bold shadow-xs transition-all rounded-full group"
+            title="Share with Friends"
           >
-            <Share2 size={14} className="text-orange-500 group-hover:scale-110 transition-transform" />
-            <span>Share Product</span>
+            <Share2 size={14} className="text-emerald-400 group-hover:scale-110 transition-transform" />
+            <span>Share with Friends</span>
           </button>
         </div>
 
@@ -311,11 +311,11 @@ export function ProductDetailPage({
 
               <button
                 onClick={() => setShareModalOpen(true)}
-                className="btn w-full py-3.5 text-xs sm:text-sm font-bold gap-2.5 bg-gradient-to-r from-orange-500/15 via-amber-500/15 to-orange-500/15 border border-orange-500/40 hover:border-orange-400 text-orange-400 hover:text-orange-300 rounded-[var(--radius-sm)] transition-all shadow-xs hover:shadow-sm"
-                title="Share this product"
+                className="btn w-full py-3.5 text-xs sm:text-sm font-bold gap-2.5 bg-emerald-500/15 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 rounded-[var(--radius-sm)] transition-all shadow-xs hover:shadow-sm"
+                title="Share with Friends"
               >
-                <Share2 size={16} className="text-orange-500" />
-                <span>Share Piece (WhatsApp, Instagram, Link, Facebook)</span>
+                <Share2 size={16} className="text-emerald-400" />
+                <span>Share with Friends</span>
               </button>
 
               <div className="text-[0.75rem] text-[var(--text-muted)] text-center">
