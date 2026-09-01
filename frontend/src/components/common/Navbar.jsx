@@ -2,11 +2,21 @@ import React, { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
+  Home,
+  ShoppingBag,
+  Printer,
+  Layers,
+  Info,
+  MessageSquare,
   Menu,
   X,
+  ChevronRight,
+  MapPin,
+  Shield,
   Sun,
   Moon,
   Phone,
+  Mail,
   Search,
   ArrowRight,
   Package,
@@ -15,7 +25,6 @@ import {
   AlertCircle,
   Sparkles,
   Loader2,
-  Info,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
@@ -36,8 +45,8 @@ export function Navbar({
   onOpenShopClosedModal,
   onStatusAutoClose,
 }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMenuDrawerOpen, setIsMenuDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showStatusPopover, setShowStatusPopover] = useState(false);
   const [timerText, setTimerText] = useState("");
@@ -61,8 +70,8 @@ export function Navbar({
       const currentScrollY = window.scrollY;
       const delta = currentScrollY - lastScrollY;
 
-      // Keep open if menu or search or status popover is open
-      if (mobileMenuOpen || isSearchOpen || showStatusPopover) {
+      // Keep open if search or status popover is open
+      if (isSearchOpen || showStatusPopover) {
         if (isHidden) {
           gsap.to(headerRef.current, {
             yPercent: 0,
@@ -126,7 +135,7 @@ export function Navbar({
       window.removeEventListener("touchmove", handleScroll);
       gsap.killTweensOf(headerRef.current);
     };
-  }, [mobileMenuOpen, isSearchOpen, showStatusPopover]);
+  }, [isSearchOpen, showStatusPopover]);
 
   // Real-time ticking for navbar timer chip (Kathmandu Timezone NPT / UTC+05:45)
   useEffect(() => {
@@ -196,12 +205,12 @@ export function Navbar({
   }, []);
 
   const navLinks = [
-    { id: "home", label: "Home" },
-    { id: "products", label: "Products" },
-    { id: "printing", label: "Printing" },
-    { id: "services", label: "Services" },
-    { id: "about", label: "About" },
-    { id: "contact", label: "Contact" },
+    { id: "home", label: "Home", icon: Home },
+    { id: "products", label: "Products", icon: ShoppingBag },
+    { id: "printing", label: "Printing", icon: Printer },
+    { id: "services", label: "Services", icon: Layers },
+    { id: "about", label: "About", icon: Info },
+    { id: "contact", label: "Contact", icon: MessageSquare },
   ];
 
   // Filter matching products for live preview
@@ -233,7 +242,7 @@ export function Navbar({
       } else if (e.key === "Escape") {
         setIsSearchOpen(false);
         setShowStatusPopover(false);
-        setMobileMenuOpen(false);
+        setIsMenuDrawerOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -257,7 +266,7 @@ export function Navbar({
 
   const handleNavClick = (id) => {
     setActivePage(id);
-    setMobileMenuOpen(false);
+    setIsMenuDrawerOpen(false);
     setIsSearchOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -535,7 +544,6 @@ export function Navbar({
           <button
             onClick={() => {
               setIsSearchOpen(!isSearchOpen);
-              setMobileMenuOpen(false);
             }}
             className={`btn-icon transition-colors ${
               isSearchOpen
@@ -555,18 +563,6 @@ export function Navbar({
             title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Monochrome`}
           >
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => {
-              setMobileMenuOpen(!mobileMenuOpen);
-              setIsSearchOpen(false);
-            }}
-            className="btn-icon btn-ghost lg:!hidden inline-flex"
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
@@ -691,91 +687,359 @@ export function Navbar({
         </div>
       )}
 
-      {/* Mobile Menu Drawer */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-[var(--bg-card)] border-b border-[var(--border-medium)] px-4 sm:px-6 py-5 flex flex-col gap-2.5 animate-[fadeIn_0.2s_ease-out]">
-          {/* Mobile status banner in drawer */}
-          {isStatusLoading || !shopStatus ? (
-            <div className="p-3 rounded-[var(--radius-sm)] flex items-center gap-2.5 border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-muted)] animate-pulse mb-1">
-              <Loader2 size={13} className="animate-spin text-[var(--text-muted)] shrink-0" />
-              <span className="text-xs font-medium">Checking shop status...</span>
-            </div>
-          ) : (
-            <div
-              onClick={() => {
-                if (!shopStatus?.isOpen && onOpenShopClosedModal) {
-                  onOpenShopClosedModal();
-                  setMobileMenuOpen(false);
-                }
-              }}
-              className={`p-3 rounded-[var(--radius-sm)] flex items-center justify-between cursor-pointer border mb-1 ${
-                shopStatus?.isOpen
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                  : "bg-red-500/15 border-red-500/40 text-red-300"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    shopStatus?.isOpen ? "bg-emerald-500" : "bg-red-500 animate-ping"
-                  }`}
-                />
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  {shopStatus?.isOpen ? "Shop is Open" : "Shop is Currently Closed"}
-                </span>
-              </div>
-              {!shopStatus?.isOpen && timerText && (
-                <span className="text-xs font-mono font-bold bg-black/30 px-2 py-0.5 rounded">
-                  {timerText}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Drawer Search Input */}
-          <form onSubmit={handleSearchFormSubmit} className="relative mb-2">
-            <Search
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-            />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="form-input !pl-8.5 text-sm py-2 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)]"
-            />
-          </form>
-
-          <div className="flex flex-col gap-1">
-            {navLinks.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => handleNavClick(link.id)}
-                className={`border-none text-left text-sm uppercase tracking-[0.05em] px-3.5 py-2.5 rounded-[var(--radius-sm)] transition-all cursor-pointer ${
-                  activePage === link.id
-                    ? "font-bold text-[var(--text-primary)] bg-[var(--bg-elevated)]"
-                    : "font-medium text-[var(--text-secondary)] bg-transparent hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
-                }`}
-              >
-                {link.label}
-              </button>
-            ))}
-          </div>
-
-          <a
-            href="tel:+9779808950275"
-            className="flex items-center gap-2 text-sm text-[var(--text-secondary)] pt-3 mt-1 border-t border-[var(--border-subtle)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            <Phone size={14} />
-            <span>Call Us: +977 9808950275</span>
-          </a>
-        </div>
-      )}
     </header>
 
     {/* Fixed Navbar Space Placeholder to prevent layout jump */}
     <div className="h-[72px] w-full shrink-0" aria-hidden="true" />
+
+    {/* Mobile Bottom Navigation Bar (Facebook App Style: First 4 + Hamburger Menu) */}
+    <nav
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-card)]/95 backdrop-blur-lg border-t border-[var(--border-medium)] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] px-1 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))]"
+      aria-label="Mobile Navigation"
+    >
+      <div className="grid grid-cols-5 items-center max-w-[500px] mx-auto">
+        {navLinks.slice(0, 4).map((link) => {
+          const isActive = activePage === link.id && !isMenuDrawerOpen;
+          const Icon = link.icon;
+          return (
+            <button
+              key={link.id}
+              type="button"
+              onClick={() => {
+                setIsMenuDrawerOpen(false);
+                handleNavClick(link.id);
+              }}
+              className={`flex flex-col items-center justify-center py-1 px-0.5 relative transition-all duration-200 cursor-pointer ${
+                isActive
+                  ? "text-[var(--text-primary)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+              }`}
+              aria-label={link.label}
+              aria-current={isActive ? "page" : undefined}
+            >
+              {/* Active top line indicator (Facebook app style) */}
+              {isActive && (
+                <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-[2.5px] bg-[var(--text-primary)] rounded-full shadow-[0_0_8px_var(--text-primary)]" />
+              )}
+
+              <div
+                className={`flex items-center justify-center transition-transform duration-200 ${
+                  isActive ? "scale-110" : ""
+                }`}
+              >
+                <Icon size={19} strokeWidth={isActive ? 2.3 : 1.8} />
+              </div>
+
+              <span
+                className={`text-[0.625rem] tracking-tight truncate w-full text-center leading-none mt-1 ${
+                  isActive
+                    ? "font-bold text-[var(--text-primary)]"
+                    : "font-medium text-[var(--text-muted)]"
+                }`}
+              >
+                {link.label}
+              </span>
+            </button>
+          );
+        })}
+
+        {/* 5th Tab: Hamburger / Menu button aside the 4 navigations */}
+        {(() => {
+          const isMenuTabActive = isMenuDrawerOpen || ["about", "contact"].includes(activePage);
+          return (
+            <button
+              type="button"
+              onClick={() => setIsMenuDrawerOpen(!isMenuDrawerOpen)}
+              className={`flex flex-col items-center justify-center py-1 px-0.5 relative transition-all duration-200 cursor-pointer ${
+                isMenuTabActive
+                  ? "text-[var(--text-primary)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+              }`}
+              aria-label="Open More Menu"
+              aria-expanded={isMenuDrawerOpen}
+            >
+              {isMenuTabActive && (
+                <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-[2.5px] bg-[var(--text-primary)] rounded-full shadow-[0_0_8px_var(--text-primary)]" />
+              )}
+
+              <div
+                className={`flex items-center justify-center transition-transform duration-200 ${
+                  isMenuTabActive ? "scale-110" : ""
+                }`}
+              >
+                {isMenuDrawerOpen ? (
+                  <X size={19} strokeWidth={2.3} />
+                ) : (
+                  <Menu size={19} strokeWidth={isMenuTabActive ? 2.3 : 1.8} />
+                )}
+              </div>
+
+              <span
+                className={`text-[0.625rem] tracking-tight truncate w-full text-center leading-none mt-1 ${
+                  isMenuTabActive
+                    ? "font-bold text-[var(--text-primary)]"
+                    : "font-medium text-[var(--text-muted)]"
+                }`}
+              >
+                Menu
+              </span>
+            </button>
+          );
+        })()}
+      </div>
+    </nav>
+
+    {/* Mobile Slide-Up Menu Sheet when Hamburger is opened */}
+    {isMenuDrawerOpen && (
+      <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end animate-[fadeIn_0.15s_ease-out]">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/65 backdrop-blur-xs"
+          onClick={() => setIsMenuDrawerOpen(false)}
+          aria-hidden="true"
+        />
+
+        {/* Slide-up Sheet */}
+        <div className="relative bg-[var(--bg-card)] border-t border-[var(--border-medium)] rounded-t-2xl shadow-2xl max-h-[84vh] flex flex-col z-10">
+          {/* Top Grab Handle */}
+          <div className="w-12 h-1.5 bg-[var(--border-medium)] rounded-full mx-auto mt-2.5 mb-1 shrink-0" />
+
+          {/* Sheet Header */}
+          <div className="px-5 py-3 border-b border-[var(--border-subtle)] flex items-center justify-between shrink-0">
+            <div>
+              <div className="text-sm font-bold tracking-[0.05em] uppercase text-[var(--text-primary)]">
+                Studio Directory
+              </div>
+              <div className="text-[0.7rem] text-[var(--text-muted)]">
+                Explore more pages, contact channels & tools
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsMenuDrawerOpen(false)}
+              className="btn-icon btn-ghost !w-8 !h-8 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              aria-label="Close menu"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Scrollable Sheet Body */}
+          <div className="overflow-y-auto px-5 py-4 space-y-5 pb-24 text-[var(--text-primary)]">
+            {/* Section 1: Additional Navigations (About & Contact) */}
+            <div>
+              <div className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] mb-2">
+                Pages
+              </div>
+              <div className="space-y-2">
+                {/* About Us */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuDrawerOpen(false);
+                    handleNavClick("about");
+                  }}
+                  className={`w-full flex items-center justify-between p-3.5 rounded-[var(--radius-sm)] border transition-all text-left cursor-pointer ${
+                    activePage === "about"
+                      ? "bg-[var(--bg-elevated)] border-[var(--border-bright)]"
+                      : "bg-[var(--bg-input)] border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-primary)] shrink-0">
+                      <Info size={16} />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wider">
+                        About Pixel Perfect
+                      </div>
+                      <div className="text-[0.7rem] text-[var(--text-muted)]">
+                        Studio heritage, craft philosophy & paper atelier
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight size={15} className="text-[var(--text-muted)] shrink-0" />
+                </button>
+
+                {/* Contact Us */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuDrawerOpen(false);
+                    handleNavClick("contact");
+                  }}
+                  className={`w-full flex items-center justify-between p-3.5 rounded-[var(--radius-sm)] border transition-all text-left cursor-pointer ${
+                    activePage === "contact"
+                      ? "bg-[var(--bg-elevated)] border-[var(--border-bright)]"
+                      : "bg-[var(--bg-input)] border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-[var(--text-primary)] shrink-0">
+                      <MessageSquare size={16} />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wider">
+                        Contact & Studio Inquiries
+                      </div>
+                      <div className="text-[0.7rem] text-[var(--text-muted)]">
+                        Bespoke orders, quotes & custom print consultation
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight size={15} className="text-[var(--text-muted)] shrink-0" />
+                </button>
+              </div>
+            </div>
+
+            {/* Section 2: Live Shop Status Card */}
+            <div>
+              <div className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] mb-2">
+                Store Status & Operating Hours
+              </div>
+              <div
+                onClick={() => {
+                  setIsMenuDrawerOpen(false);
+                  if (onOpenShopClosedModal) onOpenShopClosedModal();
+                }}
+                className={`p-3.5 rounded-[var(--radius-sm)] border cursor-pointer flex items-center justify-between ${
+                  shopStatus?.status === "partial"
+                    ? "bg-blue-500/10 border-blue-500/30 text-blue-300"
+                    : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
+                    ? "bg-red-500/15 border-red-500/40 text-red-300"
+                    : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="relative flex h-2.5 w-2.5 shrink-0">
+                    <span
+                      className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                        shopStatus?.status === "partial"
+                          ? "bg-blue-400"
+                          : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
+                          ? "bg-red-400"
+                          : "bg-emerald-400"
+                      }`}
+                    />
+                    <span
+                      className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                        shopStatus?.status === "partial"
+                          ? "bg-blue-400"
+                          : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
+                          ? "bg-red-500"
+                          : "bg-emerald-500"
+                      }`}
+                    />
+                  </span>
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wider">
+                      {shopStatus?.status === "partial"
+                        ? "Partial Services Active"
+                        : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
+                        ? "Shop is Currently Closed"
+                        : "Shop is Currently Open"}
+                    </div>
+                    <div className="text-[0.68rem] opacity-80 mt-0.5 font-mono">
+                      {timerText ? `Timer: ${timerText}` : "Mon - Sat: 9:00 AM - 7:30 PM NPT"}
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight size={15} className="opacity-70 shrink-0" />
+              </div>
+            </div>
+
+            {/* Section 3: Instant Connect Channels */}
+            <div>
+              <div className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] mb-2">
+                Instant Connect
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <a
+                  href="https://wa.me/9779808950275?text=Hello%20Pixel%20Perfect,%20I%20would%20like%20to%20inquire%20about%20your%20products%20and%20services."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
+                >
+                  <span className="text-[#25D366] shrink-0">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                    </svg>
+                  </span>
+                  <span className="text-xs font-semibold">WhatsApp</span>
+                </a>
+
+                <a
+                  href="tel:+9779808950275"
+                  className="flex items-center gap-2 p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
+                >
+                  <Phone size={14} className="text-[var(--text-primary)] shrink-0" />
+                  <span className="text-xs font-semibold">Call Studio</span>
+                </a>
+
+                <a
+                  href="mailto:perfectpixel300@gmail.com"
+                  className="flex items-center gap-2 p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
+                >
+                  <Mail size={14} className="text-[var(--text-primary)] shrink-0" />
+                  <span className="text-xs font-semibold">Email Us</span>
+                </a>
+
+                <a
+                  href="https://maps.app.goo.gl/Ytvdx85tYDftR7kR8?g_st=ac"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
+                >
+                  <MapPin size={14} className="text-[var(--text-primary)] shrink-0" />
+                  <span className="text-xs font-semibold">Find Studio</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Section 4: Preferences & Admin Portal */}
+            <div>
+              <div className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] mb-2">
+                Preferences & Management
+              </div>
+              <div className="space-y-2">
+                {/* Theme switch row */}
+                <div className="flex items-center justify-between p-3 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-2.5">
+                    {theme === "dark" ? <Moon size={15} /> : <Sun size={15} />}
+                    <span className="text-xs font-medium">
+                      Theme: <strong className="capitalize">{theme}</strong>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="btn btn-secondary !py-1 !px-3 text-xs"
+                  >
+                    Switch to {theme === "dark" ? "Light" : "Dark"}
+                  </button>
+                </div>
+
+                {/* Admin Studio Portal Link */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuDrawerOpen(false);
+                    handleNavClick("admin");
+                  }}
+                  className="w-full flex items-center justify-between p-3 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Shield size={15} className="text-[var(--text-muted)]" />
+                    <span className="text-xs font-medium">Admin Studio Management</span>
+                  </div>
+                  <ChevronRight size={14} className="text-[var(--text-muted)]" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
   </>
   );
 }

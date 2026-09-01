@@ -34,7 +34,7 @@ export function ScrollToTop({ shopStatus }) {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2">
+    <div className="fixed bottom-[4.5rem] right-4 lg:bottom-6 lg:right-6 z-40 flex items-center gap-2">
       {/* WhatsApp Floating Action Button */}
       <a
         href={whatsAppUrl}

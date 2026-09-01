@@ -19,7 +19,7 @@ export function Footer({ setActivePage, categories = [] }) {
   };
 
   return (
-    <footer className="bg-[var(--bg-secondary)] border-t border-[var(--border-subtle)] mt-auto pt-18 pb-10">
+    <footer className="bg-[var(--bg-secondary)] border-t border-[var(--border-subtle)] mt-auto pt-18 pb-24 lg:pb-10">
       <div className="storefront-container">
         {/* Main Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
