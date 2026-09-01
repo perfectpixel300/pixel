@@ -136,11 +136,11 @@ export function ProductDetailPage({
 
           <button
             onClick={() => setShareModalOpen(true)}
-            className="btn btn-secondary btn-sm gap-1.5"
+            className="btn btn-sm gap-2 !px-3.5 !py-2 bg-orange-500/15 border border-orange-500/35 hover:border-orange-400 text-orange-400 hover:text-orange-300 font-bold shadow-xs transition-all rounded-full group"
             title="Share this product"
           >
-            <Share2 size={14} />
-            <span>Share</span>
+            <Share2 size={14} className="text-orange-500 group-hover:scale-110 transition-transform" />
+            <span>Share Product</span>
           </button>
         </div>
 
@@ -311,10 +311,11 @@ export function ProductDetailPage({
 
               <button
                 onClick={() => setShareModalOpen(true)}
-                className="btn btn-ghost py-2.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center justify-center gap-2 border border-[var(--border-subtle)] rounded-[var(--radius-sm)]"
+                className="btn w-full py-3.5 text-xs sm:text-sm font-bold gap-2.5 bg-gradient-to-r from-orange-500/15 via-amber-500/15 to-orange-500/15 border border-orange-500/40 hover:border-orange-400 text-orange-400 hover:text-orange-300 rounded-[var(--radius-sm)] transition-all shadow-xs hover:shadow-sm"
+                title="Share this product"
               >
-                <Share2 size={14} />
-                <span>Share with Friends or Colleagues</span>
+                <Share2 size={16} className="text-orange-500" />
+                <span>Share Piece (WhatsApp, Instagram, Link, Facebook)</span>
               </button>
 
               <div className="text-[0.75rem] text-[var(--text-muted)] text-center">

@@ -163,7 +163,7 @@ export function WebTierCard({
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={handleWhatsAppClick}
-            className="btn btn-ghost btn-sm text-[0.75rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1.5 border border-[var(--border-subtle)]"
+            className="btn btn-secondary btn-sm text-[0.75rem] font-semibold flex items-center justify-center gap-1.5"
           >
             <MessageCircle size={13} />
             <span>WhatsApp</span>
@@ -175,10 +175,10 @@ export function WebTierCard({
               e.stopPropagation();
               setShareModalOpen(true);
             }}
-            className="btn btn-ghost btn-sm text-[0.75rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1.5 border border-[var(--border-subtle)]"
+            className="btn btn-sm text-[0.75rem] font-bold bg-orange-500/15 border border-orange-500/40 hover:border-orange-400 text-orange-400 hover:text-orange-300 flex items-center justify-center gap-1.5 transition-all shadow-xs"
             title="Share this plan"
           >
-            <Share2 size={13} />
+            <Share2 size={13} className="text-orange-500" />
             <span>Share Plan</span>
           </button>
         </div>

@@ -476,10 +476,10 @@ export function PrintingPage({
                     e.stopPropagation();
                     setSharePrintingModalOpen(true);
                   }}
-                  className="btn btn-secondary btn-sm gap-1 !px-2.5 !py-1 text-xs"
+                  className="btn btn-sm gap-1.5 !px-3 !py-1.5 bg-orange-500/15 border border-orange-500/40 hover:border-orange-400 text-orange-400 hover:text-orange-300 font-bold text-xs rounded-full transition-all shadow-xs"
                   title="Share this printing service"
                 >
-                  <Share2 size={13} />
+                  <Share2 size={13} className="text-orange-500" />
                   <span>Share</span>
                 </button>
                 <button
@@ -621,12 +621,15 @@ export function PrintingPage({
             <div className="modal-footer flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setSharePrintingModalOpen(true)}
-                  className="btn btn-secondary btn-sm gap-1.5"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSharePrintingModalOpen(true);
+                  }}
+                  className="btn btn-sm gap-2 !px-3.5 !py-2 bg-orange-500/15 border border-orange-500/40 hover:border-orange-400 text-orange-400 hover:text-orange-300 font-bold transition-all shadow-xs"
                   title="Share this printing service"
                 >
-                  <Share2 size={14} />
-                  <span>Share</span>
+                  <Share2 size={14} className="text-orange-500" />
+                  <span>Share Specs</span>
                 </button>
                 <button
                   onClick={() =>

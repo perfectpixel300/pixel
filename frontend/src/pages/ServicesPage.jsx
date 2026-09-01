@@ -723,10 +723,10 @@ Reset Filters
                     e.stopPropagation();
                     setShareServiceModalOpen(true);
                   }}
-                  className="btn btn-secondary btn-sm gap-1 !px-2.5 !py-1 text-xs"
+                  className="btn btn-sm gap-1.5 !px-3 !py-1.5 bg-orange-500/15 border border-orange-500/40 hover:border-orange-400 text-orange-400 hover:text-orange-300 font-bold text-xs rounded-full transition-all shadow-xs"
                   title="Share this service"
                 >
-                  <Share2 size={13} />
+                  <Share2 size={13} className="text-orange-500" />
                   <span>Share</span>
                 </button>
                 <button
@@ -799,7 +799,7 @@ Reset Filters
                 </p>
               </div>
 
-              {/* Deliverables List */}
+              {/* Scope of Deliverables */}
               {selectedServiceDetail.features && selectedServiceDetail.features.length > 0 && (
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
@@ -819,7 +819,7 @@ Reset Filters
                 </div>
               )}
 
-              {/* Technologies */}
+              {/* Tech Stack */}
               {selectedServiceDetail.technologies && selectedServiceDetail.technologies.length > 0 && (
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
@@ -843,12 +843,15 @@ Reset Filters
             <div className="modal-footer flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setShareServiceModalOpen(true)}
-                  className="btn btn-secondary btn-sm gap-1.5"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShareServiceModalOpen(true);
+                  }}
+                  className="btn btn-sm gap-2 !px-3.5 !py-2 bg-orange-500/15 border border-orange-500/40 hover:border-orange-400 text-orange-400 hover:text-orange-300 font-bold transition-all shadow-xs"
                   title="Share this service"
                 >
-                  <Share2 size={14} />
-                  <span>Share</span>
+                  <Share2 size={14} className="text-orange-500" />
+                  <span>Share Service</span>
                 </button>
                 <button
                   onClick={() => handleOpenWhatsApp(selectedServiceDetail.title, selectedServiceDetail.price)}
