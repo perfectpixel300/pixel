@@ -14,6 +14,7 @@ import { ShopStatusManagement } from "../components/admin/ShopStatusManagement";
 import { BannerManagement } from "../components/admin/BannerManagement";
 import { PromoManagement } from "../components/admin/PromoManagement";
 import { InquiriesManagement } from "../components/admin/InquiriesManagement";
+import { AboutManagement } from "../components/admin/AboutManagement";
 import { ProductFormModal } from "../components/admin/ProductFormModal";
 import { PrintingFormModal } from "../components/admin/PrintingFormModal";
 import { PrintingCategoryFormModal } from "../components/admin/PrintingCategoryFormModal";
@@ -38,6 +39,8 @@ export function AdminDashboardPage({
   banners = [],
   promoBanners = [],
   inquiries = [],
+  aboutData = null,
+  onUpdateAbout,
   isLiveBackend = false,
   onRefreshData,
   onExitToStore,
@@ -683,6 +686,14 @@ export function AdminDashboardPage({
               onDeletePromo={handleDeletePromoPrompt}
               onToggleActive={handleTogglePromoActive}
               onReorderPromos={handleReorderPromos}
+            />
+          )}
+
+          {activeTab === "about" && (
+            <AboutManagement
+              aboutData={aboutData}
+              onUpdateAbout={onUpdateAbout}
+              showToast={showToast}
             />
           )}
 

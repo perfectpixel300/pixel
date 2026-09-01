@@ -15,6 +15,7 @@ import {
   Clock,
   Sliders,
   Printer,
+  Info,
   X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -114,6 +115,11 @@ export function AdminSidebar({
       icon: <Sparkles size={17} />,
       badge: promoBannersCount || 0,
       badgeColor: "success",
+    },
+    {
+      id: "about",
+      label: "About Page CMS",
+      icon: <Info size={17} />,
     },
     {
       id: "inquiries",

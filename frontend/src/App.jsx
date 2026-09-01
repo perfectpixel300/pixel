@@ -56,6 +56,7 @@ function AppContent() {
   const [banners, setBanners] = useState([]);
   const [promoBanners, setPromoBanners] = useState([]);
   const [inquiries, setInquiries] = useState([]);
+  const [aboutData, setAboutData] = useState(null);
   const [isLiveBackend, setIsLiveBackend] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -125,6 +126,7 @@ function AppContent() {
         shopStatusRes,
         bannersRes,
         promoBannersRes,
+        aboutRes,
       ] = await Promise.all([
         api.getProducts(),
         api.getPrintingServices(),
@@ -135,6 +137,7 @@ function AppContent() {
         api.getShopStatus(),
         api.getBanners(),
         api.getPromoBanners(),
+        api.getAbout(),
       ]);
 
       setProducts(productsRes.products || []);
@@ -143,6 +146,7 @@ function AppContent() {
       setCategories(categoriesRes.categories || []);
       setServices(servicesRes.services || []);
       setServiceCategories(serviceCategoriesRes.categories || []);
+      setAboutData(aboutRes?.about || null);
       
       const currentShopStatus = shopStatusRes?.status || { isOpen: true, status: "open" };
       setShopStatus(currentShopStatus);
@@ -202,6 +206,16 @@ function AppContent() {
       const res = await api.updateShopStatus(statusData);
       setShopStatus(res.status);
       onRefreshShopStatus(res.status);
+      return res;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const handleUpdateAbout = async (newAboutData) => {
+    try {
+      const res = await api.updateAbout(newAboutData);
+      setAboutData(res.about);
       return res;
     } catch (err) {
       throw err;
@@ -394,7 +408,7 @@ function AppContent() {
             )}
 
             {activePage === "about" && (
-              <AboutPage onNavigate={setActivePage} />
+              <AboutPage onNavigate={setActivePage} aboutData={aboutData} />
             )}
 
             {activePage === "contact" && (
@@ -420,6 +434,8 @@ function AppContent() {
             banners={banners}
             promoBanners={promoBanners}
             inquiries={inquiries}
+            aboutData={aboutData}
+            onUpdateAbout={handleUpdateAbout}
             isLiveBackend={isLiveBackend}
             onRefreshData={() => loadData(false)}
             onExitToStore={() => setActivePage("home")}

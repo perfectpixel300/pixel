@@ -797,6 +797,37 @@ class ApiService {
   }
 
   /* ==========================================================================
+     ABOUT PAGE CMS API
+     ========================================================================== */
+
+  async getAbout() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/about`);
+      if (res.ok) {
+        const data = await res.json();
+        return { about: data.about || null, fromServer: true };
+      }
+      return { about: null, fromServer: false };
+    } catch (error) {
+      console.error("Error fetching about data:", error);
+      return { about: null, fromServer: false };
+    }
+  }
+
+  async updateAbout(aboutData) {
+    const res = await fetch(`${API_BASE_URL}/about`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(aboutData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update About page");
+    }
+    return data;
+  }
+
+  /* ==========================================================================
      DASHBOARD API
      ========================================================================== */
 
