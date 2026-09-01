@@ -711,8 +711,8 @@ export function Navbar({
               className={`flex flex-col items-center justify-center py-1.5 px-0.5 relative transition-all duration-200 cursor-pointer ${
                 isActive
                   ? theme === "dark"
-                    ? "text-[#38bdf8]"
-                    : "text-[#2563eb]"
+                    ? "text-[#ff7828]"
+                    : "text-[#ea580c]"
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               }`}
               aria-label={link.label}
@@ -723,8 +723,8 @@ export function Navbar({
                 <span
                   className={`absolute -top-2.5 left-1/2 -translate-x-1/2 w-8 h-[2.5px] rounded-full transition-all duration-200 ${
                     theme === "dark"
-                      ? "bg-[#38bdf8] shadow-[0_0_10px_rgba(56,189,248,0.8)]"
-                      : "bg-[#2563eb] shadow-[0_1px_4px_rgba(37,99,235,0.4)]"
+                      ? "bg-[#ff7828] shadow-[0_0_12px_rgba(255,120,40,0.85)]"
+                      : "bg-[#ea580c] shadow-[0_1px_4px_rgba(234,88,12,0.35)]"
                   }`}
                 />
               )}
@@ -733,8 +733,8 @@ export function Navbar({
                 className={`flex items-center justify-center transition-transform duration-200 ${
                   isActive
                     ? theme === "dark"
-                      ? "scale-110 bg-[#38bdf8]/12 p-1 rounded-xl text-[#38bdf8]"
-                      : "scale-110 bg-[#2563eb]/10 p-1 rounded-xl text-[#2563eb]"
+                      ? "scale-110 bg-[#ff7828]/15 p-1 rounded-xl text-[#ff7828] shadow-[0_0_10px_rgba(255,120,40,0.2)]"
+                      : "scale-110 bg-[#ea580c]/12 p-1 rounded-xl text-[#ea580c] shadow-xs"
                     : "p-1"
                 }`}
               >
@@ -745,8 +745,8 @@ export function Navbar({
                 className={`text-[0.65rem] tracking-tight truncate w-full text-center leading-none mt-1 ${
                   isActive
                     ? theme === "dark"
-                      ? "font-bold text-[#38bdf8]"
-                      : "font-bold text-[#2563eb]"
+                      ? "font-bold text-[#ff7828]"
+                      : "font-bold text-[#ea580c]"
                     : "font-medium text-[var(--text-muted)]"
                 }`}
               >
@@ -766,8 +766,8 @@ export function Navbar({
               className={`flex flex-col items-center justify-center py-1.5 px-0.5 relative transition-all duration-200 cursor-pointer ${
                 isMenuTabActive
                   ? theme === "dark"
-                    ? "text-[#38bdf8]"
-                    : "text-[#2563eb]"
+                    ? "text-[#ff7828]"
+                    : "text-[#ea580c]"
                   : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               }`}
               aria-label="Open More Menu"
@@ -777,8 +777,8 @@ export function Navbar({
                 <span
                   className={`absolute -top-2.5 left-1/2 -translate-x-1/2 w-8 h-[2.5px] rounded-full transition-all duration-200 ${
                     theme === "dark"
-                      ? "bg-[#38bdf8] shadow-[0_0_10px_rgba(56,189,248,0.8)]"
-                      : "bg-[#2563eb] shadow-[0_1px_4px_rgba(37,99,235,0.4)]"
+                      ? "bg-[#ff7828] shadow-[0_0_12px_rgba(255,120,40,0.85)]"
+                      : "bg-[#ea580c] shadow-[0_1px_4px_rgba(234,88,12,0.35)]"
                   }`}
                 />
               )}
@@ -787,8 +787,8 @@ export function Navbar({
                 className={`flex items-center justify-center transition-transform duration-200 ${
                   isMenuTabActive
                     ? theme === "dark"
-                      ? "scale-110 bg-[#38bdf8]/12 p-1 rounded-xl text-[#38bdf8]"
-                      : "scale-110 bg-[#2563eb]/10 p-1 rounded-xl text-[#2563eb]"
+                      ? "scale-110 bg-[#ff7828]/15 p-1 rounded-xl text-[#ff7828] shadow-[0_0_10px_rgba(255,120,40,0.2)]"
+                      : "scale-110 bg-[#ea580c]/12 p-1 rounded-xl text-[#ea580c] shadow-xs"
                     : "p-1"
                 }`}
               >
@@ -803,8 +803,8 @@ export function Navbar({
                 className={`text-[0.65rem] tracking-tight truncate w-full text-center leading-none mt-1 ${
                   isMenuTabActive
                     ? theme === "dark"
-                      ? "font-bold text-[#38bdf8]"
-                      : "font-bold text-[#2563eb]"
+                      ? "font-bold text-[#ff7828]"
+                      : "font-bold text-[#ea580c]"
                     : "font-medium text-[var(--text-muted)]"
                 }`}
               >
@@ -869,8 +869,8 @@ export function Navbar({
                   className={`w-full flex items-center justify-between p-3.5 rounded-[var(--radius-sm)] border transition-all text-left cursor-pointer ${
                     activePage === "about"
                       ? theme === "dark"
-                        ? "bg-sky-500/10 border-sky-400/40 text-sky-300"
-                        : "bg-blue-500/10 border-blue-500/30 text-blue-600"
+                        ? "bg-[#ff7828]/10 border-[#ff7828]/35 text-[#ff7828]"
+                        : "bg-[#ea580c]/10 border-[#ea580c]/30 text-[#ea580c]"
                       : "bg-[var(--bg-input)] border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)]"
                   }`}
                 >
@@ -879,8 +879,8 @@ export function Navbar({
                       className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                         activePage === "about"
                           ? theme === "dark"
-                            ? "bg-sky-500/20 text-sky-400"
-                            : "bg-blue-500/20 text-blue-600"
+                            ? "bg-[#ff7828]/20 text-[#ff7828]"
+                            : "bg-[#ea580c]/15 text-[#ea580c]"
                           : "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
                       }`}
                     >
@@ -890,8 +890,8 @@ export function Navbar({
                       <div className={`text-xs font-bold uppercase tracking-wider ${
                         activePage === "about"
                           ? theme === "dark"
-                            ? "text-sky-300"
-                            : "text-blue-600"
+                            ? "text-[#ff7828] font-extrabold"
+                            : "text-[#ea580c] font-extrabold"
                           : "text-[var(--text-primary)]"
                       }`}>
                         About Pixel Perfect
@@ -904,8 +904,8 @@ export function Navbar({
                   <ChevronRight size={15} className={`shrink-0 ${
                     activePage === "about"
                       ? theme === "dark"
-                        ? "text-sky-400"
-                        : "text-blue-600"
+                        ? "text-[#ff7828]"
+                        : "text-[#ea580c]"
                       : "text-[var(--text-muted)]"
                   }`} />
                 </button>
@@ -920,8 +920,8 @@ export function Navbar({
                   className={`w-full flex items-center justify-between p-3.5 rounded-[var(--radius-sm)] border transition-all text-left cursor-pointer ${
                     activePage === "contact"
                       ? theme === "dark"
-                        ? "bg-sky-500/10 border-sky-400/40 text-sky-300"
-                        : "bg-blue-500/10 border-blue-500/30 text-blue-600"
+                        ? "bg-[#ff7828]/10 border-[#ff7828]/35 text-[#ff7828]"
+                        : "bg-[#ea580c]/10 border-[#ea580c]/30 text-[#ea580c]"
                       : "bg-[var(--bg-input)] border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)]"
                   }`}
                 >
@@ -930,8 +930,8 @@ export function Navbar({
                       className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                         activePage === "contact"
                           ? theme === "dark"
-                            ? "bg-sky-500/20 text-sky-400"
-                            : "bg-blue-500/20 text-blue-600"
+                            ? "bg-[#ff7828]/20 text-[#ff7828]"
+                            : "bg-[#ea580c]/15 text-[#ea580c]"
                           : "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
                       }`}
                     >
@@ -941,8 +941,8 @@ export function Navbar({
                       <div className={`text-xs font-bold uppercase tracking-wider ${
                         activePage === "contact"
                           ? theme === "dark"
-                            ? "text-sky-300"
-                            : "text-blue-600"
+                            ? "text-[#ff7828] font-extrabold"
+                            : "text-[#ea580c] font-extrabold"
                           : "text-[var(--text-primary)]"
                       }`}>
                         Contact & Studio Inquiries
@@ -955,8 +955,8 @@ export function Navbar({
                   <ChevronRight size={15} className={`shrink-0 ${
                     activePage === "contact"
                       ? theme === "dark"
-                        ? "text-sky-400"
-                        : "text-blue-600"
+                        ? "text-[#ff7828]"
+                        : "text-[#ea580c]"
                       : "text-[var(--text-muted)]"
                   }`} />
                 </button>
