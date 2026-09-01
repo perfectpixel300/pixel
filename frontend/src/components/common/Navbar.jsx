@@ -6,6 +6,7 @@ import {
   ShoppingBag,
   Printer,
   Layers,
+  BookOpen,
   Info,
   MessageSquare,
   Menu,
@@ -208,6 +209,7 @@ export function Navbar({
     { id: "products", label: "Products", icon: ShoppingBag },
     { id: "printing", label: "Printing", icon: Printer },
     { id: "services", label: "Services", icon: Layers },
+    { id: "blogs", label: "Blogs", icon: BookOpen },
     { id: "about", label: "About", icon: Info },
     { id: "contact", label: "Contact", icon: MessageSquare },
   ];
@@ -856,6 +858,57 @@ export function Navbar({
                 Pages
               </div>
               <div className="space-y-1.5">
+                {/* Journal & Stories */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuDrawerOpen(false);
+                    handleNavClick("blogs");
+                  }}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] border transition-all text-left cursor-pointer ${
+                    activePage === "blogs" || activePage === "blog-detail"
+                      ? theme === "dark"
+                        ? "bg-[#ff7828]/10 border-[#ff7828]/35 text-[#ff7828]"
+                        : "bg-[#ea580c]/10 border-[#ea580c]/30 text-[#ea580c]"
+                      : "bg-[var(--bg-input)] border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                        activePage === "blogs" || activePage === "blog-detail"
+                          ? theme === "dark"
+                            ? "bg-[#ff7828]/20 text-[#ff7828]"
+                            : "bg-[#ea580c]/15 text-[#ea580c]"
+                          : "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                      }`}
+                    >
+                      <BookOpen size={14} />
+                    </div>
+                    <div>
+                      <div className={`text-xs font-semibold ${
+                        activePage === "blogs" || activePage === "blog-detail"
+                          ? theme === "dark"
+                            ? "text-[#ff7828] font-bold"
+                            : "text-[#ea580c] font-bold"
+                          : "text-[var(--text-primary)]"
+                      }`}>
+                        Blog & Articles
+                      </div>
+                      <div className="text-[0.65rem] text-[var(--text-muted)] leading-tight">
+                        Craftsmanship, guides & studio stories
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className={`shrink-0 ${
+                    activePage === "blogs" || activePage === "blog-detail"
+                      ? theme === "dark"
+                        ? "text-[#ff7828]"
+                        : "text-[#ea580c]"
+                      : "text-[var(--text-muted)]"
+                  }`} />
+                </button>
+
                 {/* About Us */}
                 <button
                   type="button"

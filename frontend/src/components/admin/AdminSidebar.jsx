@@ -16,6 +16,7 @@ import {
   Sliders,
   Printer,
   Info,
+  BookOpen,
   X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -31,6 +32,7 @@ export function AdminSidebar({
   printingServicesCount = 0,
   printingCategoriesCount = 0,
   promoBannersCount = 0,
+  blogsCount = 0,
   inquiriesCount,
   shopStatus = { isOpen: true },
   isCollapsed,
@@ -120,6 +122,13 @@ export function AdminSidebar({
       id: "about",
       label: "About Page CMS",
       icon: <Info size={17} />,
+    },
+    {
+      id: "blogs",
+      label: "Blogs",
+      icon: <BookOpen size={17} />,
+      badge: blogsCount || 0,
+      badgeColor: "success",
     },
     {
       id: "inquiries",

@@ -15,6 +15,7 @@ import { BannerManagement } from "../components/admin/BannerManagement";
 import { PromoManagement } from "../components/admin/PromoManagement";
 import { InquiriesManagement } from "../components/admin/InquiriesManagement";
 import { AboutManagement } from "../components/admin/AboutManagement";
+import { BlogManagement } from "../components/admin/BlogManagement";
 import { ProductFormModal } from "../components/admin/ProductFormModal";
 import { PrintingFormModal } from "../components/admin/PrintingFormModal";
 import { PrintingCategoryFormModal } from "../components/admin/PrintingCategoryFormModal";
@@ -23,6 +24,7 @@ import { ServiceCategoryFormModal } from "../components/admin/ServiceCategoryFor
 import { ServiceFormModal } from "../components/admin/ServiceFormModal";
 import { BannerFormModal } from "../components/admin/BannerFormModal";
 import { PromoFormModal } from "../components/admin/PromoFormModal";
+import { BlogFormModal } from "../components/admin/BlogFormModal";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 import { api } from "../services/api";
 
@@ -38,9 +40,11 @@ export function AdminDashboardPage({
   onUpdateShopStatus,
   banners = [],
   promoBanners = [],
+  blogs = [],
   inquiries = [],
   aboutData = null,
   onUpdateAbout,
+  onNavigateToBlogLive,
   isLiveBackend = false,
   onRefreshData,
   onExitToStore,
@@ -62,6 +66,7 @@ export function AdminDashboardPage({
   const [serviceModal, setServiceModal] = useState({ isOpen: false, service: null });
   const [bannerModal, setBannerModal] = useState({ isOpen: false, banner: null });
   const [promoModal, setPromoModal] = useState({ isOpen: false, promo: null });
+  const [blogModal, setBlogModal] = useState({ isOpen: false, blog: null });
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: "product", id: null, name: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -459,6 +464,59 @@ export function AdminDashboardPage({
     }
   };
 
+  // Blog Management CRUD
+  const handleOpenCreateBlog = () => setBlogModal({ isOpen: true, blog: null });
+  const handleOpenEditBlog = (blog) => setBlogModal({ isOpen: true, blog });
+
+  const handleSubmitBlog = async (blogData) => {
+    try {
+      setIsSubmitting(true);
+      const targetId = blogModal.blog?._id || blogData._id;
+      if (targetId && targetId !== "undefined") {
+        await api.updateBlog(targetId, blogData);
+        showToast(`Article "${blogData.title}" updated!`);
+      } else {
+        await api.createBlog(blogData);
+        showToast(`Article "${blogData.title}" published!`);
+      }
+      setBlogModal({ isOpen: false, blog: null });
+      onRefreshData();
+    } catch (err) {
+      showToast(err.message || "Failed to save blog article", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteBlogPrompt = (blog) => {
+    setDeleteModal({
+      isOpen: true,
+      type: "blog",
+      id: blog._id,
+      name: blog.title,
+    });
+  };
+
+  const handleToggleBlogPublish = async (id) => {
+    try {
+      await api.togglePublishBlog(id);
+      showToast("Publication status updated!");
+      onRefreshData();
+    } catch (err) {
+      showToast(err.message || "Failed to update publication status", "error");
+    }
+  };
+
+  const handleToggleBlogFeature = async (id) => {
+    try {
+      await api.toggleFeatureBlog(id);
+      showToast("Spotlight status updated!");
+      onRefreshData();
+    } catch (err) {
+      showToast(err.message || "Failed to update spotlight status", "error");
+    }
+  };
+
   // Inquiries
   const handleDeleteInquiryPrompt = (inquiry) => {
     setDeleteModal({
@@ -497,6 +555,9 @@ export function AdminDashboardPage({
       } else if (deleteModal.type === "promo") {
         await api.deletePromoBanner(deleteModal.id);
         showToast("Promo strip deleted.");
+      } else if (deleteModal.type === "blog") {
+        await api.deleteBlog(deleteModal.id);
+        showToast("Blog article deleted.");
       } else if (deleteModal.type === "inquiry") {
         await api.deleteInquiry(deleteModal.id);
         showToast("Inquiry archived.");
@@ -520,6 +581,7 @@ export function AdminDashboardPage({
         printingServicesCount={(printingServices || []).length}
         printingCategoriesCount={(printingCategories || []).length}
         promoBannersCount={(promoBanners || []).length}
+        blogsCount={(blogs || []).length}
         webTiersCount={webTiersCount}
         servicesCount={itServicesCount}
         serviceCategoriesCount={(serviceCategories || []).length}
@@ -697,6 +759,18 @@ export function AdminDashboardPage({
             />
           )}
 
+          {activeTab === "blogs" && (
+            <BlogManagement
+              blogs={blogs}
+              onOpenCreateModal={handleOpenCreateBlog}
+              onEditBlog={handleOpenEditBlog}
+              onDeleteBlog={handleDeleteBlogPrompt}
+              onTogglePublish={handleToggleBlogPublish}
+              onToggleFeature={handleToggleBlogFeature}
+              onViewLive={onNavigateToBlogLive}
+            />
+          )}
+
           {activeTab === "inquiries" && (
             <InquiriesManagement
               inquiries={inquiries}
@@ -771,6 +845,14 @@ export function AdminDashboardPage({
         onClose={() => setPromoModal({ isOpen: false, promo: null })}
         onSubmit={handleSubmitPromo}
         editingPromo={promoModal.promo}
+        isSubmitting={isSubmitting}
+      />
+
+      <BlogFormModal
+        isOpen={blogModal.isOpen}
+        onClose={() => setBlogModal({ isOpen: false, blog: null })}
+        onSubmit={handleSubmitBlog}
+        editingBlog={blogModal.blog}
         isSubmitting={isSubmitting}
       />
 

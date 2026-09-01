@@ -828,6 +828,107 @@ class ApiService {
   }
 
   /* ==========================================================================
+     BLOG / JOURNAL API
+     ========================================================================== */
+
+  async getBlogs(params = {}) {
+    try {
+      const query = new URLSearchParams(params).toString();
+      const res = await fetch(`${API_BASE_URL}/blogs${query ? `?${query}` : ""}`);
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          blogs: data.blogs || [],
+          total: data.total || 0,
+          totalPages: data.totalPages || 1,
+          currentPage: data.currentPage || 1,
+          categories: data.categories || ["All"],
+          fromServer: true,
+        };
+      }
+      return { blogs: [], total: 0, totalPages: 1, currentPage: 1, categories: ["All"], fromServer: false };
+    } catch (error) {
+      console.error("Error fetching blogs:", error);
+      return { blogs: [], total: 0, totalPages: 1, currentPage: 1, categories: ["All"], fromServer: false };
+    }
+  }
+
+  async getBlog(idOrSlug) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/blogs/${idOrSlug}`);
+      if (res.ok) {
+        return await res.json();
+      }
+      return { success: false, blog: null };
+    } catch (error) {
+      console.error("Error fetching blog details:", error);
+      return { success: false, blog: null };
+    }
+  }
+
+  async createBlog(blogData) {
+    const res = await fetch(`${API_BASE_URL}/blogs`, {
+      method: "POST",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(blogData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to create blog article");
+    }
+    return data;
+  }
+
+  async updateBlog(id, blogData) {
+    const res = await fetch(`${API_BASE_URL}/blogs/${id}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(blogData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update blog article");
+    }
+    return data;
+  }
+
+  async deleteBlog(id) {
+    const res = await fetch(`${API_BASE_URL}/blogs/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete blog article");
+    }
+    return data;
+  }
+
+  async togglePublishBlog(id) {
+    const res = await fetch(`${API_BASE_URL}/blogs/${id}/publish`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update publish status");
+    }
+    return data;
+  }
+
+  async toggleFeatureBlog(id) {
+    const res = await fetch(`${API_BASE_URL}/blogs/${id}/feature`, {
+      method: "PATCH",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update feature status");
+    }
+    return data;
+  }
+
+  /* ==========================================================================
      DASHBOARD API
      ========================================================================== */
 

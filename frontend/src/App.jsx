@@ -10,6 +10,8 @@ import { ServicesPage } from "./pages/ServicesPage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { AboutPage } from "./pages/AboutPage";
 import { ContactPage } from "./pages/ContactPage";
+import { BlogsPage } from "./pages/BlogsPage";
+import { BlogDetailPage } from "./pages/BlogDetailPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
@@ -26,6 +28,8 @@ const getRouteFromPath = () => {
   if (path === "/products") return "products";
   if (path === "/printing") return "printing";
   if (path === "/services") return "services";
+  if (path === "/blogs" || path === "/journal") return "blogs";
+  if (path.startsWith("/blogs/") || path.startsWith("/blog/")) return "blogs";
   if (path === "/about") return "about";
   if (path === "/contact") return "contact";
   return "home";
@@ -57,6 +61,8 @@ function AppContent() {
   const [promoBanners, setPromoBanners] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [aboutData, setAboutData] = useState(null);
+  const [blogs, setBlogs] = useState([]);
+  const [selectedBlog, setSelectedBlog] = useState(null);
   const [isLiveBackend, setIsLiveBackend] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -69,6 +75,8 @@ function AppContent() {
     let path = "/";
     if (page === "admin") path = "/admin";
     else if (page === "admin-login") path = "/admin";
+    else if (page === "blogs") path = "/blogs";
+    else if (page === "blog-detail") path = "/blogs";
     else if (page !== "home") path = `/${page}`;
 
     if (window.location.pathname !== path) {
@@ -90,7 +98,7 @@ function AppContent() {
   // Guarantee scroll to top whenever activePage or selectedProduct changes
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [activePage, selectedProduct]);
+  }, [activePage, selectedProduct, selectedBlog]);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -127,6 +135,7 @@ function AppContent() {
         bannersRes,
         promoBannersRes,
         aboutRes,
+        blogsRes,
       ] = await Promise.all([
         api.getProducts(),
         api.getPrintingServices(),
@@ -138,6 +147,7 @@ function AppContent() {
         api.getBanners(),
         api.getPromoBanners(),
         api.getAbout(),
+        api.getBlogs({ all: "true", limit: 50 }),
       ]);
 
       setProducts(productsRes.products || []);
@@ -147,6 +157,7 @@ function AppContent() {
       setServices(servicesRes.services || []);
       setServiceCategories(serviceCategoriesRes.categories || []);
       setAboutData(aboutRes?.about || null);
+      setBlogs(blogsRes.blogs || []);
       
       const currentShopStatus = shopStatusRes?.status || { isOpen: true, status: "open" };
       setShopStatus(currentShopStatus);
@@ -233,6 +244,19 @@ function AppContent() {
   const handleViewProduct = (product) => {
     setSelectedProduct(product);
     setActivePage("product-detail");
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  };
+
+  // View single blog article detail
+  const handleSelectBlog = (blog) => {
+    setSelectedBlog(blog);
+    setActivePage("blog-detail");
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  };
+
+  const handleViewBlogLive = (blog) => {
+    setSelectedBlog(blog);
+    setActivePage("blog-detail");
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   };
 
@@ -411,6 +435,18 @@ function AppContent() {
               <AboutPage onNavigate={setActivePage} aboutData={aboutData} />
             )}
 
+            {activePage === "blogs" && (
+              <BlogsPage onSelectBlog={handleSelectBlog} onNavigate={setActivePage} />
+            )}
+
+            {activePage === "blog-detail" && (
+              <BlogDetailPage
+                blog={selectedBlog}
+                onNavigate={setActivePage}
+                showToast={showToast}
+              />
+            )}
+
             {activePage === "contact" && (
               <ContactPage />
             )}
@@ -433,9 +469,11 @@ function AppContent() {
             onUpdateShopStatus={handleUpdateShopStatus}
             banners={banners}
             promoBanners={promoBanners}
+            blogs={blogs}
             inquiries={inquiries}
             aboutData={aboutData}
             onUpdateAbout={handleUpdateAbout}
+            onNavigateToBlogLive={handleViewBlogLive}
             isLiveBackend={isLiveBackend}
             onRefreshData={() => loadData(false)}
             onExitToStore={() => setActivePage("home")}
