@@ -301,9 +301,9 @@ export function Navbar({
     <>
       <header
         ref={headerRef}
-        className="fixed top-0 left-0 right-0 z-[100] w-full bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] will-change-transform shadow-xs"
+        className="fixed top-0 left-0 right-0 z-[100] w-full bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] will-change-transform shadow-xs pt-[env(safe-area-inset-top,0px)]"
       >
-        <div className="storefront-container h-[72px] flex items-center justify-between gap-2 sm:gap-4">
+        <div className="storefront-container h-[64px] sm:h-[72px] flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
         <div
           onClick={() => handleNavClick("home")}

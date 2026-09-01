@@ -116,6 +116,11 @@ function AppContent() {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    const themeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
+    const color = theme === "dark" ? "#000000" : "#ffffff";
+    themeColorMetas.forEach((meta) => {
+      meta.setAttribute("content", color);
+    });
   }, [theme]);
 
   // Load backend data (isInitial = true shows splash preloader on first open, false uses smooth blur refresh)
