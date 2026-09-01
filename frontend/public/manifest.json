@@ -1,0 +1,37 @@
+{
+  "name": "Pixel Perfect - Stationery & IT",
+  "short_name": "Pixel Perfect",
+  "description": "Precision stationery, machined writing instruments, fine art printing, and IT development studio.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0a0c",
+  "theme_color": "#ea580c",
+  "categories": ["shopping", "productivity", "utilities", "lifestyle"],
+  "icons": [
+    {
+      "src": "/pixelperfect.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pixelperfect.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pixelperfect.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

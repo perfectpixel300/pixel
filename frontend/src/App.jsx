@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { PWAProvider } from "./context/PWAContext";
+import { PWAInstallModal } from "./components/common/PWAInstallModal";
 import { Navbar } from "./components/common/Navbar";
 import { Footer } from "./components/common/Footer";
 import { Toast } from "./components/common/Toast";
@@ -487,6 +489,9 @@ function AppContent() {
 
       {/* Floating Action Buttons: WhatsApp, Email & Scroll-to-Top */}
       <ScrollToTop shopStatus={shopStatus} />
+
+      {/* Progressive Web App (PWA) First-Visit Prompt & iOS Guidance */}
+      <PWAInstallModal />
     </div>
   );
 }
@@ -494,7 +499,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <PWAProvider>
+        <AppContent />
+      </PWAProvider>
     </AuthProvider>
   );
 }

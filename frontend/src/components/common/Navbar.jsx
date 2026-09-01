@@ -25,8 +25,10 @@ import {
   AlertCircle,
   Sparkles,
   Loader2,
+  Download,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
+import { usePWA } from "../../context/PWAContext";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -50,6 +52,8 @@ export function Navbar({
   const [searchQuery, setSearchQuery] = useState("");
   const [showStatusPopover, setShowStatusPopover] = useState(false);
   const [timerText, setTimerText] = useState("");
+
+  const { isInstalled, installApp } = usePWA();
 
   const headerRef = useRef(null);
   const statusPopoverRef = useRef(null);
@@ -1010,6 +1014,36 @@ export function Navbar({
                       : "text-[var(--text-muted)]"
                   }`} />
                 </button>
+
+                {/* Progressive Web App Install Button (Only rendered if app is not yet installed) */}
+                {!isInstalled && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuDrawerOpen(false);
+                      installApp();
+                    }}
+                    className="w-full flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] border border-[#ea580c]/35 dark:border-[#ff7828]/35 bg-gradient-to-r from-[#ea580c]/15 via-[#ea580c]/5 to-transparent hover:bg-[#ea580c]/20 text-left cursor-pointer transition-all shadow-xs"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-[#ea580c] text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <Download size={13} />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                          <span>Install Pixel Perfect App</span>
+                          <span className="px-1.5 py-0.2 rounded-full text-[0.58rem] bg-[#ea580c] text-white font-mono font-bold">
+                            PWA
+                          </span>
+                        </div>
+                        <div className="text-[0.65rem] text-[var(--text-muted)] leading-tight">
+                          Add shortcut to your home screen
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronRight size={14} className="text-[#ea580c] dark:text-[#ff7828] shrink-0" />
+                  </button>
+                )}
               </div>
             </div>
 
