@@ -18,9 +18,10 @@ function escapeHtml(str) {
 /**
  * Build HTML and Plain Text templates for inquiry notifications
  */
-function buildInquiryEmailTemplate({ name, email, subject, message, productTitle, createdAt }) {
+function buildInquiryEmailTemplate({ name, email, phone, subject, message, productTitle, createdAt }) {
   const safeName = escapeHtml(name);
   const safeEmail = escapeHtml(email);
+  const safePhone = phone ? escapeHtml(phone) : "";
   const safeSubject = escapeHtml(subject || "General Inquiry");
   const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
   const safeProductTitle = productTitle ? escapeHtml(productTitle) : "";
@@ -96,6 +97,18 @@ function buildInquiryEmailTemplate({ name, email, subject, message, productTitle
                   </td>
                 </tr>
                 ${
+                  safePhone
+                    ? `<tr>
+                  <td style="padding: 12px 18px; border-bottom: 1px solid #27272a; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #71717a;">
+                    Phone Number
+                  </td>
+                  <td style="padding: 12px 18px; border-bottom: 1px solid #27272a; font-size: 14px; font-weight: 600; color: #ffffff;">
+                    <a href="tel:${safePhone}" style="color: #ffffff; text-decoration: none;">${safePhone}</a>
+                  </td>
+                </tr>`
+                    : ""
+                }
+                ${
                   safeProductTitle
                     ? `<tr>
                   <td style="padding: 12px 18px; border-bottom: 1px solid #27272a; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #71717a;">
@@ -162,7 +175,7 @@ A new inquiry has been submitted through the website form:
 
 Sender Name:    ${name}
 Sender Email:   ${email}
-${productTitle ? `Inquired Item:  ${productTitle}\n` : ""}Subject:        ${subject || "General Inquiry"}
+${phone ? `Sender Phone:   ${phone}\n` : ""}${productTitle ? `Inquired Item:  ${productTitle}\n` : ""}Subject:        ${subject || "General Inquiry"}
 Date & Time:    ${submissionDate}
 
 ----------------------------------------
@@ -183,12 +196,13 @@ ${message}
  * @param {Object} params
  * @param {string} params.name - Sender name
  * @param {string} params.email - Sender email
+ * @param {string} [params.phone] - Sender phone
  * @param {string} [params.subject] - Inquiry subject
  * @param {string} params.message - Inquiry message body
  * @param {string} [params.productTitle] - Product/Service title if applicable
  * @param {Date|string} [params.createdAt] - Creation timestamp
  */
-async function sendInquiryNotification({ name, email, subject, message, productTitle, createdAt }) {
+async function sendInquiryNotification({ name, email, phone, subject, message, productTitle, createdAt }) {
   const apiKey = (process.env.BREVO_API_KEY || "").trim();
 
   // Target receiver email (defaults to perfectpixel300@gmail.com, configurable via env)
@@ -212,6 +226,7 @@ async function sendInquiryNotification({ name, email, subject, message, productT
   const { html, text } = buildInquiryEmailTemplate({
     name,
     email,
+    phone,
     subject,
     message,
     productTitle,

@@ -6,6 +6,7 @@ export function ContactPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     subject: "",
     message: "",
   });
@@ -40,6 +41,7 @@ export function ContactPage() {
     e.preventDefault();
     const trimmedName = formData.name.trim();
     const trimmedEmail = formData.email.trim();
+    const trimmedPhone = (formData.phone || "").trim();
     const trimmedSubject = formData.subject.trim();
     const trimmedMessage = formData.message.trim();
 
@@ -70,6 +72,16 @@ export function ContactPage() {
       return;
     }
 
+    if (!trimmedPhone) {
+      setError("Please enter your phone number.");
+      return;
+    }
+    const phoneDigits = trimmedPhone.replace(/\D/g, "");
+    if (!/^[+]?[\d\s().-]{7,20}$/.test(trimmedPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
+      setError("Please enter a valid phone number (e.g. +977 9808950275).");
+      return;
+    }
+
     if (!trimmedMessage) {
       setError("Please enter your message.");
       return;
@@ -85,11 +97,12 @@ export function ContactPage() {
       await api.submitContact({
         name: trimmedName,
         email: trimmedEmail,
+        phone: trimmedPhone,
         subject: trimmedSubject,
         message: trimmedMessage,
       });
       setIsSuccess(true);
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
     } catch (err) {
       setError(err.message || "Failed to submit message");
     } finally {
@@ -166,17 +179,29 @@ export function ContactPage() {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />
                   </div>
-                </div>
 
-                <div className="form-group">
-                  <label className="form-label">Subject</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. Bespoke order inquiry"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  />
+                  <div className="form-group">
+                    <label className="form-label">Phone Number *</label>
+                    <input
+                      type="tel"
+                      required
+                      className="form-input"
+                      placeholder="e.g. +977 9808950275"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Subject</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Bespoke order inquiry"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group">

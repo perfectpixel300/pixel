@@ -62,6 +62,11 @@ export function InquiriesManagement({
                     <span className="badge badge-neutral text-[0.65rem]">
                       {inq.email}
                     </span>
+                    {inq.phone && (
+                      <span className="badge badge-neutral text-[0.65rem]">
+                        {inq.phone}
+                      </span>
+                    )}
                     {inq.productTitle && (
                       <span className="badge badge-dark text-[0.65rem] flex items-center gap-1">
                         <Package size={11} />
@@ -92,7 +97,18 @@ export function InquiriesManagement({
                 {inq.message}
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                {inq.phone && (
+                  <a
+                    href={`https://wa.me/${inq.phone.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary btn-sm gap-1.5 text-[0.75rem]"
+                  >
+                    <MessageSquare size={12} />
+                    <span>WhatsApp</span>
+                  </a>
+                )}
                 <a
                   href={`mailto:${inq.email}?subject=${encodeURIComponent("Re: " + inq.subject)}`}
                   className="btn btn-secondary btn-sm gap-1.5 text-[0.75rem]"

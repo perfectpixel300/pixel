@@ -431,8 +431,8 @@ function AppContent() {
         </ProtectedRoute>
       )}
 
-      {/* Floating Scroll-to-Top Button */}
-      <ScrollToTop />
+      {/* Floating Action Buttons: WhatsApp, Email & Scroll-to-Top */}
+      <ScrollToTop shopStatus={shopStatus} />
     </div>
   );
 }

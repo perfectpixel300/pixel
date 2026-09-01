@@ -24,6 +24,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
       setFormData({
         name: "",
         email: "",
+        phone: "",
         subject: `Inquiry: ${itemName}`,
         message: isService
           ? `Hello Pixel Perfect Team,\n\nI would like to inquire about your "${itemName}" service ${priceStr ? `(${priceStr})` : ""}.\nPlease share the project timeline, kickoff process, and proposal details.\n\nThank you.`
@@ -33,6 +34,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
       setFormData({
         name: "",
         email: "",
+        phone: "",
         subject: "General Project & Studio Inquiry",
         message: "",
       });
@@ -60,6 +62,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
     e.preventDefault();
     const trimmedName = formData.name.trim();
     const trimmedEmail = formData.email.trim();
+    const trimmedPhone = (formData.phone || "").trim();
     const trimmedMessage = formData.message.trim();
 
     if (!trimmedName) {
@@ -89,6 +92,16 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
       return;
     }
 
+    if (!trimmedPhone) {
+      setError("Please enter your phone number.");
+      return;
+    }
+    const phoneDigits = trimmedPhone.replace(/\D/g, "");
+    if (!/^[+]?[\d\s().-]{7,20}$/.test(trimmedPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
+      setError("Please enter a valid phone number (e.g. +977 9808950275).");
+      return;
+    }
+
     if (!trimmedMessage) {
       setError("Please enter your message or question.");
       return;
@@ -105,6 +118,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
         ...formData,
         name: trimmedName,
         email: trimmedEmail,
+        phone: trimmedPhone,
         message: trimmedMessage,
         productTitle: product ? product.name : "",
       };
@@ -193,7 +207,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                 <div className="form-group">
                   <label className="form-label">Your Name *</label>
                   <input
@@ -215,6 +229,18 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
                     placeholder="julian@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group sm:col-span-2">
+                  <label className="form-label">Phone Number *</label>
+                  <input
+                    type="tel"
+                    required
+                    className="form-input"
+                    placeholder="e.g. +977 9808950275"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
                 </div>
               </div>

@@ -6,12 +6,14 @@ const { sendInquiryNotification } = require("../utils/emailService");
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 // Allowed name characters: Unicode letters, spaces, dots, hyphens, and apostrophes
 const NAME_REGEX = /^[\p{L}\s.'-]+$/u;
+// Allowed phone characters: digits, plus, spaces, hyphens, parentheses, dots
+const PHONE_REGEX = /^[+]?[\d\s().-]{7,20}$/;
 
 // @desc    Submit inquiry (Public)
 // @route   POST /api/contact
 exports.submitContact = async (req, res) => {
   try {
-    const { name, email, subject, message, productTitle } = req.body;
+    const { name, email, phone, subject, message, productTitle } = req.body;
 
     // 1. Validate Name
     if (!name || typeof name !== "string") {
@@ -49,7 +51,23 @@ exports.submitContact = async (req, res) => {
       });
     }
 
-    // 3. Validate Message
+    // 3. Validate Phone Number
+    if (!phone || (typeof phone !== "string" && typeof phone !== "number")) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required",
+      });
+    }
+    const trimmedPhone = String(phone).trim();
+    const phoneDigits = trimmedPhone.replace(/\D/g, "");
+    if (!PHONE_REGEX.test(trimmedPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid phone number (e.g., +977 9808950275)",
+      });
+    }
+
+    // 4. Validate Message
     if (!message || typeof message !== "string") {
       return res.status(400).json({
         success: false,
@@ -70,7 +88,7 @@ exports.submitContact = async (req, res) => {
       });
     }
 
-    // 4. Sanitize optional fields
+    // 5. Sanitize optional fields
     const sanitizedSubject = typeof subject === "string" && subject.trim()
       ? subject.trim().slice(0, 200)
       : "General Inquiry";
@@ -78,21 +96,23 @@ exports.submitContact = async (req, res) => {
       ? productTitle.trim().slice(0, 200)
       : "";
 
-    // 5. Save inquiry to database
+    // 6. Save inquiry to database
     const inquiry = await Contact.create({
       name: trimmedName,
       email: trimmedEmail,
+      phone: trimmedPhone,
       subject: sanitizedSubject,
       message: trimmedMessage,
       productTitle: sanitizedProductTitle,
     });
 
-    // 6. Send email notification via Brevo API
+    // 7. Send email notification via Brevo API
     let emailResult = { success: false };
     try {
       emailResult = await sendInquiryNotification({
         name: inquiry.name,
         email: inquiry.email,
+        phone: inquiry.phone,
         subject: inquiry.subject,
         message: inquiry.message,
         productTitle: inquiry.productTitle,
