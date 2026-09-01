@@ -470,25 +470,12 @@ export function PrintingPage({
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSharePrintingModalOpen(true);
-                  }}
-                  className="btn btn-sm gap-1.5 !px-3 !py-1.5 bg-emerald-500/15 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 font-bold text-xs rounded-full transition-all shadow-xs"
-                  title="Share with Friends"
-                >
-                  <Share2 size={13} className="text-emerald-400" />
-                  <span>Share with Friends</span>
-                </button>
-                <button
-                  onClick={handleCloseDetail}
-                  className="btn-icon btn-ghost"
-                >
-                  <X size={16} />
-                </button>
-              </div>
+              <button
+                onClick={handleCloseDetail}
+                className="btn-icon btn-ghost"
+              >
+                <X size={16} />
+              </button>
             </div>
 
             <div className="modal-body flex flex-col gap-5">
