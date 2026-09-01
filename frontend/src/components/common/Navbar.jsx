@@ -1098,58 +1098,99 @@ export function Navbar({
                       {timerText ? `Timer: ${timerText}` : "Mon - Sat: 9:00 AM - 7:30 PM"}
                     </div>
                   </div>
+                  <ChevronRight size={14} className="opacity-70 shrink-0" />
                 </div>
-                <ChevronRight size={14} className="opacity-70 shrink-0" />
               </div>
             </div>
 
-            {/* Section 3: Instant Connect Channels */}
-            <div>
-              <div className="text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] mb-1.5">
-                Instant Connect
+            {/* Section 3: Socials & Instant Connect Channels */}
+              <div>
+                <div className="text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] mb-1.5 flex items-center justify-between">
+                  <span>Socials & Channels</span>
+                </div>
+                
+                {/* WhatsApp, Instagram & Facebook Social Icons Row */}
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {/* WhatsApp */}
+                  <a
+                    href="https://wa.me/9779808950275?text=Hello%20Pixel%20Perfect,%20I%20would%20like%20to%20inquire%20about%20your%20products%20and%20services."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:border-[#25D366]/40 hover:bg-[#25D366]/10 text-center transition-all group cursor-pointer"
+                    title="Chat on WhatsApp"
+                  >
+                    <span className="text-[#25D366] mb-1 group-hover:scale-110 transition-transform">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                      </svg>
+                    </span>
+                    <span className="text-[0.68rem] font-bold text-[var(--text-primary)]">WhatsApp</span>
+                  </a>
+
+                  {/* Instagram */}
+                  <a
+                    href="https://www.instagram.com/perfect_pixel300/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:border-[#E4405F]/40 hover:bg-[#E4405F]/10 text-center transition-all group cursor-pointer"
+                    title="Follow on Instagram"
+                  >
+                    <span className="text-[#E4405F] mb-1 group-hover:scale-110 transition-transform">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                      </svg>
+                    </span>
+                    <span className="text-[0.68rem] font-bold text-[var(--text-primary)]">Instagram</span>
+                  </a>
+
+                  {/* Facebook */}
+                  <a
+                    href="https://www.facebook.com/pixelperfectstationery"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:border-[#1877F2]/40 hover:bg-[#1877F2]/10 text-center transition-all group cursor-pointer"
+                    title="Follow on Facebook"
+                  >
+                    <span className="text-[#1877F2] mb-1 group-hover:scale-110 transition-transform">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                    </span>
+                    <span className="text-[0.68rem] font-bold text-[var(--text-primary)]">Facebook</span>
+                  </a>
+                </div>
+
+                {/* Call, Email, Location Quick Actions */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  <a
+                    href="tel:+9779808950275"
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-center"
+                  >
+                    <Phone size={12} className="text-[var(--text-primary)] shrink-0" />
+                    <span className="text-[0.68rem] font-semibold">Call</span>
+                  </a>
+
+                  <a
+                    href="mailto:perfectpixel300@gmail.com"
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-center"
+                  >
+                    <Mail size={12} className="text-[var(--text-primary)] shrink-0" />
+                    <span className="text-[0.68rem] font-semibold">Email</span>
+                  </a>
+
+                  <a
+                    href="https://maps.app.goo.gl/Ytvdx85tYDftR7kR8?g_st=ac"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-center"
+                  >
+                    <MapPin size={12} className="text-[var(--text-primary)] shrink-0" />
+                    <span className="text-[0.68rem] font-semibold">Map</span>
+                  </a>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <a
-                  href="https://wa.me/9779808950275?text=Hello%20Pixel%20Perfect,%20I%20would%20like%20to%20inquire%20about%20your%20products%20and%20services."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-2 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
-                >
-                  <span className="text-[#25D366] shrink-0">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                    </svg>
-                  </span>
-                  <span className="text-xs font-semibold">WhatsApp</span>
-                </a>
-
-                <a
-                  href="tel:+9779808950275"
-                  className="flex items-center gap-2 p-2 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
-                >
-                  <Phone size={13} className="text-[var(--text-primary)] shrink-0" />
-                  <span className="text-xs font-semibold">Call Studio</span>
-                </a>
-
-                <a
-                  href="mailto:perfectpixel300@gmail.com"
-                  className="flex items-center gap-2 p-2 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
-                >
-                  <Mail size={13} className="text-[var(--text-primary)] shrink-0" />
-                  <span className="text-xs font-semibold">Email Us</span>
-                </a>
-
-                <a
-                  href="https://maps.app.goo.gl/Ytvdx85tYDftR7kR8?g_st=ac"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-2 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors"
-                >
-                  <MapPin size={13} className="text-[var(--text-primary)] shrink-0" />
-                  <span className="text-xs font-semibold">Find Studio</span>
-                </a>
-              </div>
-            </div>
 
             {/* Section 4: Display & Theme */}
             <div>
