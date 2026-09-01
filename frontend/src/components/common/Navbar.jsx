@@ -12,7 +12,6 @@ import {
   X,
   ChevronRight,
   MapPin,
-  Shield,
   Sun,
   Moon,
   Phone,
@@ -996,12 +995,12 @@ export function Navbar({
               </div>
             </div>
 
-            {/* Section 4: Preferences & Admin Portal */}
+            {/* Section 4: Display & Theme */}
             <div>
               <div className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] mb-2">
-                Preferences & Management
+                Display & Theme
               </div>
-              <div className="space-y-2">
+              <div>
                 {/* Theme switch row */}
                 <div className="flex items-center justify-between p-3 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)]">
                   <div className="flex items-center gap-2.5">
@@ -1018,22 +1017,6 @@ export function Navbar({
                     Switch to {theme === "dark" ? "Light" : "Dark"}
                   </button>
                 </div>
-
-                {/* Admin Studio Portal Link */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMenuDrawerOpen(false);
-                    handleNavClick("admin");
-                  }}
-                  className="w-full flex items-center justify-between p-3 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-left cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Shield size={15} className="text-[var(--text-muted)]" />
-                    <span className="text-xs font-medium">Admin Studio Management</span>
-                  </div>
-                  <ChevronRight size={14} className="text-[var(--text-muted)]" />
-                </button>
               </div>
             </div>
           </div>
