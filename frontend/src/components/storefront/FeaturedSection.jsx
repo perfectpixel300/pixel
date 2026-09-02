@@ -20,6 +20,9 @@ export function FeaturedSection({ products = [], onViewDetails, onInquire, onBro
     handleNext,
     trackStyle,
     sliderProps,
+    totalDots,
+    activeDotIndex,
+    handleDotClick,
   } = useSmoothSwiper({ itemCount: displayItems.length, defaultItemsPerView: 4 });
 
   if (displayItems.length === 0) return null;
@@ -75,7 +78,6 @@ export function FeaturedSection({ products = [], onViewDetails, onInquire, onBro
             )}
 
             <button
-              type="button"
               onClick={() => {
                 if (onBrowseAll) onBrowseAll();
                 navigate("/products");
@@ -112,16 +114,16 @@ export function FeaturedSection({ products = [], onViewDetails, onInquire, onBro
             </div>
           </div>
 
-          {/* Swiper Pagination Dots */}
-          {displayItems.length > itemsPerView && (
+          {/* Swiper Pagination Dots Indicator */}
+          {totalDots > 0 && (
             <div className="flex justify-center items-center gap-2 mt-8">
-              {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
+              {Array.from({ length: totalDots }).map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => setCurrentIndex(idx)}
+                  onClick={() => handleDotClick(idx)}
                   className={`h-1.5 rounded-full transition-all duration-300 border-none p-0 cursor-pointer ${
-                    currentIndex === idx
+                    activeDotIndex === idx
                       ? "w-7 bg-[var(--text-primary)]"
                       : "w-2 bg-[var(--border-bright)] hover:bg-[var(--text-secondary)] opacity-60 hover:opacity-100"
                   }`}

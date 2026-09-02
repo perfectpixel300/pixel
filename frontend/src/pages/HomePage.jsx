@@ -33,6 +33,7 @@ import { ProductCard } from "../components/storefront/ProductCard";
 import { PrintingCard } from "../components/storefront/PrintingCard";
 import { WebTierCard } from "../components/storefront/WebTierCard";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
+import { SwipableImageGallery } from "../components/common/SwipableImageGallery";
 import { ShareModal } from "../components/common/ShareModal";
 import { getServiceIcon } from "./ServicesPage";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
@@ -699,13 +700,23 @@ export function HomePage({
 
             {/* Modal Body */}
             <div className="modal-body flex flex-col gap-5">
-              {selectedServiceDetail.bannerImage && (
-                <img
-                  src={selectedServiceDetail.bannerImage}
-                  alt={selectedServiceDetail.title}
-                  className="w-full h-44 object-cover rounded-[var(--radius-sm)] border border-[var(--border-subtle)]"
-                />
-              )}
+              {(() => {
+                const serviceImages = Array.from(
+                  new Set([
+                    ...(Array.isArray(selectedServiceDetail.images) ? selectedServiceDetail.images : []),
+                    selectedServiceDetail.bannerImage,
+                    selectedServiceDetail.imageUrl,
+                  ].filter(Boolean))
+                );
+                return serviceImages.length > 0 ? (
+                  <SwipableImageGallery
+                    images={serviceImages}
+                    alt={selectedServiceDetail.title}
+                    heightClass="h-48 sm:h-56"
+                    thumbnailSize="w-14 h-14"
+                  />
+                ) : null;
+              })()}
 
               {/* Price & Timeline Bar */}
               <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-3">
@@ -869,16 +880,25 @@ export function HomePage({
             </div>
 
             <div className="modal-body flex flex-col gap-5">
-              {/* Product Hero Image */}
-              {selectedPrintingDetail.images && selectedPrintingDetail.images[0] && (
-                <div className="w-full h-48 bg-[#050505] rounded-[var(--radius-sm)] overflow-hidden border border-[var(--border-subtle)] flex items-center justify-center">
-                  <img
-                    src={getOptimizedImageUrl(selectedPrintingDetail.images[0], { width: 800 })}
-                    alt={selectedPrintingDetail.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+              {/* Product Hero / Multiple Images Gallery */}
+              {(() => {
+                const printImages = Array.from(
+                  new Set([
+                    ...(Array.isArray(selectedPrintingDetail.images) ? selectedPrintingDetail.images : []),
+                    selectedPrintingDetail.imageUrl,
+                  ].filter(Boolean))
+                );
+                return printImages.length > 0 ? (
+                  <div className="max-w-[460px] mx-auto w-full">
+                    <SwipableImageGallery
+                      images={printImages}
+                      alt={selectedPrintingDetail.name}
+                      heightClass="h-60 sm:h-72 md:h-80"
+                      thumbnailSize="w-14 h-14"
+                    />
+                  </div>
+                ) : null;
+              })()}
 
               {/* Price & Turnaround Bar */}
               <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-3">

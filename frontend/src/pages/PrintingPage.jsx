@@ -24,6 +24,7 @@ import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 import { CategoryDropdown } from "../components/common/CategoryDropdown";
 import { PrintingCard } from "../components/storefront/PrintingCard";
 import { ShareModal } from "../components/common/ShareModal";
+import { SwipableImageGallery } from "../components/common/SwipableImageGallery";
 import { api } from "../services/api";
 
 export function PrintingPage({
@@ -501,13 +502,25 @@ export function PrintingPage({
             </div>
 
             <div className="modal-body flex flex-col gap-5">
-              {selectedServiceDetail.images && selectedServiceDetail.images[0] && (
-                <img
-                  src={getOptimizedImageUrl(selectedServiceDetail.images[0], { width: 800 })}
-                  alt={selectedServiceDetail.name}
-                  className="w-full h-48 object-cover rounded-[var(--radius-sm)] border border-[var(--border-subtle)]"
-                />
-              )}
+              {/* Printing Service Multiple Images Gallery */}
+              {(() => {
+                const printImages = Array.from(
+                  new Set([
+                    ...(Array.isArray(selectedServiceDetail.images) ? selectedServiceDetail.images : []),
+                    selectedServiceDetail.imageUrl,
+                  ].filter(Boolean))
+                );
+                return printImages.length > 0 ? (
+                  <div className="max-w-[460px] mx-auto w-full">
+                    <SwipableImageGallery
+                      images={printImages}
+                      alt={selectedServiceDetail.name}
+                      heightClass="h-60 sm:h-72 md:h-80"
+                      thumbnailSize="w-14 h-14"
+                    />
+                  </div>
+                ) : null;
+              })()}
 
               {/* Price & Turnaround Bar */}
               <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-3">

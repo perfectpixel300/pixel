@@ -140,7 +140,6 @@ export function useSmoothSwiper({
 
   // Mouse handlers for container
   const handleMouseDown = (e) => {
-    // Only primary button
     if (e.button !== 0) return;
     isPointerDownRef.current = true;
     startXRef.current = e.clientX;
@@ -207,6 +206,30 @@ export function useSmoothSwiper({
     }
   };
 
+  // Indicator dots calculation: guarantees indicators for every swiper
+  const totalDots = useMemo(() => {
+    if (itemCount === 0) return 0;
+    if (maxIndex <= 10) return Math.max(1, maxIndex + 1);
+    return Math.ceil(itemCount / itemsPerView);
+  }, [maxIndex, itemCount, itemsPerView]);
+
+  const activeDotIndex = useMemo(() => {
+    if (maxIndex <= 10) return currentIndex;
+    const page = Math.round(currentIndex / itemsPerView);
+    return Math.min(totalDots - 1, page);
+  }, [currentIndex, maxIndex, totalDots, itemsPerView]);
+
+  const handleDotClick = useCallback(
+    (dotIdx) => {
+      if (maxIndex <= 10) {
+        setCurrentIndex(Math.min(maxIndex, dotIdx));
+      } else {
+        setCurrentIndex(Math.min(maxIndex, dotIdx * itemsPerView));
+      }
+    },
+    [maxIndex, itemsPerView]
+  );
+
   // Dynamic CSS transform and transition for smooth real-time tracking
   const trackStyle = useMemo(() => {
     const basePercent = -(currentIndex * (100 / itemsPerView));
@@ -233,6 +256,9 @@ export function useSmoothSwiper({
     handleNext,
     containerRef,
     trackStyle,
+    totalDots,
+    activeDotIndex,
+    handleDotClick,
     sliderProps: {
       ref: containerRef,
       onMouseDown: handleMouseDown,

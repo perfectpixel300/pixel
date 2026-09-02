@@ -18,6 +18,9 @@ export function CategorySwiperRow({
     handleNext,
     trackStyle,
     sliderProps,
+    totalDots,
+    activeDotIndex,
+    handleDotClick,
   } = useSmoothSwiper({ itemCount: items.length, defaultItemsPerView: 4 });
 
   if (!items || items.length === 0) return null;
@@ -101,16 +104,16 @@ export function CategorySwiperRow({
           </div>
         </div>
 
-        {/* Optional Pagination Dots */}
-        {items.length > itemsPerView && maxIndex > 0 && maxIndex <= 8 && (
+        {/* Pagination Dots Indicator for Every Swiper */}
+        {totalDots > 0 && (
           <div className="flex justify-center items-center gap-1.5 mt-5">
-            {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
+            {Array.from({ length: totalDots }).map((_, idx) => (
               <button
                 key={idx}
                 type="button"
-                onClick={() => setCurrentIndex(idx)}
+                onClick={() => handleDotClick(idx)}
                 className={`h-1.5 rounded-full transition-all duration-300 border-none p-0 cursor-pointer ${
-                  currentIndex === idx
+                  activeDotIndex === idx
                     ? "w-6 bg-[var(--text-primary)]"
                     : "w-1.5 bg-[var(--border-bright)] hover:bg-[var(--text-secondary)] opacity-50 hover:opacity-100"
                 }`}

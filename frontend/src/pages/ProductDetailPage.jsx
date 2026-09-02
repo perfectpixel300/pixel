@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquare, MessageCircle, Package, Loader2, Share2 } from "lucide-react";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 import { ShareModal } from "../components/common/ShareModal";
+import { SwipableImageGallery } from "../components/common/SwipableImageGallery";
 import { api } from "../services/api";
 
 export function ProductDetailPage({
@@ -25,7 +26,6 @@ export function ProductDetailPage({
   });
 
   const [loading, setLoading] = useState(!product && Boolean(idOrSlug));
-  const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
   useEffect(() => {
@@ -117,9 +117,7 @@ export function ProductDetailPage({
   const supportWhatsAppNumber = "+9779808950275";
   const whatsAppText = `Hello Pixel Perfect,\nI am inquiring about "${product.name}" (Price: NRs. ${effectivePrice.toLocaleString()}). Please advise on availability.`;
   const whatsAppUrl = `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
-
-  const safeImgIndex = activeImgIndex < images.length ? activeImgIndex : 0;
-  const mainImage = images[safeImgIndex] || "";
+  const mainImage = images[0] || product?.imageUrl || "";
 
   return (
     <div className="py-12 pb-24">
@@ -146,50 +144,14 @@ export function ProductDetailPage({
 
         {/* Product Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-14 items-start">
-          {/* Left Column: Image Gallery */}
-          <div className="flex flex-col gap-3.5">
-            {/* Main Image */}
-            <div className="rounded-[var(--radius-md)] overflow-hidden h-[360px] sm:h-[460px] lg:h-auto min-h-[360px] bg-[#050505] border border-[var(--border-subtle)] flex items-center justify-center">
-              {mainImage ? (
-                <img
-                  src={getOptimizedImageUrl(mainImage, { width: 1200 })}
-                  alt={product.name}
-                  loading="eager"
-                  decoding="async"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center text-[var(--text-muted)] gap-2 py-20">
-                  <Package size={48} className="opacity-40" />
-                  <span className="text-xs uppercase tracking-wider font-semibold opacity-60">
-                    No image available
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Thumbnail Row */}
-            {images.length > 1 && (
-              <div className="flex gap-2.5 overflow-x-auto">
-                {images.map((img, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => setActiveImgIndex(idx)}
-                    className={`w-18 h-18 rounded-[var(--radius-sm)] overflow-hidden cursor-pointer shrink-0 transition-all duration-200 ${
-                      safeImgIndex === idx ? "opacity-100 scale-105 ring-2 ring-white" : "opacity-60 hover:opacity-90"
-                    }`}
-                  >
-                    <img
-                      src={getOptimizedImageUrl(img, { width: 200 })}
-                      alt={`Thumb ${idx + 1}`}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+          {/* Left Column: Swipable Image Gallery */}
+          <div>
+            <SwipableImageGallery
+              images={images}
+              alt={product.name}
+              heightClass="h-[360px] sm:h-[460px] lg:h-[480px]"
+              thumbnailSize="w-16 h-16 sm:w-18 sm:h-18"
+            />
           </div>
 
           {/* Right Column: Product Info & Specs */}

@@ -33,6 +33,7 @@ import { CategoryDropdown } from "../components/common/CategoryDropdown";
 import { WebTierCard } from "../components/storefront/WebTierCard";
 import { DynamicPromoStrip } from "../components/storefront/DynamicPromoStrip";
 import { ShareModal } from "../components/common/ShareModal";
+import { SwipableImageGallery } from "../components/common/SwipableImageGallery";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 import { api } from "../services/api";
 
@@ -751,13 +752,23 @@ Reset Filters
 
             {/* Modal Body */}
             <div className="modal-body flex flex-col gap-5">
-              {selectedServiceDetail.bannerImage && (
-                <img
-                  src={selectedServiceDetail.bannerImage}
-                  alt={selectedServiceDetail.title}
-                  className="w-full h-44 object-cover rounded-[var(--radius-sm)] border border-[var(--border-subtle)]"
-                />
-              )}
+              {(() => {
+                const serviceImages = Array.from(
+                  new Set([
+                    ...(Array.isArray(selectedServiceDetail.images) ? selectedServiceDetail.images : []),
+                    selectedServiceDetail.bannerImage,
+                    selectedServiceDetail.imageUrl,
+                  ].filter(Boolean))
+                );
+                return serviceImages.length > 0 ? (
+                  <SwipableImageGallery
+                    images={serviceImages}
+                    alt={selectedServiceDetail.title}
+                    heightClass="h-48 sm:h-56"
+                    thumbnailSize="w-14 h-14"
+                  />
+                ) : null;
+              })()}
 
               {/* Price & Timeline Bar */}
               <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-between flex-wrap gap-3">
