@@ -138,10 +138,10 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="modal-card max-w-[580px]"
+        className="modal-card max-w-[580px] max-h-[90vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-header">
+        <div className="modal-header shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8.5 h-8.5 rounded-[var(--radius-xs)] bg-[var(--bg-elevated)] border border-[var(--border-medium)] flex items-center justify-center text-[var(--text-primary)]">
               <MessageSquare size={16} />
@@ -161,7 +161,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
         </div>
 
         {/* WhatsApp Fast Channel Button */}
-        <div className="px-6 py-4 bg-[var(--bg-elevated)] border-b border-[var(--border-subtle)] flex flex-col gap-2">
+        <div className="px-6 py-4 bg-[var(--bg-elevated)] border-b border-[var(--border-subtle)] flex flex-col gap-2 shrink-0">
           <div className="flex justify-between items-center">
             <span className="text-[0.725rem] font-bold uppercase tracking-[0.06em] text-[var(--text-muted)]">
               Instant Messaging
@@ -185,7 +185,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
 
         {/* Web Form Section */}
         {isSuccess ? (
-          <div className="py-12 px-8 text-center flex flex-col items-center gap-3">
+          <div className="py-12 px-8 text-center flex flex-col items-center gap-3 overflow-y-auto minimal-scrollbar">
             <div className="w-12 h-12 rounded-full bg-[var(--color-success-bg)] text-[var(--color-success)] flex items-center justify-center">
               <CheckCircle2 size={24} />
             </div>
@@ -195,8 +195,8 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col flex-1">
-            <div className="modal-body pt-5">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <div className="modal-body pt-5 overflow-y-auto minimal-scrollbar">
               <div className="text-[0.75rem] font-bold uppercase tracking-[0.06em] text-[var(--text-muted)] mb-2.5">
                 Or Send an Email Inquiry
               </div>
@@ -257,7 +257,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
               </div>
             </div>
 
-            <div className="modal-footer">
+            <div className="modal-footer shrink-0">
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"

@@ -160,7 +160,7 @@ export function CategoryDropdown({
           )}
 
           {/* List Options */}
-          <div className="max-h-60 overflow-y-auto py-1 text-xs no-scrollbar">
+          <div className="max-h-60 overflow-y-auto py-1 text-xs minimal-scrollbar pr-0.5">
             {/* "All" option */}
             {!searchTerm && (
               <button

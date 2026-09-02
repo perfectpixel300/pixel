@@ -45,7 +45,7 @@ export function Footer({ setActivePage, categories = [] }) {
                 href="https://wa.me/9779808950275?text=Hello%20Pixel%20Perfect"
                 target="_blank"
                 rel="noreferrer"
-                className="btn-icon btn-secondary !w-8 !h-8 hover:text-[#25D366] transition-colors"
+                className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[#25D366] whatsapp-btn hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer shadow-xs"
                 title="Chat on WhatsApp"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
@@ -58,7 +58,7 @@ export function Footer({ setActivePage, categories = [] }) {
                 href="https://www.instagram.com/perfect_pixel300/"
                 target="_blank"
                 rel="noreferrer"
-                className="btn-icon btn-secondary !w-8 !h-8 hover:text-[#E4405F] transition-colors"
+                className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[#E4405F] instagram-btn hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer shadow-xs"
                 title="Follow on Instagram"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -73,7 +73,7 @@ export function Footer({ setActivePage, categories = [] }) {
                 href="https://www.facebook.com/pixelperfectstationery"
                 target="_blank"
                 rel="noreferrer"
-                className="btn-icon btn-secondary !w-8 !h-8 hover:text-[#1877F2] transition-colors"
+                className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[#1877F2] facebook-btn hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer shadow-xs"
                 title="Follow on Facebook"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">

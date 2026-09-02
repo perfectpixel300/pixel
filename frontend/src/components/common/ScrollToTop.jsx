@@ -40,7 +40,7 @@ export function ScrollToTop({ shopStatus }) {
         href={whatsAppUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="w-10 h-10 rounded-full bg-[var(--bg-elevated)]/90 backdrop-blur-md border border-[var(--border-medium)] text-[#25D366] hover:bg-[#25D366] hover:text-white hover:border-[#25D366] hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_8px_24px_rgba(0,0,0,0.35)] flex items-center justify-center cursor-pointer"
+        className="w-10 h-10 rounded-full bg-[var(--bg-elevated)]/90 backdrop-blur-md border border-[var(--border-medium)] text-[#25D366] whatsapp-btn hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_8px_24px_rgba(0,0,0,0.35)] flex items-center justify-center cursor-pointer"
         title="Chat on WhatsApp"
         aria-label="Chat on WhatsApp"
       >
@@ -52,7 +52,7 @@ export function ScrollToTop({ shopStatus }) {
       {/* Email Floating Action Button */}
       <a
         href={mailtoUrl}
-        className="w-10 h-10 rounded-full bg-[var(--bg-elevated)]/90 backdrop-blur-md border border-[var(--border-medium)] text-[var(--text-primary)] hover:bg-white hover:text-black hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_8px_24px_rgba(0,0,0,0.35)] flex items-center justify-center cursor-pointer"
+        className="w-10 h-10 rounded-full bg-[var(--bg-elevated)]/90 backdrop-blur-md border border-[var(--border-medium)] text-[#EA4335] gmail-btn hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_8px_24px_rgba(0,0,0,0.35)] flex items-center justify-center cursor-pointer"
         title="Send Email"
         aria-label="Send Email"
       >

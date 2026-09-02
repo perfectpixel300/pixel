@@ -568,7 +568,7 @@ export function Navbar({
                       </button>
 
                       {/* Categories List */}
-                      <div className="max-h-[280px] overflow-y-auto py-1 no-scrollbar">
+                      <div className="max-h-[260px] overflow-y-auto py-1 minimal-scrollbar pr-0.5">
                         {getCategoriesForNav(link.id).map((cat) => (
                           <button
                             key={cat.id || cat.name}
