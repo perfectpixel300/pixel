@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  ChevronDown,
   MapPin,
   Sun,
   Moon,
@@ -41,6 +42,12 @@ export function Navbar({
   theme,
   toggleTheme,
   products = [],
+  categories = [],
+  printingServices = [],
+  printingCategories = [],
+  services = [],
+  serviceCategories = [],
+  onSelectCategory,
   onViewProduct,
   onSearchSubmit,
   shopStatus = { isOpen: true },
@@ -53,6 +60,7 @@ export function Navbar({
   const [searchQuery, setSearchQuery] = useState("");
   const [showStatusPopover, setShowStatusPopover] = useState(false);
   const [timerText, setTimerText] = useState("");
+  const [hoveredNav, setHoveredNav] = useState(null);
 
   const { isInstalled, installApp } = usePWA();
 
@@ -60,6 +68,29 @@ export function Navbar({
   const statusPopoverRef = useRef(null);
   const searchContainerRef = useRef(null);
   const searchInputRef = useRef(null);
+  const hoverTimeoutRef = useRef(null);
+
+  const handleMouseEnter = (id) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoveredNav(id);
+  };
+
+  const handleMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredNav(null);
+    }, 150);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // GSAP Dynamic Navbar: Scroll down -> hides, Scroll up -> shows smoothly at any position
   useEffect(() => {
@@ -249,6 +280,7 @@ export function Navbar({
         setIsSearchOpen(false);
         setShowStatusPopover(false);
         setIsMenuDrawerOpen(false);
+        setHoveredNav(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -273,12 +305,159 @@ export function Navbar({
   const navigate = useNavigate();
 
   const handleNavClick = (id) => {
+    setHoveredNav(null);
+    if (id === "products" && onSelectCategory) {
+      onSelectCategory("All");
+    }
     if (setActivePage) setActivePage(id);
     if (id === "home") navigate("/");
     else navigate(`/${id}`);
     setIsMenuDrawerOpen(false);
     setIsSearchOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const getCategoriesForNav = (navId) => {
+    if (navId === "products") {
+      const uniqueNames = Array.from(
+        new Set([
+          ...(categories || []).map((c) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+          ...(products || []).map((p) => p.category).filter(Boolean),
+        ])
+      );
+      const names =
+        uniqueNames.length > 0
+          ? uniqueNames
+          : ["Notebooks", "Pens & Writing", "Desk Accessories", "Fine Paper", "Art Supplies"];
+
+      return names
+        .map((name, idx) => ({
+          id: name || idx,
+          name,
+          count: (products || []).filter((p) => p.category === name).length,
+        }))
+        .sort((a, b) => (b.count || 0) - (a.count || 0) || a.name.localeCompare(b.name));
+    }
+
+    if (navId === "printing") {
+      const uniqueNames = Array.from(
+        new Set([
+          ...(printingCategories || []).map((c) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+          ...(printingServices || []).map((s) => s.category).filter(Boolean),
+        ])
+      );
+      const names =
+        uniqueNames.length > 0
+          ? uniqueNames
+          : [
+              "Fine Art Prints",
+              "Architectural CAD",
+              "Corporate Stationery",
+              "Bookbinding",
+              "Custom Packaging",
+              "Stickers & Labels",
+            ];
+
+      return names
+        .map((name, idx) => ({
+          id: name || idx,
+          name,
+          count: (printingServices || []).filter((s) => s.category === name && s.isAvailable !== false).length,
+        }))
+        .sort((a, b) => (b.count || 0) - (a.count || 0) || a.name.localeCompare(b.name));
+    }
+
+    if (navId === "services") {
+      const uniqueNames = Array.from(
+        new Set([
+          ...(serviceCategories || []).map((c) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+          ...(services || []).map((s) => s.category).filter(Boolean),
+        ])
+      );
+      const names =
+        uniqueNames.length > 0
+          ? uniqueNames
+          : [
+              "Web Development",
+              "Mobile Applications",
+              "UI/UX Design Systems",
+              "Cloud & DevOps",
+              "Cybersecurity",
+              "AI & Automation",
+            ];
+
+      return names
+        .map((name, idx) => {
+          let count = 0;
+          if (name === "Web Development") {
+            count = (services || []).filter(
+              (s) => (s.isWebDevPackage || s.category === "Web Development") && s.isActive !== false
+            ).length;
+          } else {
+            count = (services || []).filter((s) => s.category === name && s.isActive !== false).length;
+          }
+          return {
+            id: name || idx,
+            name,
+            count,
+          };
+        })
+        .sort((a, b) => (b.count || 0) - (a.count || 0) || a.name.localeCompare(b.name));
+    }
+
+    return [];
+  };
+
+  const handleAllClick = (navId) => {
+    setHoveredNav(null);
+    if (navId === "products") {
+      if (onSelectCategory) onSelectCategory("All");
+      if (setActivePage) setActivePage("products");
+      navigate("/products");
+    } else if (navId === "printing") {
+      if (setActivePage) setActivePage("printing");
+      navigate("/printing");
+    } else if (navId === "services") {
+      if (setActivePage) setActivePage("services");
+      navigate("/services");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCategoryClick = (navId, catName) => {
+    setHoveredNav(null);
+    if (navId === "products") {
+      if (onSelectCategory) onSelectCategory(catName);
+      if (setActivePage) setActivePage("products");
+      navigate(`/products?category=${encodeURIComponent(catName)}`);
+      setTimeout(() => {
+        const el = document.getElementById("catalog-section");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    } else if (navId === "printing") {
+      if (setActivePage) setActivePage("printing");
+      navigate(`/printing?category=${encodeURIComponent(catName)}`);
+      setTimeout(() => {
+        const el =
+          document.getElementById("printing-catalog-section") ||
+          document.getElementById("printing-catalog-grid");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    } else if (navId === "services") {
+      if (setActivePage) setActivePage("services");
+      navigate(`/services?category=${encodeURIComponent(catName)}`);
+      setTimeout(() => {
+        const targetId = catName === "Web Development" ? "web-tier-pricing" : "other-it-services";
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    }
   };
 
   const handleSelectResult = (product) => {
@@ -324,28 +503,94 @@ export function Navbar({
           </span>
         </div>
 
-        {/* Desktop Navigation Links with Responsive Scaling */}
+        {/* Desktop Navigation Links with Responsive Scaling & Category Dropdowns */}
         <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 2xl:gap-1.5 min-w-0">
           {navLinks.map((link) => {
             const isActive =
               activePage === link.id ||
               (link.id === "products" && activePage === "product-detail") ||
               (link.id === "blogs" && activePage === "blog-detail");
+            const hasDropdown = ["products", "printing", "services"].includes(link.id);
+            const isHovered = hoveredNav === link.id;
+
             return (
-              <button
+              <div
                 key={link.id}
-                onClick={() => handleNavClick(link.id)}
-                className={`border-none text-[0.75rem] xl:text-[0.8rem] 2xl:text-[0.825rem] uppercase tracking-[0.02em] xl:tracking-[0.04em] cursor-pointer px-2 xl:px-2.5 2xl:px-3.5 py-1.5 rounded-[var(--radius-sm)] relative transition-all duration-200 whitespace-nowrap shrink-0 ${
-                  isActive
-                    ? "font-bold text-[var(--text-primary)] bg-[var(--bg-elevated)] shadow-xs"
-                    : "font-medium text-[var(--text-secondary)] bg-transparent hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
-                }`}
+                className="relative"
+                onMouseEnter={() => hasDropdown && handleMouseEnter(link.id)}
+                onMouseLeave={() => hasDropdown && handleMouseLeave()}
               >
-                {link.label}
-                {isActive && (
-                  <span className="absolute bottom-0 left-2 right-2 xl:left-2.5 xl:right-2.5 h-[2px] bg-[var(--text-primary)] rounded-full" />
+                <button
+                  type="button"
+                  onClick={() => handleNavClick(link.id)}
+                  className={`border-none text-[0.75rem] xl:text-[0.8rem] 2xl:text-[0.825rem] uppercase tracking-[0.02em] xl:tracking-[0.04em] cursor-pointer px-2 xl:px-2.5 2xl:px-3.5 py-1.5 rounded-[var(--radius-sm)] relative transition-all duration-200 whitespace-nowrap shrink-0 flex items-center gap-1 ${
+                    isActive
+                      ? "font-bold text-[var(--text-primary)] bg-[var(--bg-elevated)] shadow-xs"
+                      : isHovered
+                      ? "font-medium text-[var(--text-primary)] bg-[var(--bg-elevated)]"
+                      : "font-medium text-[var(--text-secondary)] bg-transparent hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
+                  }`}
+                  aria-haspopup={hasDropdown ? "true" : undefined}
+                  aria-expanded={hasDropdown ? isHovered : undefined}
+                >
+                  <span>{link.label}</span>
+                  {hasDropdown && (
+                    <ChevronDown
+                      size={11}
+                      className={`transition-transform duration-200 opacity-60 ${
+                        isHovered ? "rotate-180 opacity-100 text-[var(--text-primary)]" : ""
+                      }`}
+                    />
+                  )}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-2 right-2 xl:left-2.5 xl:right-2.5 h-[2px] bg-[var(--text-primary)] rounded-full" />
+                  )}
+                </button>
+
+                {/* Dropdown Menu for desktop on hover */}
+                {hasDropdown && isHovered && (
+                  <div
+                    className="absolute top-full left-0 pt-1.5 z-[120] animate-[fadeIn_0.15s_ease-out]"
+                    style={{ minWidth: "220px" }}
+                  >
+                    <div className="bg-[var(--bg-card)]/98 backdrop-blur-md border border-[var(--border-medium)] rounded-[var(--radius-sm)] shadow-[var(--shadow-xl)] py-1.5 overflow-hidden">
+                      {/* Dropdown Header / All Link */}
+                      <button
+                        type="button"
+                        onClick={() => handleAllClick(link.id)}
+                        className="w-full text-left px-3.5 py-2 flex items-center justify-between text-[0.725rem] font-bold tracking-wide uppercase text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors border-0 border-b border-[var(--border-subtle)] bg-transparent cursor-pointer group/all"
+                      >
+                        <span>All {link.label}</span>
+                        <ArrowRight
+                          size={12}
+                          className="text-[var(--text-muted)] group-hover/all:translate-x-0.5 group-hover/all:text-[var(--text-primary)] transition-all"
+                        />
+                      </button>
+
+                      {/* Categories List */}
+                      <div className="max-h-[280px] overflow-y-auto py-1 no-scrollbar">
+                        {getCategoriesForNav(link.id).map((cat) => (
+                          <button
+                            key={cat.id || cat.name}
+                            type="button"
+                            onClick={() => handleCategoryClick(link.id, cat.name)}
+                            className="w-full text-left px-3.5 py-1.5 flex items-center justify-between text-[0.775rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors border-0 bg-transparent cursor-pointer group/cat"
+                          >
+                            <span className="truncate pr-2 group-hover/cat:translate-x-0.5 transition-transform">
+                              {cat.name}
+                            </span>
+                            {cat.count !== undefined && cat.count > 0 && (
+                              <span className="text-[0.65rem] font-mono text-[var(--text-muted)] group-hover/cat:text-[var(--text-secondary)]">
+                                {cat.count}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </nav>
@@ -549,9 +794,10 @@ export function Navbar({
 
           <a
             href="tel:+9779808950275"
-            className="hidden 2xl:inline-flex items-center gap-1.5 text-[0.775rem] font-semibold text-[var(--text-secondary)] tracking-[0.02em] hover:text-[var(--text-primary)] px-2.5 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--bg-elevated)] transition-all"
+            className="hidden lg:inline-flex items-center gap-1.5 text-[0.725rem] xl:text-[0.775rem] font-semibold text-[var(--text-secondary)] tracking-[0.02em] hover:text-[var(--text-primary)] px-2 xl:px-2.5 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--bg-elevated)] transition-all shrink-0"
+            title="Call +977 9808950275"
           >
-            <Phone size={13} />
+            <Phone size={13} className="shrink-0" />
             <span className="font-mono">+977 9808950275</span>
           </a>
 

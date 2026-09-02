@@ -29,8 +29,18 @@ export function ProductsPage({
   // Sync category or search from searchParams if query string changes
   useEffect(() => {
     const catQuery = searchParams.get("category");
-    if (catQuery && catQuery !== selectedCategory) {
-      setSelectedCategory(catQuery);
+    if (catQuery) {
+      if (catQuery !== selectedCategory) {
+        setSelectedCategory(catQuery);
+      }
+      setTimeout(() => {
+        const catalogEl = document.getElementById("catalog-section");
+        if (catalogEl) {
+          catalogEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    } else if (!catQuery && searchParams.has("category") === false && selectedCategory !== "All") {
+      setSelectedCategory("All");
     }
     const searchQuery = searchParams.get("search");
     if (searchQuery !== null && searchQuery !== searchTerm) {
@@ -112,7 +122,7 @@ export function ProductsPage({
         }}
       />
 
-      <div className="storefront-container pt-14 sm:pt-18" id="catalog-section">
+      <div className="storefront-container pt-14 sm:pt-18 scroll-mt-20" id="catalog-section">
         {/* Page Header */}
         <div className="mb-12">
           <span className="text-[0.75rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">

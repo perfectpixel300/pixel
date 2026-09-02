@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -28,6 +28,7 @@ import { FeaturedSection } from "../components/storefront/FeaturedSection";
 import { FeaturedPrintingSection } from "../components/storefront/FeaturedPrintingSection";
 import { FeaturedServicesSection } from "../components/storefront/FeaturedServicesSection";
 import { CategoryGrid } from "../components/storefront/CategoryGrid";
+import { CategorySwiperRow } from "../components/storefront/CategorySwiperRow";
 import { ProductCard } from "../components/storefront/ProductCard";
 import { PrintingCard } from "../components/storefront/PrintingCard";
 import { WebTierCard } from "../components/storefront/WebTierCard";
@@ -52,17 +53,10 @@ export function HomePage({
   onSelectCategory,
 }) {
   const navigate = useNavigate();
-  const [selectedHomeCategory, setSelectedHomeCategory] = useState("All");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
   const [shareServiceModalOpen, setShareServiceModalOpen] = useState(false);
   const [selectedPrintingDetail, setSelectedPrintingDetail] = useState(null);
   const [sharePrintingModalOpen, setSharePrintingModalOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 12;
-
-  const [selectedPrintingCategory, setSelectedPrintingCategory] = useState("All");
-  const [currentPrintingPage, setCurrentPrintingPage] = useState(1);
-  const PRINTING_ITEMS_PER_PAGE = 12;
 
   const handleCategoryClick = (category) => {
     if (onSelectCategory) onSelectCategory(category);
@@ -71,61 +65,63 @@ export function HomePage({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Products with pagination for Home Page (12 products per page)
-  const filteredHomeProducts = (products || []).filter((p) => {
-    if (selectedHomeCategory !== "All" && p.category !== selectedHomeCategory) {
-      return false;
+  // Group products by category for home page swipers
+  const productCategoryGroups = useMemo(() => {
+    const categoryOrder = [
+      ...(categories || []).map((c) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+      ...(products || []).map((p) => p.category).filter(Boolean),
+    ];
+    const uniqueCategories = Array.from(new Set(categoryOrder));
+
+    const groups = uniqueCategories
+      .map((catName) => {
+        const catProducts = (products || []).filter(
+          (p) => p.category === catName && p.isAvailable !== false
+        );
+        return {
+          categoryName: catName,
+          items: catProducts,
+        };
+      })
+      .filter((group) => group.items.length > 0);
+
+    if (groups.length === 0 && (products || []).length > 0) {
+      return [{ categoryName: "Complete Collection", items: products }];
     }
-    return true;
-  });
 
-  const totalPages = Math.ceil(filteredHomeProducts.length / ITEMS_PER_PAGE) || 1;
-  const paginatedProducts = filteredHomeProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+    return groups;
+  }, [categories, products]);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    const el = document.getElementById("home-products-section");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+  // Group printing services by category for home page swipers
+  const availablePrintingServices = useMemo(() => {
+    return (printingServices || []).filter((s) => s.isAvailable !== false);
+  }, [printingServices]);
+
+  const printingCategoryGroups = useMemo(() => {
+    const categoryOrder = [
+      ...(printingCategories || []).map((c) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+      ...availablePrintingServices.map((s) => s.category).filter(Boolean),
+    ];
+    const uniqueCategories = Array.from(new Set(categoryOrder));
+
+    const groups = uniqueCategories
+      .map((catName) => {
+        const catServices = availablePrintingServices.filter(
+          (s) => s.category === catName
+        );
+        return {
+          categoryName: catName,
+          items: catServices,
+        };
+      })
+      .filter((group) => group.items.length > 0);
+
+    if (groups.length === 0 && availablePrintingServices.length > 0) {
+      return [{ categoryName: "Printing & Production", items: availablePrintingServices }];
     }
-  };
 
-  // Printing services with category filter & pagination for Home Page
-  const allPrintCategories = Array.from(
-    new Set([
-      ...(printingCategories || []).map((c) => (typeof c === "string" ? c : c.name)),
-      ...(printingServices || []).map((s) => s.category).filter(Boolean),
-    ])
-  );
-
-  const availablePrintingServices = (printingServices || []).filter(
-    (s) => s.isAvailable !== false
-  );
-
-  const filteredHomePrintingServices = availablePrintingServices.filter((s) => {
-    if (selectedPrintingCategory !== "All" && s.category !== selectedPrintingCategory) {
-      return false;
-    }
-    return true;
-  });
-
-  const totalPrintingPages =
-    Math.ceil(filteredHomePrintingServices.length / PRINTING_ITEMS_PER_PAGE) || 1;
-  const paginatedPrintingServices = filteredHomePrintingServices.slice(
-    (currentPrintingPage - 1) * PRINTING_ITEMS_PER_PAGE,
-    currentPrintingPage * PRINTING_ITEMS_PER_PAGE
-  );
-
-  const handlePrintingPageChange = (page) => {
-    setCurrentPrintingPage(page);
-    const el = document.getElementById("home-all-printing-section");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
+    return groups;
+  }, [printingCategories, availablePrintingServices]);
 
   // Get the 3 Web Dev subscription tiers (ordered)
   const webDevTiers = (services || [])
@@ -246,296 +242,124 @@ export function HomePage({
         }}
       />
 
-      {/* Disciplines Category Grid */}
-      <CategoryGrid
-        categories={categories}
-        onSelectCategory={handleCategoryClick}
-      />
-
       {/* =========================================================================
-          PRODUCTS SECTION WITH PAGINATION
+          FIRST SECTION: PRODUCTS ACCORDING TO CATEGORIES (SWIPER 2-4 CARDS PER ROW)
           ========================================================================= */}
       <section id="home-products-section" className="py-22 border-b border-[var(--border-subtle)] bg-[var(--bg-app)]">
         <div className="storefront-container">
-          {/* Section Header with Category Dropdown */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 pb-6 border-b border-[var(--border-subtle)]">
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-6 border-b border-[var(--border-subtle)]">
             <div>
               <span className="text-[0.75rem] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
-                Complete Catalog
+                Complete Collection
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-[-0.03em]">
-                All Products
+                Products by Category
               </h2>
               <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[620px]">
-                Explore our full stationery collection, machined writing instruments, and desk organizers.
+                Explore our full stationery collection, machined writing instruments, and desk organizers grouped by category.
               </p>
             </div>
 
-            <div className="flex items-center gap-3 flex-wrap self-start md:self-auto">
-              <CategoryDropdown
-                categories={categories.map((cat) => ({
-                  id: cat._id || cat.name,
-                  name: cat.name,
-                  count: products.filter((p) => p.category === cat.name).length,
-                }))}
-                selectedCategory={selectedHomeCategory}
-                onSelectCategory={(catName) => {
-                  setSelectedHomeCategory(catName);
-                  setCurrentPage(1);
-                }}
-                totalCount={products.length}
-                label="Category"
-                allLabel="All Categories"
-              />
-
-              <button
-                onClick={() => {
-                  onNavigate("products");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                className="btn btn-secondary gap-1.5"
-              >
-                <span>View Full Catalog</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                onNavigate("products");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="btn btn-secondary gap-1.5 self-start md:self-auto"
+            >
+              <span>View Full Catalog</span>
+              <ArrowRight size={14} />
+            </button>
           </div>
 
-          {/* 2-Column Mobile & 4-Column Desktop Product Grid */}
-          {paginatedProducts.length === 0 ? (
+          {/* Product Category Rows */}
+          {productCategoryGroups.length === 0 ? (
             <div className="py-20 px-8 text-center border border-dashed border-[var(--border-medium)] rounded-[var(--radius-lg)]">
               <Package size={32} className="text-[var(--text-muted)] mb-3 mx-auto" />
-              <h3 className="text-lg font-bold">No products in this category</h3>
-              <button
-                onClick={() => {
-                  setSelectedHomeCategory("All");
-                  setCurrentPage(1);
-                }}
-                className="btn btn-secondary btn-sm mt-3"
-              >
-                View All Items
-              </button>
+              <h3 className="text-lg font-bold">No products available</h3>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
-              {paginatedProducts.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  onViewDetails={onViewProduct}
-                  onInquire={onInquireProduct}
+            <div className="space-y-16">
+              {productCategoryGroups.map((group) => (
+                <CategorySwiperRow
+                  key={group.categoryName}
+                  categoryName={group.categoryName}
+                  items={group.items}
+                  badgeLabel={group.items.length === 1 ? "item" : "items"}
+                  onViewAll={() => handleCategoryClick(group.categoryName)}
+                  renderItem={(product) => (
+                    <ProductCard
+                      product={product}
+                      onViewDetails={onViewProduct}
+                      onInquire={onInquireProduct}
+                    />
+                  )}
                 />
               ))}
-            </div>
-          )}
-
-          {/* Clean Minimal Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="mt-12 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4">
-              <span className="text-xs text-[var(--text-muted)] font-mono order-2 sm:order-1">
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
-                {Math.min(currentPage * ITEMS_PER_PAGE, filteredHomeProducts.length)} of{" "}
-                {filteredHomeProducts.length} items
-              </span>
-
-              <div className="flex items-center gap-1.5 order-1 sm:order-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`btn btn-sm btn-secondary gap-1 !px-3 ${
-                    currentPage === 1
-                      ? "opacity-30 cursor-not-allowed"
-                      : "hover:!bg-white hover:!text-black"
-                  }`}
-                  aria-label="Previous Page"
-                >
-                  <ChevronLeft size={14} />
-                  <span className="hidden sm:inline">Previous</span>
-                </button>
-
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }).map((_, idx) => {
-                    const pageNumber = idx + 1;
-                    const isActive = currentPage === pageNumber;
-                    return (
-                      <button
-                        key={pageNumber}
-                        onClick={() => handlePageChange(pageNumber)}
-                        className={`w-8 h-8 rounded-[var(--radius-xs)] text-xs font-mono font-bold flex items-center justify-center transition-all ${
-                          isActive
-                            ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] shadow-sm"
-                            : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input-focus)]"
-                        }`}
-                      >
-                        {pageNumber}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage >= totalPages}
-                  className={`btn btn-sm btn-secondary gap-1 !px-3 ${
-                    currentPage >= totalPages
-                      ? "opacity-30 cursor-not-allowed"
-                      : "hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
-                  }`}
-                  aria-label="Next Page"
-                >
-                  <span className="hidden sm:inline">Next</span>
-                  <ChevronRight size={14} />
-                </button>
-              </div>
             </div>
           )}
         </div>
       </section>
 
       {/* =========================================================================
-          ALL PRINTING & DOCUMENT SERVICES SECTION BELOW ALL PRODUCTS
+          SECOND SECTION: PRINTING ACCORDING TO CATEGORIES (SWIPER 2-4 CARDS PER ROW)
           ========================================================================= */}
-      {availablePrintingServices.length > 0 && (
+      {printingCategoryGroups.length > 0 && (
         <section id="home-all-printing-section" className="py-22 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)]">
           <div className="storefront-container">
-            {/* Section Header with Category Dropdown */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 pb-6 border-b border-[var(--border-subtle)]">
+            {/* Section Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-6 border-b border-[var(--border-subtle)]">
               <div>
                 <span className="text-[0.75rem] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
-                  Complete Print Catalog
+                  Print Production Catalog
                 </span>
                 <h2 className="text-3xl sm:text-4xl font-extrabold mt-1.5 tracking-[-0.03em]">
-                  All Printing & Document Services
+                  Printing Services by Category
                 </h2>
                 <p className="text-[var(--text-secondary)] text-[0.95rem] mt-2 max-w-[620px]">
                   Explore fine art prints, architectural CAD blueprints, corporate stationery, hardcover bookbinding, and custom packaging.
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 flex-wrap self-start md:self-auto">
-                <CategoryDropdown
-                  categories={allPrintCategories.map((cat) => ({
-                    id: cat,
-                    name: cat,
-                    count: availablePrintingServices.filter((s) => s.category === cat).length,
-                  }))}
-                  selectedCategory={selectedPrintingCategory}
-                  onSelectCategory={(catName) => {
-                    setSelectedPrintingCategory(catName);
-                    setCurrentPrintingPage(1);
-                  }}
-                  totalCount={availablePrintingServices.length}
-                  label="Category"
-                  allLabel="All Categories"
-                />
-
-                <button
-                  onClick={() => {
-                    onNavigate("printing");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  className="btn btn-secondary gap-1.5"
-                >
-                  <span>View Full Print Catalog</span>
-                  <ArrowRight size={14} />
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  onNavigate("printing");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="btn btn-secondary gap-1.5 self-start md:self-auto"
+              >
+                <span>View Full Print Catalog</span>
+                <ArrowRight size={14} />
+              </button>
             </div>
 
-            {/* Printing Services Grid */}
-            {paginatedPrintingServices.length === 0 ? (
-              <div className="py-20 px-8 text-center border border-dashed border-[var(--border-medium)] rounded-[var(--radius-lg)]">
-                <Printer size={32} className="text-[var(--text-muted)] mb-3 mx-auto" />
-                <h3 className="text-lg font-bold">No printing services in this category</h3>
-                <button
-                  onClick={() => {
-                    setSelectedPrintingCategory("All");
-                    setCurrentPrintingPage(1);
+            {/* Printing Category Rows */}
+            <div className="space-y-16">
+              {printingCategoryGroups.map((group) => (
+                <CategorySwiperRow
+                  key={group.categoryName}
+                  categoryName={group.categoryName}
+                  items={group.items}
+                  badgeLabel={group.items.length === 1 ? "service" : "services"}
+                  onViewAll={() => {
+                    if (onNavigate) onNavigate("printing");
+                    navigate(`/printing?category=${encodeURIComponent(group.categoryName)}`);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className="btn btn-secondary btn-sm mt-3"
-                >
-                  View All Printing Services
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
-                {paginatedPrintingServices.map((service) => (
-                  <PrintingCard
-                    key={service._id}
-                    service={service}
-                    onViewDetails={(s) => setSelectedPrintingDetail(s)}
-                    onInquire={(s) => {
-                      const handler = onInquirePrinting || onInquireProduct;
-                      if (handler) handler(s);
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Pagination Controls */}
-            {totalPrintingPages > 1 && (
-              <div className="mt-12 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4">
-                <span className="text-xs text-[var(--text-muted)] font-mono order-2 sm:order-1">
-                  Showing {(currentPrintingPage - 1) * PRINTING_ITEMS_PER_PAGE + 1}–
-                  {Math.min(
-                    currentPrintingPage * PRINTING_ITEMS_PER_PAGE,
-                    filteredHomePrintingServices.length
-                  )}{" "}
-                  of {filteredHomePrintingServices.length} printing services
-                </span>
-
-                <div className="flex items-center gap-1.5 order-1 sm:order-2">
-                  <button
-                    onClick={() => handlePrintingPageChange(currentPrintingPage - 1)}
-                    disabled={currentPrintingPage === 1}
-                    className={`btn btn-sm btn-secondary gap-1 !px-3 ${
-                      currentPrintingPage === 1
-                        ? "opacity-30 cursor-not-allowed"
-                        : "hover:!bg-white hover:!text-black"
-                    }`}
-                    aria-label="Previous Page"
-                  >
-                    <ChevronLeft size={14} />
-                    <span className="hidden sm:inline">Previous</span>
-                  </button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPrintingPages }).map((_, idx) => {
-                      const pageNumber = idx + 1;
-                      const isActive = currentPrintingPage === pageNumber;
-                      return (
-                        <button
-                          key={pageNumber}
-                          onClick={() => handlePrintingPageChange(pageNumber)}
-                          className={`w-8 h-8 rounded-[var(--radius-xs)] text-xs font-mono font-bold flex items-center justify-center transition-all ${
-                            isActive
-                              ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] shadow-sm"
-                              : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-input-focus)]"
-                          }`}
-                        >
-                          {pageNumber}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <button
-                    onClick={() => handlePrintingPageChange(currentPrintingPage + 1)}
-                    disabled={currentPrintingPage >= totalPrintingPages}
-                    className={`btn btn-sm btn-secondary gap-1 !px-3 ${
-                      currentPrintingPage >= totalPrintingPages
-                        ? "opacity-30 cursor-not-allowed"
-                        : "hover:!bg-[var(--btn-primary-bg)] hover:!text-[var(--btn-primary-text)]"
-                    }`}
-                    aria-label="Next Page"
-                  >
-                    <span className="hidden sm:inline">Next</span>
-                    <ChevronRight size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
+                  renderItem={(service) => (
+                    <PrintingCard
+                      service={service}
+                      onViewDetails={(s) => setSelectedPrintingDetail(s)}
+                      onInquire={(s) => {
+                        const handler = onInquirePrinting || onInquireProduct;
+                        if (handler) handler(s);
+                      }}
+                    />
+                  )}
+                />
+              ))}
+            </div>
           </div>
         </section>
       )}
@@ -813,6 +637,12 @@ export function HomePage({
           </div>
         </section>
       )}
+
+      {/* Disciplines Category Grid at Bottom of Home Page */}
+      <CategoryGrid
+        categories={categories}
+        onSelectCategory={handleCategoryClick}
+      />
 
       {/* Ending Action Strip */}
       <section className="py-20 text-center bg-[var(--bg-app)]">

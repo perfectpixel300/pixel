@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Code,
   Globe,
@@ -87,13 +87,37 @@ export function ServicesPage({
 }) {
   const params = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const serviceIdOrSlug = propServiceIdOrSlug || params?.idOrSlug || params?.slug || params?.id;
 
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const categoryFromUrl = searchParams.get("category");
+  const [selectedCategory, setSelectedCategory] = useState(() => categoryFromUrl || "All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
   const [shareServiceModalOpen, setShareServiceModalOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState(null);
+
+  // Sync category from URL query parameter
+  useEffect(() => {
+    const catQuery = searchParams.get("category");
+    if (catQuery) {
+      if (catQuery === "Web Development") {
+        setSelectedCategory("All");
+        const el = document.getElementById("web-tier-pricing");
+        if (el) {
+          setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 100);
+        }
+      } else {
+        setSelectedCategory(catQuery);
+        const el = document.getElementById("other-it-services");
+        if (el) {
+          setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 100);
+        }
+      }
+    } else if (!searchParams.has("category") && selectedCategory !== "All" && !serviceIdOrSlug) {
+      setSelectedCategory("All");
+    }
+  }, [searchParams, serviceIdOrSlug]);
 
   // Sync service detail from URL
   useEffect(() => {

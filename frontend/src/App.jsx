@@ -119,12 +119,18 @@ function AppContent() {
     } else {
       navigate(`/${pageOrPath}`);
     }
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get("category")) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
   };
 
-  // Guarantee scroll to top whenever pathname changes
+  // Guarantee scroll to top whenever pathname changes unless navigating to a category
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    const params = new URLSearchParams(location.search);
+    if (!params.get("category")) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
   }, [location.pathname]);
 
   const showToast = (message, type = "success") => {
@@ -390,6 +396,12 @@ function AppContent() {
             theme={theme}
             toggleTheme={toggleTheme}
             products={products}
+            categories={categories}
+            printingServices={printingServices}
+            printingCategories={printingCategories}
+            services={services}
+            serviceCategories={serviceCategories}
+            onSelectCategory={setSelectedCategory}
             onViewProduct={handleViewProduct}
             onSearchSubmit={handleSearchSubmit}
             shopStatus={shopStatus}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Printer,
   Sparkles,
@@ -35,14 +35,36 @@ export function PrintingPage({
 }) {
   const params = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const printingIdOrSlug = propPrintingIdOrSlug || params?.idOrSlug || params?.slug || params?.id;
 
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const categoryFromUrl = searchParams.get("category");
+  const [selectedCategory, setSelectedCategory] = useState(() => categoryFromUrl || "All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
   const [sharePrintingModalOpen, setSharePrintingModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
+
+  // Sync category from URL query parameter
+  useEffect(() => {
+    const catQuery = searchParams.get("category");
+    if (catQuery) {
+      if (catQuery !== selectedCategory) {
+        setSelectedCategory(catQuery);
+      }
+      setTimeout(() => {
+        const catalogEl =
+          document.getElementById("printing-catalog-section") ||
+          document.getElementById("printing-catalog-grid");
+        if (catalogEl) {
+          catalogEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    } else if (!catQuery && searchParams.has("category") === false && selectedCategory !== "All" && !printingIdOrSlug) {
+      setSelectedCategory("All");
+    }
+  }, [searchParams, printingIdOrSlug]);
 
   // Sync printing service detail from URL
   useEffect(() => {
@@ -192,7 +214,7 @@ export function PrintingPage({
         {/* =========================================================================
             FILTERING & SEARCH TOOLBAR
             ========================================================================= */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 border-b border-[var(--border-subtle)] pb-6">
+        <div id="printing-catalog-section" className="scroll-mt-20 flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 border-b border-[var(--border-subtle)] pb-6">
           <div>
             <span className="text-[0.725rem] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
               Print Catalog
