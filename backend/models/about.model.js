@@ -21,6 +21,32 @@ const tenetSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const teamMemberSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+    position: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+    image: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+    portfolioLink: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+  },
+  { _id: false }
+);
+
 const aboutSchema = new mongoose.Schema(
   {
     badge: {
@@ -83,6 +109,39 @@ const aboutSchema = new mongoose.Schema(
           number: "04",
           title: "Lifelong Support",
           description: "Refillable standard international fountain pen cartridges and modular replacement parts for all desk objects.",
+        },
+      ],
+    },
+    teamHeading: {
+      type: String,
+      trim: true,
+      default: "Our Team",
+    },
+    teamSubheading: {
+      type: String,
+      trim: true,
+      default: "The dedicated craftsmen, designers, and innovators behind Pixel Perfect.",
+    },
+    team: {
+      type: [teamMemberSchema],
+      default: [
+        {
+          name: "Marcus Vance",
+          position: "Founder & Lead Craftsman",
+          image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
+          portfolioLink: "https://github.com",
+        },
+        {
+          name: "Elena Rostova",
+          position: "Head of Industrial Design",
+          image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop",
+          portfolioLink: "",
+        },
+        {
+          name: "David Kim",
+          position: "Materials & Production Specialist",
+          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
+          portfolioLink: "https://dribbble.com",
         },
       ],
     },

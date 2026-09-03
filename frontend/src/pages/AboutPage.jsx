@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 
 const DEFAULT_ABOUT = {
   badge: "About Us",
@@ -35,6 +35,28 @@ const DEFAULT_ABOUT = {
       description: "Refillable standard international fountain pen cartridges and modular replacement parts for all desk objects.",
     },
   ],
+  teamHeading: "Our Team",
+  teamSubheading: "The dedicated craftsmen, designers, and innovators behind Pixel Perfect.",
+  team: [
+    {
+      name: "Marcus Vance",
+      position: "Founder & Lead Craftsman",
+      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
+      portfolioLink: "https://github.com",
+    },
+    {
+      name: "Elena Rostova",
+      position: "Head of Industrial Design",
+      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop",
+      portfolioLink: "",
+    },
+    {
+      name: "David Kim",
+      position: "Materials & Production Specialist",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
+      portfolioLink: "https://dribbble.com",
+    },
+  ],
   ctaHeading: "Experience The Analog Difference",
   ctaDescription: "Explore our curated range of notebooks, machined writing instruments, and desk objects.",
   ctaButtonText: "Explore The Collection",
@@ -57,6 +79,15 @@ export function AboutPage({ onNavigate, aboutData }) {
       aboutData?.tenets && aboutData.tenets.length > 0
         ? aboutData.tenets
         : DEFAULT_ABOUT.tenets,
+    teamHeading: aboutData?.teamHeading || DEFAULT_ABOUT.teamHeading,
+    teamSubheading:
+      aboutData?.teamSubheading !== undefined
+        ? aboutData.teamSubheading
+        : DEFAULT_ABOUT.teamSubheading,
+    team:
+      aboutData?.team && aboutData.team.length > 0
+        ? aboutData.team
+        : (aboutData?.team ? [] : DEFAULT_ABOUT.team),
     ctaHeading: aboutData?.ctaHeading || DEFAULT_ABOUT.ctaHeading,
     ctaDescription: aboutData?.ctaDescription || DEFAULT_ABOUT.ctaDescription,
     ctaButtonText: aboutData?.ctaButtonText || DEFAULT_ABOUT.ctaButtonText,
@@ -134,6 +165,70 @@ export function AboutPage({ onNavigate, aboutData }) {
                   <p className="text-[0.825rem] text-[var(--text-muted)] leading-relaxed m-0">
                     {tenet.description}
                   </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Our Team Section */}
+        {data.team && data.team.length > 0 && (
+          <div className="mb-18">
+            <div className="mb-8">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-[-0.02em]">
+                {data.teamHeading}
+              </h2>
+              {data.teamSubheading && (
+                <p className="text-[var(--text-secondary)] text-sm sm:text-base mt-2">
+                  {data.teamSubheading}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {data.team.map((member, idx) => (
+                <div
+                  key={idx}
+                  className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] overflow-hidden hover:border-[var(--border-medium)] transition-all duration-200 shadow-xs flex flex-col group"
+                >
+                  <div className="relative aspect-4/3 sm:aspect-square w-full overflow-hidden bg-[var(--bg-elevated)]">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop";
+                      }}
+                    />
+                  </div>
+                  <div className="p-5 flex flex-col flex-1 justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-[var(--text-primary)] m-0">
+                        {member.name}
+                      </h3>
+                      <p className="text-sm font-medium text-[#ea580c] dark:text-[#ff7828] mt-1 m-0">
+                        {member.position}
+                      </p>
+                    </div>
+
+                    {member.portfolioLink && member.portfolioLink.trim() && (
+                      <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
+                        <a
+                          href={
+                            member.portfolioLink.startsWith("http://") || member.portfolioLink.startsWith("https://")
+                              ? member.portfolioLink
+                              : `https://${member.portfolioLink}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:text-[#ea580c] dark:hover:text-[#ff7828] transition-colors"
+                        >
+                          <ExternalLink size={13} />
+                          <span>View Portfolio</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

@@ -38,12 +38,57 @@ const getOrCreateAbout = async () => {
           description: "Refillable standard international fountain pen cartridges and modular replacement parts for all desk objects.",
         },
       ],
+      teamHeading: "Our Team",
+      teamSubheading: "The dedicated craftsmen, designers, and innovators behind Pixel Perfect.",
+      team: [
+        {
+          name: "Marcus Vance",
+          position: "Founder & Lead Craftsman",
+          image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
+          portfolioLink: "https://github.com",
+        },
+        {
+          name: "Elena Rostova",
+          position: "Head of Industrial Design",
+          image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop",
+          portfolioLink: "",
+        },
+        {
+          name: "David Kim",
+          position: "Materials & Production Specialist",
+          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
+          portfolioLink: "https://dribbble.com",
+        },
+      ],
       ctaHeading: "Experience The Analog Difference",
       ctaDescription: "Explore our curated range of notebooks, machined writing instruments, and desk objects.",
       ctaButtonText: "Explore The Collection",
       ctaButtonLink: "products",
       updatedBy: "Admin",
     });
+  } else if (!about.team || about.team.length === 0) {
+    if (about.team === undefined) {
+      about.team = [
+        {
+          name: "Marcus Vance",
+          position: "Founder & Lead Craftsman",
+          image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
+          portfolioLink: "https://github.com",
+        },
+        {
+          name: "Elena Rostova",
+          position: "Head of Industrial Design",
+          image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop",
+          portfolioLink: "",
+        },
+        {
+          name: "David Kim",
+          position: "Materials & Production Specialist",
+          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
+          portfolioLink: "https://dribbble.com",
+        },
+      ];
+    }
   }
   return about;
 };
@@ -80,6 +125,9 @@ exports.updateAbout = async (req, res) => {
       storyParagraphs,
       tenetsHeading,
       tenets,
+      teamHeading,
+      teamSubheading,
+      team,
       ctaHeading,
       ctaDescription,
       ctaButtonText,
@@ -108,6 +156,40 @@ exports.updateAbout = async (req, res) => {
           title: t.title.trim(),
           description: t.description.trim(),
         }));
+    }
+
+    if (teamHeading !== undefined) about.teamHeading = teamHeading.trim();
+    if (teamSubheading !== undefined) about.teamSubheading = teamSubheading.trim();
+
+    if (team !== undefined && Array.isArray(team)) {
+      for (let i = 0; i < team.length; i++) {
+        const member = team[i];
+        if (!member || !member.name || !member.name.trim()) {
+          return res.status(400).json({
+            success: false,
+            message: `Team member #${i + 1} requires a name.`,
+          });
+        }
+        if (!member.position || !member.position.trim()) {
+          return res.status(400).json({
+            success: false,
+            message: `Team member #${i + 1} requires a position.`,
+          });
+        }
+        if (!member.image || !member.image.trim()) {
+          return res.status(400).json({
+            success: false,
+            message: `Team member #${i + 1} requires an image.`,
+          });
+        }
+      }
+
+      about.team = team.map((m) => ({
+        name: m.name.trim(),
+        position: m.position.trim(),
+        image: m.image.trim(),
+        portfolioLink: m.portfolioLink ? m.portfolioLink.trim() : "",
+      }));
     }
 
     if (ctaHeading !== undefined) about.ctaHeading = ctaHeading.trim();

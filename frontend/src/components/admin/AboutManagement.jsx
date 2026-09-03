@@ -15,6 +15,7 @@ import {
   ChevronUp,
   ChevronDown,
   Compass,
+  Users,
 } from "lucide-react";
 import { api } from "../../services/api";
 
@@ -56,6 +57,28 @@ const DEFAULT_ABOUT_DATA = {
         "Refillable standard international fountain pen cartridges and modular replacement parts for all desk objects.",
     },
   ],
+  teamHeading: "Our Team",
+  teamSubheading: "The dedicated craftsmen, designers, and innovators behind Pixel Perfect.",
+  team: [
+    {
+      name: "Marcus Vance",
+      position: "Founder & Lead Craftsman",
+      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
+      portfolioLink: "https://github.com",
+    },
+    {
+      name: "Elena Rostova",
+      position: "Head of Industrial Design",
+      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop",
+      portfolioLink: "",
+    },
+    {
+      name: "David Kim",
+      position: "Materials & Production Specialist",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
+      portfolioLink: "https://dribbble.com",
+    },
+  ],
   ctaHeading: "Experience The Analog Difference",
   ctaDescription: "Explore our curated range of notebooks, machined writing instruments, and desk objects.",
   ctaButtonText: "Explore The Collection",
@@ -66,6 +89,7 @@ export function AboutManagement({ aboutData, onUpdateAbout, showToast }) {
   const [formData, setFormData] = useState(aboutData || DEFAULT_ABOUT_DATA);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingMemberIdx, setUploadingMemberIdx] = useState(null);
 
   useEffect(() => {
     if (aboutData) {
@@ -84,6 +108,15 @@ export function AboutManagement({ aboutData, onUpdateAbout, showToast }) {
           aboutData.tenets && aboutData.tenets.length > 0
             ? aboutData.tenets
             : DEFAULT_ABOUT_DATA.tenets,
+        teamHeading: aboutData.teamHeading || DEFAULT_ABOUT_DATA.teamHeading,
+        teamSubheading:
+          aboutData.teamSubheading !== undefined
+            ? aboutData.teamSubheading
+            : DEFAULT_ABOUT_DATA.teamSubheading,
+        team:
+          aboutData.team && Array.isArray(aboutData.team)
+            ? aboutData.team
+            : DEFAULT_ABOUT_DATA.team,
         ctaHeading: aboutData.ctaHeading || DEFAULT_ABOUT_DATA.ctaHeading,
         ctaDescription: aboutData.ctaDescription || DEFAULT_ABOUT_DATA.ctaDescription,
         ctaButtonText: aboutData.ctaButtonText || DEFAULT_ABOUT_DATA.ctaButtonText,
@@ -186,6 +219,60 @@ export function AboutManagement({ aboutData, onUpdateAbout, showToast }) {
     setFormData((prev) => ({ ...prev, tenets: updated }));
   };
 
+  // Team Members handlers
+  const handleMemberChange = (index, field, value) => {
+    const updated = [...(formData.team || [])];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData((prev) => ({ ...prev, team: updated }));
+  };
+
+  const handleAddMember = () => {
+    setFormData((prev) => ({
+      ...prev,
+      team: [
+        ...(prev.team || []),
+        {
+          name: "",
+          position: "",
+          image: "",
+          portfolioLink: "",
+        },
+      ],
+    }));
+  };
+
+  const handleRemoveMember = (index) => {
+    const updated = (formData.team || []).filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, team: updated }));
+  };
+
+  const handleMoveMember = (index, direction) => {
+    const team = formData.team || [];
+    const targetIdx = index + direction;
+    if (targetIdx < 0 || targetIdx >= team.length) return;
+    const updated = [...team];
+    const temp = updated[index];
+    updated[index] = updated[targetIdx];
+    updated[targetIdx] = temp;
+    setFormData((prev) => ({ ...prev, team: updated }));
+  };
+
+  const handleMemberImageUpload = async (index, file) => {
+    if (!file) return;
+    try {
+      setUploadingMemberIdx(index);
+      const res = await api.uploadImage(file, "team");
+      if (res && res.url) {
+        handleMemberChange(index, "image", res.url);
+        if (showToast) showToast("Team member photo uploaded successfully!");
+      }
+    } catch (err) {
+      if (showToast) showToast(err.message || "Failed to upload photo", "error");
+    } finally {
+      setUploadingMemberIdx(null);
+    }
+  };
+
   // Reset to default
   const handleResetDefaults = () => {
     if (window.confirm("Are you sure you want to reset all fields on this form to the studio defaults?")) {
@@ -200,6 +287,24 @@ export function AboutManagement({ aboutData, onUpdateAbout, showToast }) {
     if (!formData.title?.trim()) {
       if (showToast) showToast("Page title cannot be empty.", "error");
       return;
+    }
+
+    if (formData.team && formData.team.length > 0) {
+      for (let i = 0; i < formData.team.length; i++) {
+        const member = formData.team[i];
+        if (!member.name?.trim()) {
+          if (showToast) showToast(`Team member #${i + 1}: Name is required.`, "error");
+          return;
+        }
+        if (!member.position?.trim()) {
+          if (showToast) showToast(`Team member #${i + 1}: Position is required.`, "error");
+          return;
+        }
+        if (!member.image?.trim()) {
+          if (showToast) showToast(`Team member #${i + 1}: Image is required.`, "error");
+          return;
+        }
+      }
     }
 
     try {
@@ -230,7 +335,7 @@ export function AboutManagement({ aboutData, onUpdateAbout, showToast }) {
               About Page Content Management
             </h1>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-0.5">
-              Customize the brand story, hero photography, foundational tenets, and bottom CTA banner.
+              Customize the brand story, hero photography, foundational tenets, team members, and bottom CTA banner.
             </p>
           </div>
         </div>
@@ -553,12 +658,206 @@ export function AboutManagement({ aboutData, onUpdateAbout, showToast }) {
           </div>
         </div>
 
-        {/* Section 4: Bottom Call-to-Action (CTA) */}
+        {/* Section 4: Our Team */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] p-6 rounded-[var(--radius-lg)] space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-[#ea580c] dark:text-[#ff7828]" />
+              <h2 className="text-sm font-bold uppercase tracking-wider">
+                4. Team Members ({formData.team?.length || 0})
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddMember}
+              className="btn btn-secondary !py-1.5 !px-3 text-xs gap-1.5 cursor-pointer"
+            >
+              <Plus size={13} />
+              <span>Add Team Member</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="form-label text-xs">Section Heading</label>
+              <input
+                type="text"
+                value={formData.teamHeading || ""}
+                onChange={(e) => setFormData({ ...formData, teamHeading: e.target.value })}
+                placeholder="e.g. Our Team"
+                className="form-input text-xs"
+              />
+            </div>
+            <div>
+              <label className="form-label text-xs">Section Subheading</label>
+              <input
+                type="text"
+                value={formData.teamSubheading || ""}
+                onChange={(e) => setFormData({ ...formData, teamSubheading: e.target.value })}
+                placeholder="e.g. The dedicated craftsmen, designers, and innovators behind Pixel Perfect."
+                className="form-input text-xs"
+              />
+            </div>
+          </div>
+
+          {(!formData.team || formData.team.length === 0) ? (
+            <div className="p-8 text-center border border-dashed border-[var(--border-subtle)] rounded-[var(--radius-md)] text-[var(--text-muted)] text-xs">
+              No team members added yet. Click &ldquo;Add Team Member&rdquo; above to add one.
+            </div>
+          ) : (
+            <div className="space-y-4 pt-2">
+              {formData.team.map((member, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 rounded-[var(--radius-md)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] space-y-3"
+                >
+                  <div className="flex items-center justify-between text-xs text-[var(--text-muted)] font-mono">
+                    <span className="font-bold text-[var(--text-primary)]">
+                      Team Member #{idx + 1}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleMoveMember(idx, -1)}
+                        disabled={idx === 0}
+                        className="btn-icon btn-ghost !w-6 !h-6 disabled:opacity-20"
+                        title="Move up"
+                      >
+                        <ChevronUp size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveMember(idx, 1)}
+                        disabled={idx === formData.team.length - 1}
+                        className="btn-icon btn-ghost !w-6 !h-6 disabled:opacity-20"
+                        title="Move down"
+                      >
+                        <ChevronDown size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMember(idx)}
+                        className="btn-icon btn-ghost !w-6 !h-6 text-red-400 hover:text-red-300 ml-1"
+                        title="Delete member"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                    {/* Member Details */}
+                    <div className="md:col-span-2 space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="form-label text-xs">
+                            Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={member.name}
+                            onChange={(e) => handleMemberChange(idx, "name", e.target.value)}
+                            placeholder="e.g. Marcus Vance"
+                            className="form-input text-xs font-bold"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label text-xs">
+                            Position / Role <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={member.position}
+                            onChange={(e) => handleMemberChange(idx, "position", e.target.value)}
+                            placeholder="e.g. Founder & Lead Craftsman"
+                            className="form-input text-xs"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="form-label text-xs">
+                          Portfolio Link <span className="text-[var(--text-muted)] font-normal">(optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={member.portfolioLink || ""}
+                          onChange={(e) => handleMemberChange(idx, "portfolioLink", e.target.value)}
+                          placeholder="e.g. https://portfolio.com or https://github.com/..."
+                          className="form-input text-xs font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="form-label text-xs">
+                          Photo URL <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            value={member.image}
+                            onChange={(e) => handleMemberChange(idx, "image", e.target.value)}
+                            placeholder="https://images.unsplash.com/... or uploaded photo link"
+                            className="form-input text-xs font-mono flex-1"
+                            required
+                          />
+                          <label className="btn btn-secondary !py-1.5 !px-3 text-xs gap-1.5 cursor-pointer shrink-0 inline-flex items-center">
+                            <Upload size={13} />
+                            <span>{uploadingMemberIdx === idx ? "Uploading..." : "Upload"}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const f = e.target.files[0];
+                                if (f) handleMemberImageUpload(idx, f);
+                                e.target.value = "";
+                              }}
+                              disabled={uploadingMemberIdx === idx}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Member Photo Preview */}
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="text-[0.7rem] text-[var(--text-muted)] block mb-1.5 self-start">
+                        Photo Preview
+                      </span>
+                      <div className="w-full aspect-square max-w-[130px] rounded-[var(--radius-md)] overflow-hidden border border-[var(--border-medium)] bg-[var(--bg-card)] flex items-center justify-center relative shadow-xs">
+                        {member.image ? (
+                          <img
+                            src={member.image}
+                            alt={member.name || "Preview"}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop";
+                            }}
+                          />
+                        ) : (
+                          <div className="text-[var(--text-muted)] text-[0.7rem] flex flex-col items-center gap-1 p-2 text-center">
+                            <ImageIcon size={20} />
+                            <span>No photo</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Section 5: Bottom Call-to-Action (CTA) */}
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] p-6 rounded-[var(--radius-lg)] space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-[var(--border-subtle)]">
             <Compass size={16} className="text-[#ea580c] dark:text-[#ff7828]" />
             <h2 className="text-sm font-bold uppercase tracking-wider">
-              4. Bottom Call-To-Action (CTA) Banner
+              5. Bottom Call-To-Action (CTA) Banner
             </h2>
           </div>
 
