@@ -39,56 +39,16 @@ const getOrCreateAbout = async () => {
         },
       ],
       teamHeading: "Our Team",
-      teamSubheading: "The dedicated craftsmen, designers, and innovators behind Pixel Perfect.",
-      team: [
-        {
-          name: "Marcus Vance",
-          position: "Founder & Lead Craftsman",
-          image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
-          portfolioLink: "https://github.com",
-        },
-        {
-          name: "Elena Rostova",
-          position: "Head of Industrial Design",
-          image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop",
-          portfolioLink: "",
-        },
-        {
-          name: "David Kim",
-          position: "Materials & Production Specialist",
-          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
-          portfolioLink: "https://dribbble.com",
-        },
-      ],
+      teamSubheading: "",
+      team: [],
       ctaHeading: "Experience The Analog Difference",
       ctaDescription: "Explore our curated range of notebooks, machined writing instruments, and desk objects.",
       ctaButtonText: "Explore The Collection",
       ctaButtonLink: "products",
       updatedBy: "Admin",
     });
-  } else if (!about.team || about.team.length === 0) {
-    if (about.team === undefined) {
-      about.team = [
-        {
-          name: "Marcus Vance",
-          position: "Founder & Lead Craftsman",
-          image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
-          portfolioLink: "https://github.com",
-        },
-        {
-          name: "Elena Rostova",
-          position: "Head of Industrial Design",
-          image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop",
-          portfolioLink: "",
-        },
-        {
-          name: "David Kim",
-          position: "Materials & Production Specialist",
-          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
-          portfolioLink: "https://dribbble.com",
-        },
-      ];
-    }
+  } else if (!about.team) {
+    about.team = [];
   }
   return about;
 };

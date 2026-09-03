@@ -124,26 +124,7 @@ const aboutSchema = new mongoose.Schema(
     },
     team: {
       type: [teamMemberSchema],
-      default: [
-        {
-          name: "Marcus Vance",
-          position: "Founder & Lead Craftsman",
-          image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
-          portfolioLink: "https://github.com",
-        },
-        {
-          name: "Elena Rostova",
-          position: "Head of Industrial Design",
-          image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop",
-          portfolioLink: "",
-        },
-        {
-          name: "David Kim",
-          position: "Materials & Production Specialist",
-          image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
-          portfolioLink: "https://dribbble.com",
-        },
-      ],
+      default: [],
     },
     ctaHeading: {
       type: String,

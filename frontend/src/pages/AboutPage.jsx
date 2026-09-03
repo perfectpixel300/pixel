@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ExternalLink, ArrowUpRight } from "lucide-react";
 
 const DEFAULT_ABOUT = {
   badge: "About Us",
@@ -36,27 +36,8 @@ const DEFAULT_ABOUT = {
     },
   ],
   teamHeading: "Our Team",
-  teamSubheading: "The dedicated craftsmen, designers, and innovators behind Pixel Perfect.",
-  team: [
-    {
-      name: "Marcus Vance",
-      position: "Founder & Lead Craftsman",
-      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop",
-      portfolioLink: "https://github.com",
-    },
-    {
-      name: "Elena Rostova",
-      position: "Head of Industrial Design",
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop",
-      portfolioLink: "",
-    },
-    {
-      name: "David Kim",
-      position: "Materials & Production Specialist",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
-      portfolioLink: "https://dribbble.com",
-    },
-  ],
+  teamSubheading: "",
+  team: [],
   ctaHeading: "Experience The Analog Difference",
   ctaDescription: "Explore our curated range of notebooks, machined writing instruments, and desk objects.",
   ctaButtonText: "Explore The Collection",
@@ -84,10 +65,7 @@ export function AboutPage({ onNavigate, aboutData }) {
       aboutData?.teamSubheading !== undefined
         ? aboutData.teamSubheading
         : DEFAULT_ABOUT.teamSubheading,
-    team:
-      aboutData?.team && aboutData.team.length > 0
-        ? aboutData.team
-        : (aboutData?.team ? [] : DEFAULT_ABOUT.team),
+    team: Array.isArray(aboutData?.team) ? aboutData.team : [],
     ctaHeading: aboutData?.ctaHeading || DEFAULT_ABOUT.ctaHeading,
     ctaDescription: aboutData?.ctaDescription || DEFAULT_ABOUT.ctaDescription,
     ctaButtonText: aboutData?.ctaButtonText || DEFAULT_ABOUT.ctaButtonText,
@@ -171,46 +149,76 @@ export function AboutPage({ onNavigate, aboutData }) {
           </div>
         )}
 
-        {/* Our Team Section */}
+        {/* Our Team Section - Editorial / Magazine Style */}
         {data.team && data.team.length > 0 && (
-          <div className="mb-18">
-            <div className="mb-8">
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-[-0.02em]">
-                {data.teamHeading}
-              </h2>
+          <div className="mb-24">
+            {/* Editorial Masthead / Header */}
+            <div className="border-t border-b border-[var(--border-subtle)] py-6 mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-[#ea580c] dark:bg-[#ff7828]" />
+                  <span className="text-[0.7rem] uppercase tracking-[0.25em] font-bold text-[#ea580c] dark:text-[#ff7828]">
+                    {data.badge || "The Atelier"}
+                  </span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif tracking-tight text-[var(--text-primary)] m-0">
+                  {data.teamHeading}
+                </h2>
+              </div>
               {data.teamSubheading && (
-                <p className="text-[var(--text-secondary)] text-sm sm:text-base mt-2">
+                <p className="text-[var(--text-secondary)] text-sm max-w-[420px] font-sans leading-relaxed md:text-right m-0">
                   {data.teamSubheading}
                 </p>
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Editorial Plates Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
               {data.team.map((member, idx) => (
                 <div
                   key={idx}
-                  className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] overflow-hidden hover:border-[var(--border-medium)] transition-all duration-200 shadow-xs flex flex-col group"
+                  className="group flex flex-col"
                 >
-                  <div className="relative aspect-4/3 sm:aspect-square w-full overflow-hidden bg-[var(--bg-elevated)]">
+                  {/* Editorial Plate Index Header */}
+                  <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)] text-[0.7rem] font-mono tracking-widest text-[var(--text-muted)] mb-3">
+                    <span>N° 0{idx + 1}</span>
+                    <span className="uppercase tracking-[0.2em] text-[0.65rem]">
+                      [ PORTRAIT ]
+                    </span>
+                  </div>
+
+                  {/* Photograph Frame (Magazine Plate) */}
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-[var(--bg-elevated)] border border-[var(--border-subtle)] group-hover:border-[var(--text-primary)] transition-colors duration-500">
                     <img
                       src={member.image}
                       alt={member.name}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover object-top filter grayscale contrast-[1.08] brightness-[0.98] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out"
                       onError={(e) => {
-                        e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop";
+                        e.target.src = "/pixelperfect.png";
                       }}
                     />
-                  </div>
-                  <div className="p-5 flex flex-col flex-1 justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold text-[var(--text-primary)] m-0">
-                        {member.name}
-                      </h3>
-                      <p className="text-sm font-medium text-[#ea580c] dark:text-[#ff7828] mt-1 m-0">
-                        {member.position}
-                      </p>
+
+                    {/* Subtle Magazine Plate Corner Tag */}
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-white text-[10px] font-mono tracking-widest uppercase">
+                      ISSUE // 0{idx + 1}
                     </div>
 
+                    {/* Subtle Gradient overlay for cinematic depth */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-40 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none" />
+                  </div>
+
+                  {/* Editorial Caption & Typography Block */}
+                  <div className="pt-4 flex flex-col flex-1 justify-between">
+                    <div>
+                      <span className="text-[0.68rem] uppercase tracking-[0.22em] font-semibold text-[#ea580c] dark:text-[#ff7828] block mb-1">
+                        {member.position}
+                      </span>
+                      <h3 className="text-xl sm:text-2xl font-serif font-medium tracking-tight text-[var(--text-primary)] group-hover:italic transition-all duration-300 m-0">
+                        {member.name}
+                      </h3>
+                    </div>
+
+                    {/* Editorial Link / Credit */}
                     {member.portfolioLink && member.portfolioLink.trim() && (
                       <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
                         <a
@@ -221,10 +229,13 @@ export function AboutPage({ onNavigate, aboutData }) {
                           }
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:text-[#ea580c] dark:hover:text-[#ff7828] transition-colors"
+                          className="inline-flex items-center gap-1.5 text-[0.72rem] uppercase tracking-[0.18em] font-semibold text-[var(--text-secondary)] hover:text-[#ea580c] dark:hover:text-[#ff7828] transition-colors group/link"
                         >
-                          <ExternalLink size={13} />
-                          <span>View Portfolio</span>
+                          <span>Selected Folio</span>
+                          <ArrowUpRight
+                            size={13}
+                            className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform duration-200"
+                          />
                         </a>
                       </div>
                     )}
