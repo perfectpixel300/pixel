@@ -12,10 +12,10 @@ export function FeaturedServicesSection({
 }) {
   const navigate = useNavigate();
 
-  // Dynamic featured IT services (exclude 3-tier web packages which have their own pricing table)
-  const nonWebServices = (services || []).filter((s) => !s.isWebDevPackage && s.isActive !== false);
-  const featuredServices = nonWebServices.filter((s) => s.isFeatured || s.featured);
-  const displayItems = featuredServices.length > 0 ? featuredServices : nonWebServices;
+  // Dynamic featured IT services — only show services explicitly marked as featured (exclude web dev packages)
+  const displayItems = (services || []).filter(
+    (s) => !s.isWebDevPackage && s.isActive !== false && (s.isFeatured || s.featured)
+  );
 
   const getItemsPerView = useCallback((width) => {
     if (width >= 1024) return 3;

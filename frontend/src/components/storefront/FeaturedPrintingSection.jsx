@@ -12,14 +12,10 @@ export function FeaturedPrintingSection({
 }) {
   const navigate = useNavigate();
 
-  // Dynamic featured printing services (fallbacks to all available if none explicitly marked featured)
-  const featuredServices = (printingServices || []).filter(
+  // Dynamic featured printing services — only show services explicitly marked as featured
+  const displayItems = (printingServices || []).filter(
     (s) => (s.featured || s.isFeatured) && s.isAvailable !== false
   );
-  const displayItems =
-    featuredServices.length > 0
-      ? featuredServices
-      : (printingServices || []).filter((s) => s.isAvailable !== false);
 
   const {
     currentIndex,
