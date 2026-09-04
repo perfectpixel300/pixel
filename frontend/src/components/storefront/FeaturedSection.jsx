@@ -7,9 +7,8 @@ import { useSmoothSwiper } from "../../utils/useSmoothSwiper";
 export function FeaturedSection({ products = [], onViewDetails, onInquire, onBrowseAll }) {
   const navigate = useNavigate();
 
-  // Dynamic featured products (shows all featured products dynamically; fallbacks to all products if none marked featured)
-  const featuredProducts = (products || []).filter((p) => p.featured);
-  const displayItems = featuredProducts.length > 0 ? featuredProducts : (products || []);
+  // Dynamic featured products — only show products explicitly marked as featured
+  const displayItems = (products || []).filter((p) => p.featured);
 
   const {
     currentIndex,
