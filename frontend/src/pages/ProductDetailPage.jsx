@@ -182,7 +182,7 @@ export function ProductDetailPage({
             <SwipableImageGallery
               images={images}
               alt={product.name}
-              heightClass="h-[360px] sm:h-[460px] lg:h-[480px]"
+              heightClass="aspect-square w-full"
               thumbnailSize="w-16 h-16 sm:w-18 sm:h-18"
             />
           </div>
