@@ -306,8 +306,6 @@ exports.customerVerifyEmail = async (req, res) => {
     }
 
     customer.isEmailVerified = true;
-    customer.emailVerificationToken = undefined;
-    customer.emailVerificationExpires = undefined;
     await customer.save({ validateBeforeSave: false });
 
     const sessionToken = generateToken(customer);
@@ -381,6 +379,8 @@ exports.customerSetupProfile = async (req, res) => {
     customer.nearbyLandmark = (nearbyLandmark || "").trim();
     customer.dateOfBirth = dateOfBirth.trim();
     customer.isProfileComplete = true;
+    customer.emailVerificationToken = undefined;
+    customer.emailVerificationExpires = undefined;
 
     await customer.save({ validateBeforeSave: false });
 

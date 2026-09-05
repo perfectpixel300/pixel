@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   CheckCircle,
@@ -20,6 +20,7 @@ export function VerifyEmailPage({ onNavigate }) {
   const [resendEmail, setResendEmail] = useState("");
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const hasVerifiedRef = useRef(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -30,6 +31,17 @@ export function VerifyEmailPage({ onNavigate }) {
       setMessage("No verification token found in URL. Please check your email link.");
       return;
     }
+
+    // If already verified in this session (e.g. reload or duplicate effect)
+    const existingSetupToken = sessionStorage.getItem("pixel_setup_token");
+    if (existingSetupToken && sessionStorage.getItem("pixel_setup_email")) {
+      setStatus("success");
+      setMessage("Email verified successfully! Please complete your profile to activate your account.");
+      return;
+    }
+
+    if (hasVerifiedRef.current) return;
+    hasVerifiedRef.current = true;
 
     let isMounted = true;
 
