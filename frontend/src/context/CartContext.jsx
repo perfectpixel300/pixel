@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { CartSnackbar } from "../components/storefront/CartSnackbar";
 
 const CartContext = createContext(null);
 const CART_STORAGE_KEY = "pixel_cart_items";
@@ -20,6 +21,8 @@ export function CartProvider({ children }) {
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState(null);
+  const snackbarTimerRef = useRef(null);
 
   // Sync to localStorage whenever cartItems change
   useEffect(() => {
@@ -30,9 +33,42 @@ export function CartProvider({ children }) {
     }
   }, [cartItems]);
 
+  // Ensure cart drawer is never open when user is unauthenticated
+  useEffect(() => {
+    if (!isAuthenticated && isCartOpen) {
+      setIsCartOpen(false);
+    }
+  }, [isAuthenticated, isCartOpen]);
+
+  // Clean up snackbar timer on unmount
+  useEffect(() => {
+    return () => {
+      if (snackbarTimerRef.current) {
+        clearTimeout(snackbarTimerRef.current);
+      }
+    };
+  }, []);
+
+  const showSnackbar = (itemData) => {
+    if (snackbarTimerRef.current) {
+      clearTimeout(snackbarTimerRef.current);
+    }
+    setSnackbar(itemData);
+    snackbarTimerRef.current = setTimeout(() => {
+      setSnackbar(null);
+    }, 4000);
+  };
+
+  const dismissSnackbar = () => {
+    if (snackbarTimerRef.current) {
+      clearTimeout(snackbarTimerRef.current);
+    }
+    setSnackbar(null);
+  };
+
   const addToCart = (product, quantity = 1, selectedOptions = {}) => {
     if (!isAuthenticated) {
-      navigate("/login");
+      navigate("/login", { state: { from: window.location.pathname } });
       return false;
     }
     if (!product) return;
@@ -86,7 +122,16 @@ export function CartProvider({ children }) {
       }
     });
 
-    setIsCartOpen(true);
+    // Display snackbar notification instead of opening cart drawer
+    showSnackbar({
+      id: productId,
+      name: product.name,
+      image: mainImage,
+      price: effectivePrice,
+      quantity,
+    });
+
+    return true;
   };
 
   const updateQuantity = (productId, newQuantity) => {
@@ -115,9 +160,23 @@ export function CartProvider({ children }) {
     setCartItems([]);
   };
 
-  const openCart = () => setIsCartOpen(true);
+  const openCart = () => {
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: window.location.pathname } });
+      return;
+    }
+    setIsCartOpen(true);
+  };
+
   const closeCart = () => setIsCartOpen(false);
-  const toggleCart = () => setIsCartOpen((prev) => !prev);
+
+  const toggleCart = () => {
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: window.location.pathname } });
+      return;
+    }
+    setIsCartOpen((prev) => !prev);
+  };
 
   const totalItems = cartItems.reduce((acc, item) => acc + (item.quantity || 0), 0);
   const subtotal = cartItems.reduce(
@@ -139,9 +198,19 @@ export function CartProvider({ children }) {
         updateQuantity,
         removeFromCart,
         clearCart,
+        showSnackbar,
+        dismissSnackbar,
       }}
     >
       {children}
+      <CartSnackbar
+        item={snackbar}
+        onClose={dismissSnackbar}
+        onOpenCart={() => {
+          dismissSnackbar();
+          openCart();
+        }}
+      />
     </CartContext.Provider>
   );
 }

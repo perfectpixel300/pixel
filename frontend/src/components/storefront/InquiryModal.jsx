@@ -29,18 +29,40 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
     setCountryCode(defaultCountry);
 
     if (product) {
+      const isCartOrder = product.type === "order" || product.isCartOrder || (product.cartItems && product.cartItems.length > 0);
       const isService = product.type === "service" || product.packageTier;
       const itemName = product.name || product.title || "Selected Item";
       const priceStr = product.indicativePrice || product.price ? `NRs. ${Number(product.indicativePrice || product.price).toLocaleString()}` : "";
+
+      let initialMessage = "";
+      if (isCartOrder) {
+        if (product.description) {
+          initialMessage = product.description;
+        } else if (product.cartItems && product.cartItems.length > 0) {
+          const listStr = product.cartItems
+            .map((item, idx) => {
+              const itemPrice = Number(item.price) || 0;
+              const itemTotal = itemPrice * (item.quantity || 1);
+              return `${idx + 1}. ${item.name} - Quantity: ${item.quantity}, Price: NRs. ${itemPrice.toLocaleString()} (Total: NRs. ${itemTotal.toLocaleString()})`;
+            })
+            .join("\n");
+          const totalVal = product.subtotal || product.indicativePrice || 0;
+          initialMessage = `Hello Pixel Perfect Team,\n\nI would like to inquire about purchasing the following items from my cart:\n\n${listStr}\n\nTotal Price: NRs. ${Number(totalVal).toLocaleString()}\n\nPlease advise on product availability, delivery timeframe, and payment options.\n\nThank you.`;
+        } else {
+          initialMessage = `Hello Pixel Perfect Team,\n\nI would like to inquire about purchasing items from my cart ${priceStr ? `(Total: ${priceStr})` : ""}.\nPlease advise on product availability, delivery timeframe, and payment options.\n\nThank you.`;
+        }
+      } else if (isService) {
+        initialMessage = `Hello Pixel Perfect Team,\n\nI would like to inquire about your "${itemName}" service ${priceStr ? `(${priceStr})` : ""}.\nPlease share the project timeline, kickoff process, and proposal details.\n\nThank you.`;
+      } else {
+        initialMessage = `Hello Pixel Perfect,\n\nI would like to inquire about purchasing "${itemName}" ${priceStr ? `(${priceStr})` : ""}. Please advise on availability.\n\nThank you.`;
+      }
 
       setFormData({
         name: defaultName,
         email: defaultEmail,
         phone: defaultPhone,
-        subject: `Inquiry: ${itemName}`,
-        message: isService
-          ? `Hello Pixel Perfect Team,\n\nI would like to inquire about your "${itemName}" service ${priceStr ? `(${priceStr})` : ""}.\nPlease share the project timeline, kickoff process, and proposal details.\n\nThank you.`
-          : `Hello Pixel Perfect,\n\nI would like to inquire about purchasing "${itemName}" ${priceStr ? `(${priceStr})` : ""}. Please advise on availability.\n\nThank you.`,
+        subject: isCartOrder ? `Order Inquiry: ${itemName}` : `Inquiry: ${itemName}`,
+        message: initialMessage,
       });
     } else {
       setFormData({
@@ -59,7 +81,17 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
 
   // Generate WhatsApp message URL
   const getWhatsAppUrl = () => {
-    let text = "Hello Pixel Perfect Team,\n";
+    const isCartOrder = product?.type === "order" || product?.isCartOrder || (product?.cartItems && product?.cartItems.length > 0);
+
+    let text = "";
+    if (isCartOrder) {
+      text = formData.message || "Hello Pixel Perfect Team,\nI would like to inquire about my cart order.";
+      if (formData.name) text += `\n\nName: ${formData.name}`;
+      if (formData.phone) text += `\nContact: ${countryCode} ${formData.phone}`;
+      return `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(text)}`;
+    }
+
+    text = "Hello Pixel Perfect Team,\n";
     if (product) {
       const itemName = product.name || product.title;
       const priceVal = product.indicativePrice || product.price;
@@ -258,11 +290,13 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Message / Questions *</label>
+                <label className="form-label">
+                  {product?.type === "order" || product?.isCartOrder ? "Cart Order Items & Inquiry Message *" : "Message / Questions *"}
+                </label>
                 <textarea
                   required
-                  rows="3"
-                  className="form-textarea"
+                  rows={product?.type === "order" || product?.isCartOrder ? 7 : 3}
+                  className="form-textarea text-xs sm:text-sm leading-relaxed font-mono"
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 />

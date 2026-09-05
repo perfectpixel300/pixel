@@ -27,8 +27,15 @@ export function CartDrawer({ onInquireWithCart }) {
     removeFromCart,
     clearCart,
   } = useCart();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const drawerRef = useRef(null);
+
+  // Auto-close if unauthenticated
+  useEffect(() => {
+    if (!isAuthenticated && isCartOpen) {
+      closeCart();
+    }
+  }, [isAuthenticated, isCartOpen, closeCart]);
 
   // Close on Escape key
   useEffect(() => {
@@ -53,7 +60,7 @@ export function CartDrawer({ onInquireWithCart }) {
     };
   }, [isCartOpen]);
 
-  if (!isCartOpen) return null;
+  if (!isCartOpen || !isAuthenticated) return null;
 
   // Build WhatsApp pre-formatted order message
   const handleWhatsAppCheckout = () => {
@@ -61,13 +68,15 @@ export function CartDrawer({ onInquireWithCart }) {
     orderText += `Hello! I would like to place an order for the following items:\n\n`;
 
     cartItems.forEach((item, idx) => {
+      const itemPrice = Number(item.price) || 0;
+      const itemTotal = itemPrice * (item.quantity || 1);
       orderText += `${idx + 1}. *${item.name}*\n`;
-      orderText += `   Quantity: ${item.quantity} × NRs. ${item.price.toLocaleString()}\n`;
-      orderText += `   Total: NRs. ${(item.price * item.quantity).toLocaleString()}\n\n`;
+      orderText += `   Quantity: ${item.quantity} × Price: NRs. ${itemPrice.toLocaleString()}\n`;
+      orderText += `   Total: NRs. ${itemTotal.toLocaleString()}\n\n`;
     });
 
     orderText += `------------------------------------\n`;
-    orderText += `*Total Order Value:* NRs. ${subtotal.toLocaleString()}\n`;
+    orderText += `*Total Price:* NRs. ${subtotal.toLocaleString()}\n`;
     orderText += `------------------------------------\n\n`;
 
     if (user) {
@@ -92,19 +101,26 @@ export function CartDrawer({ onInquireWithCart }) {
 
   const handleInquireCheckout = () => {
     if (onInquireWithCart) {
-      const summary = cartItems
-        .map(
-          (item) =>
-            `${item.name} (Qty: ${item.quantity}, Unit Price: NRs. ${item.price.toLocaleString()})`
-        )
+      const itemsList = cartItems
+        .map((item, idx) => {
+          const itemPrice = Number(item.price) || 0;
+          const itemTotal = itemPrice * (item.quantity || 1);
+          return `${idx + 1}. ${item.name} - Quantity: ${item.quantity}, Price: NRs. ${itemPrice.toLocaleString()} (Total: NRs. ${itemTotal.toLocaleString()})`;
+        })
         .join("\n");
 
+      const orderDescription = `Hello Pixel Perfect Team,\n\nI would like to inquire about purchasing the following items from my cart:\n\n${itemsList}\n\nTotal Price: NRs. ${subtotal.toLocaleString()}\n\nPlease advise on product availability, delivery timeframe, and payment options.\n\nThank you.`;
+
       onInquireWithCart({
-        name: `Cart Order (${totalItems} items)`,
+        name: `Cart Order (${totalItems} ${totalItems === 1 ? "item" : "items"})`,
         indicativePrice: subtotal,
         type: "order",
-        category: "Catalog Order",
-        description: `Items in cart:\n${summary}\n\nEstimated Subtotal: NRs. ${subtotal.toLocaleString()}`,
+        isCartOrder: true,
+        category: "Cart Order",
+        cartItems: cartItems,
+        totalItems,
+        subtotal,
+        description: orderDescription,
       });
       closeCart();
     }
@@ -129,9 +145,9 @@ export function CartDrawer({ onInquireWithCart }) {
         className="relative z-10 w-full max-w-md bg-[var(--bg-card)] border-l border-[var(--border-subtle)] shadow-2xl flex flex-col h-full animate-[slideLeft_0.25s_ease-out]"
       >
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-card)] shrink-0">
+        <div className="pt-[max(2.25rem,calc(env(safe-area-inset-top)+1rem))] pb-3.5 px-4 sm:py-5 sm:px-5 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-card)] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)]">
+            <div className="w-8.5 h-8.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)]">
               <ShoppingBag size={16} />
             </div>
             <div>
@@ -158,7 +174,7 @@ export function CartDrawer({ onInquireWithCart }) {
             <button
               type="button"
               onClick={closeCart}
-              className="btn-icon btn-ghost !w-8 !h-8"
+              className="w-9 h-9 rounded-full bg-[var(--bg-elevated)] sm:bg-transparent border border-[var(--border-subtle)] sm:border-transparent flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-medium)] transition-colors active:scale-95 shrink-0"
               aria-label="Close cart"
             >
               <X size={18} />
@@ -185,7 +201,8 @@ export function CartDrawer({ onInquireWithCart }) {
                 }}
                 className="btn btn-primary btn-sm gap-2"
               >
-                <span>Browse Products</span>
+                <Plus size={14} />
+                <span>Add products from All Products</span>
                 <ArrowRight size={14} />
               </button>
             </div>
@@ -283,13 +300,28 @@ export function CartDrawer({ onInquireWithCart }) {
                   </div>
                 );
               })}
+
+              {/* Add more products button inside list */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeCart();
+                    navigate("/products");
+                  }}
+                  className="w-full py-2.5 px-3 rounded-lg border border-dashed border-[var(--border-medium)] hover:border-[var(--text-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] text-xs font-semibold flex items-center justify-center gap-2 transition-all group"
+                >
+                  <Plus size={14} className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)]" />
+                  <span>Add more products from All Products</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
 
         {/* Footer Checkout Actions */}
         {cartItems.length > 0 && (
-          <div className="p-4 sm:p-5 border-t border-[var(--border-subtle)] bg-[var(--bg-card)] shrink-0 flex flex-col gap-3">
+          <div className="p-4 pb-[max(1.25rem,calc(env(safe-area-inset-bottom)+0.75rem))] sm:p-5 border-t border-[var(--border-subtle)] bg-[var(--bg-card)] shrink-0 flex flex-col gap-3">
             {/* Subtotal */}
             <div className="flex items-baseline justify-between">
               <span className="text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold">
@@ -332,6 +364,18 @@ export function CartDrawer({ onInquireWithCart }) {
                 className="btn btn-secondary py-2.5 w-full text-xs font-semibold gap-2"
               >
                 <span>Submit as Web Inquiry</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  closeCart();
+                  navigate("/products");
+                }}
+                className="btn btn-ghost py-2 w-full text-xs font-semibold gap-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)]"
+              >
+                <Plus size={13} />
+                <span>Add more products from All Products</span>
               </button>
             </div>
           </div>
