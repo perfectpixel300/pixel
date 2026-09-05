@@ -21,6 +21,13 @@ exports.protect = async (req, res, next) => {
     const secret = process.env.JWT_SECRET || "pixel_perfect_fallback_secret_key";
     const decoded = jwt.verify(token, secret);
 
+    if (decoded.accountType && decoded.accountType !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Customer accounts cannot access administrative routes.",
+      });
+    }
+
     const user = await User.findById(decoded.id);
     if (!user || (user.role !== "admin" && user.role !== "editor")) {
       return res.status(401).json({
@@ -69,6 +76,13 @@ exports.protectCustomer = async (req, res, next) => {
   try {
     const secret = process.env.JWT_SECRET || "pixel_perfect_fallback_secret_key";
     const decoded = jwt.verify(token, secret);
+
+    if (decoded.accountType && decoded.accountType !== "customer") {
+      return res.status(403).json({
+        success: false,
+        message: "Admin accounts cannot be used on customer storefront routes.",
+      });
+    }
 
     const customer = await Customer.findById(decoded.id);
     if (!customer) {

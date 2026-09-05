@@ -20,24 +20,32 @@ export function AuthProvider({ children }) {
     // Admin session
     const currentAdmin = authService.getCurrentUser();
     const isAdmAuth = authService.isAuthenticated();
-    if (isAdmAuth && currentAdmin) {
+    if (isAdmAuth && currentAdmin && (currentAdmin.role === "admin" || currentAdmin.role === "editor")) {
       setAdminUser(currentAdmin);
       setIsAdminAuthenticated(true);
+    } else {
+      setAdminUser(null);
+      setIsAdminAuthenticated(false);
     }
     setIsAdminLoading(false);
 
     // Customer session
     const currentCust = customerAuthService.getCurrentUser();
     const isCustAuth = customerAuthService.isAuthenticated();
-    if (isCustAuth && currentCust) {
+    if (isCustAuth && currentCust && currentCust.role !== "admin" && currentCust.role !== "editor") {
       setCustomerUser(currentCust);
       setIsCustomerAuthenticated(true);
       customerAuthService
         .getMe()
         .then((res) => {
-          if (res?.user) setCustomerUser(res.user);
+          if (res?.user && res.user.role !== "admin" && res.user.role !== "editor") {
+            setCustomerUser(res.user);
+          }
         })
         .catch(() => {});
+    } else {
+      setCustomerUser(null);
+      setIsCustomerAuthenticated(false);
     }
     setIsCustomerLoading(false);
   }, []);
@@ -45,6 +53,9 @@ export function AuthProvider({ children }) {
   // --- Admin Methods (Protected Studio only) ---
   const adminLogin = async (email, password) => {
     const res = await authService.login(email, password);
+    if (!res.user || (res.user.role !== "admin" && res.user.role !== "editor")) {
+      throw new Error("Invalid administrative credentials.");
+    }
     setAdminUser(res.user);
     setIsAdminAuthenticated(true);
     return res;
@@ -59,6 +70,9 @@ export function AuthProvider({ children }) {
   // --- Customer Methods (Storefront normal users) ---
   const customerLogin = async (email, password) => {
     const res = await customerAuthService.login(email, password);
+    if (res.user && (res.user.role === "admin" || res.user.role === "editor")) {
+      throw new Error("Admin accounts cannot log in as storefront customers.");
+    }
     setCustomerUser(res.user);
     setIsCustomerAuthenticated(true);
     return res;

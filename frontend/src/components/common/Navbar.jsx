@@ -69,7 +69,7 @@ export function Navbar({
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const { isInstalled, installApp } = usePWA();
-  const { user, isAuthenticated, logout, isAdminAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { openCart, totalItems } = useCart();
 
   const headerRef = useRef(null);
@@ -1109,20 +1109,6 @@ export function Navbar({
                         </span>
                       )}
                     </button>
-
-                    {(user.role === "admin" || isAdminAuthenticated) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          if (setActivePage) setActivePage("admin");
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-amber-400 hover:bg-amber-500/10 rounded-[var(--radius-xs)] transition-colors text-left font-medium"
-                      >
-                        <Shield size={13} />
-                        <span>Admin Studio</span>
-                      </button>
-                    )}
                   </div>
 
                   <div className="border-t border-[var(--border-subtle)] pt-1">
@@ -1822,18 +1808,6 @@ export function Navbar({
                       >
                         Manage Profile
                       </button>
-                      {(user.role === "admin" || isAdminAuthenticated) && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsMenuDrawerOpen(false);
-                            if (setActivePage) setActivePage("admin");
-                          }}
-                          className="btn btn-secondary btn-sm !py-1 text-xs text-amber-400"
-                        >
-                          Admin
-                        </button>
-                      )}
                       <button
                         type="button"
                         onClick={() => {

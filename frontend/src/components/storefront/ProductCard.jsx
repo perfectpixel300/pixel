@@ -22,6 +22,8 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
     : 0;
 
   const productUrl = `/products/${product.slug || product._id}`;
+  const isStocked = Boolean(product?.isAvailable && (product?.stock === undefined || Number(product?.stock) > 0));
+  const categoryName = typeof product?.category === "object" ? product?.category?.name : product?.category;
 
   const handleNavigate = (e) => {
     e?.preventDefault?.();
@@ -77,11 +79,13 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
         )}
 
         {/* Top Badges */}
-        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex justify-between items-center gap-1.5 flex-wrap pointer-events-none">
-          <span className="badge badge-dark backdrop-blur-sm text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 truncate max-w-[120px]">
-            {product.category}
-          </span>
-          <div className="flex items-center gap-1">
+        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between gap-1.5 pointer-events-none">
+          {categoryName ? (
+            <span className="badge badge-dark backdrop-blur-md text-[0.6rem] sm:text-[0.6875rem] px-2 py-0.5 sm:px-2.5 sm:py-1 font-medium shadow-sm whitespace-normal text-left max-w-[62%] leading-tight">
+              {categoryName}
+            </span>
+          ) : <div />}
+          <div className="flex items-center gap-1 shrink-0 ml-auto">
             {hasDiscount && discountPercent > 0 && (
               <span className="badge bg-emerald-500 text-white font-mono font-bold text-[0.6rem] sm:text-[0.6875rem] px-1.5 py-0.5 sm:px-2 sm:py-1 shadow-sm whitespace-nowrap">
                 {discountPercent}% OFF
@@ -105,6 +109,11 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
       {/* Info Body */}
       <div className="p-3.5 sm:p-5 flex flex-col gap-2 flex-1">
         <div>
+          {categoryName && (
+            <div className="text-[0.65rem] sm:text-[0.7rem] uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-1 truncate">
+              {categoryName}
+            </div>
+          )}
           <h3 className="text-xs sm:text-base font-bold m-0 leading-snug hover:text-zinc-400 transition-colors capitalize line-clamp-2 min-h-[34px] sm:min-h-[44px]">
             {product.name}
           </h3>
@@ -132,42 +141,55 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
         </p>
 
         {/* Card Footer Actions */}
-        <div className="mt-auto pt-2.5 sm:pt-3 flex flex-col xs:flex-row sm:flex-row items-start sm:items-center justify-between gap-2 border-t border-[var(--border-subtle)]">
-          <span
-            className={`text-[0.65rem] sm:text-[0.725rem] font-semibold ${
-              product.isAvailable && (product.stock === undefined || Number(product.stock) > 0)
-                ? "text-[var(--color-success)]"
-                : "text-[var(--text-muted)]"
-            }`}
-          >
-            ● {product.isAvailable && (product.stock === undefined || Number(product.stock) > 0) ? "Available" : "Out of Stock"}
-          </span>
+        <div className="mt-auto pt-2.5 sm:pt-3 flex flex-col gap-2.5 border-t border-[var(--border-subtle)]">
+          {/* Availability Status: Dedicated Uncongested Row */}
+          <div className="flex items-center justify-between">
+            <span
+              className={`inline-flex items-center gap-1.5 text-[0.6875rem] sm:text-xs font-semibold ${
+                isStocked ? "text-emerald-400" : "text-zinc-500"
+              }`}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                  isStocked ? "bg-emerald-400" : "bg-zinc-500"
+                }`}
+              />
+              {isStocked ? "Available in Stock" : "Out of Stock"}
+            </span>
 
-          <div className="flex gap-1 sm:gap-1.5 w-full sm:w-auto">
+            {isStocked && product.stock !== undefined && Number(product.stock) > 0 && Number(product.stock) <= 5 && (
+              <span className="text-[0.625rem] sm:text-[0.6875rem] font-mono text-amber-400 font-medium">
+                Only {product.stock} left
+              </span>
+            )}
+          </div>
+
+          {/* Action Buttons: Evenly Distributed 3-Column Grid */}
+          <div className="grid grid-cols-3 gap-1.5 w-full">
             <button
               onClick={handleAddToCart}
-              disabled={!(product.isAvailable && (product.stock === undefined || Number(product.stock) > 0))}
-              className={`btn btn-sm flex-1 sm:flex-initial gap-1 text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5 ${
-                product.isAvailable && (product.stock === undefined || Number(product.stock) > 0)
+              disabled={!isStocked}
+              className={`btn btn-sm gap-1 text-[0.6875rem] sm:text-xs !py-1.5 px-1 justify-center ${
+                isStocked
                   ? "btn-primary"
                   : "btn-secondary opacity-40 cursor-not-allowed"
               }`}
               title="Add to Shopping Cart"
             >
-              <ShoppingBag size={11} />
+              <ShoppingBag size={12} className="shrink-0" />
               <span>Cart</span>
             </button>
             <button
               onClick={handleInquire}
-              className="btn btn-secondary btn-sm flex-1 sm:flex-initial gap-1 text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5"
+              className="btn btn-secondary btn-sm gap-1 text-[0.6875rem] sm:text-xs !py-1.5 px-1 justify-center"
               title="Inquire about this piece"
             >
-              <MessageSquare size={11} />
+              <MessageSquare size={12} className="shrink-0" />
               <span>Inquire</span>
             </button>
             <button
               onClick={handleNavigate}
-              className="btn btn-ghost btn-sm flex-1 sm:flex-initial text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5 border border-[var(--border-subtle)] hover:border-white"
+              className="btn btn-ghost btn-sm text-[0.6875rem] sm:text-xs !py-1.5 px-1 justify-center border border-[var(--border-subtle)] hover:border-white"
             >
               Specs
             </button>
