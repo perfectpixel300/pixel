@@ -208,7 +208,7 @@ export function UserManagement({ showToast }) {
             </div>
             <div className="text-2xl font-black font-mono mt-0.5">{totalUsers}</div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-zinc-300">
+          <div className="w-10 h-10 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)]">
             <Users size={18} />
           </div>
         </div>
@@ -334,14 +334,14 @@ export function UserManagement({ showToast }) {
       <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] overflow-hidden shadow-xs">
         {isLoading ? (
           <div className="py-20 flex flex-col items-center justify-center text-[var(--text-muted)] gap-3">
-            <Loader2 size={24} className="animate-spin text-white" />
+            <Loader2 size={24} className="animate-spin text-[var(--text-primary)]" />
             <span className="text-xs">Loading registered users...</span>
           </div>
         ) : filteredUsers.length === 0 ? (
           <div className="py-16 text-center text-[var(--text-muted)]">
-            <Users size={32} className="mx-auto mb-2 text-zinc-600" />
-            <p className="text-sm font-semibold m-0 text-zinc-300">No users found</p>
-            <p className="text-xs mt-1 text-zinc-500">
+            <Users size={32} className="mx-auto mb-2 text-[var(--text-muted)]" />
+            <p className="text-sm font-semibold m-0 text-[var(--text-primary)]">No users found</p>
+            <p className="text-xs mt-1 text-[var(--text-muted)]">
               {search
                 ? `No customers match your search "${search}"`
                 : statusFilter === "deletionRequested"
@@ -475,7 +475,7 @@ export function UserManagement({ showToast }) {
                           <button
                             type="button"
                             onClick={() => handleOpenDeleteModal(customer)}
-                            className="btn btn-ghost btn-sm text-xs text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 p-1.5 rounded transition-colors cursor-pointer"
+                            className="btn btn-ghost btn-sm text-xs text-[var(--text-muted)] hover:text-rose-400 hover:bg-rose-500/10 p-1.5 rounded transition-colors cursor-pointer"
                             title="Delete customer account"
                           >
                             <Trash2 size={14} />

@@ -598,7 +598,7 @@ export function HomePage({
                         <div className="flex flex-col gap-1.5 pt-2">
                           {service.features.slice(0, 3).map((feat, idx) => (
                             <div key={idx} className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                              <CheckCircle2 size={12} className="text-white shrink-0" />
+                              <CheckCircle2 size={12} className="text-[var(--text-primary)] shrink-0" />
                               <span className="truncate">{feat}</span>
                             </div>
                           ))}
@@ -781,7 +781,7 @@ export function HomePage({
                         key={idx}
                         className="flex items-start gap-2 p-2 rounded bg-[var(--bg-elevated)] text-xs text-[var(--text-primary)]"
                       >
-                        <CheckCircle2 size={13} className="text-white shrink-0 mt-0.5" />
+                        <CheckCircle2 size={13} className="text-[var(--text-primary)] shrink-0 mt-0.5" />
                         <span>{feat}</span>
                       </div>
                     ))}

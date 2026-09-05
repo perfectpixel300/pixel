@@ -421,7 +421,7 @@ export function ProductDetailPage({
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="w-8 h-10 flex items-center justify-center text-[var(--text-muted)] hover:text-white transition-colors"
+                    className="w-8 h-10 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     aria-label="Decrease quantity"
                   >
                     <Minus size={13} />
@@ -435,7 +435,7 @@ export function ProductDetailPage({
                       const maxStock = product.stock !== undefined ? Number(product.stock) : Infinity;
                       setQuantity((q) => (maxStock > 0 ? Math.min(maxStock, q + 1) : q + 1));
                     }}
-                    className="w-8 h-10 flex items-center justify-center text-[var(--text-muted)] hover:text-white transition-colors"
+                    className="w-8 h-10 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     aria-label="Increase quantity"
                   >
                     <Plus size={13} />
@@ -726,7 +726,7 @@ export function ProductDetailPage({
                   >
                     <div className="flex justify-between items-start gap-2">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[var(--text-primary)] font-bold text-xs flex items-center justify-center shrink-0">
                           {initial}
                         </div>
                         <div>

@@ -69,7 +69,7 @@ export function ProfilePage({ onNavigate, showToast }) {
     return (
       <div className="storefront-container py-16 sm:py-24 max-w-md mx-auto text-center">
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] p-8 shadow-xl">
-          <div className="w-14 h-14 rounded-full bg-zinc-800 text-zinc-400 flex items-center justify-center mx-auto mb-4">
+          <div className="w-14 h-14 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] flex items-center justify-center mx-auto mb-4">
             <User size={26} />
           </div>
           <h2 className="text-xl font-bold m-0">Please sign in</h2>
@@ -197,7 +197,7 @@ export function ProfilePage({ onNavigate, showToast }) {
       <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] p-6 sm:p-8 mb-6 shadow-xl relative overflow-hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-zinc-800 border-2 border-zinc-700 text-white font-black text-2xl sm:text-3xl flex items-center justify-center shrink-0 shadow-lg select-none">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--bg-elevated)] border-2 border-[var(--border-medium)] text-[var(--text-primary)] font-black text-2xl sm:text-3xl flex items-center justify-center shrink-0 shadow-lg select-none">
               {initial}
             </div>
             <div>
@@ -271,7 +271,7 @@ export function ProfilePage({ onNavigate, showToast }) {
           className="p-4 rounded-[var(--radius-md)] bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] flex items-center justify-between transition-all group text-left"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white group-hover:bg-white group-hover:text-black transition-colors">
+            <div className="w-10 h-10 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] group-hover:bg-[var(--text-primary)] group-hover:text-[var(--bg-card)] transition-colors">
               <ShoppingBag size={18} />
             </div>
             <div>
@@ -281,7 +281,7 @@ export function ProfilePage({ onNavigate, showToast }) {
               </div>
             </div>
           </div>
-          <ArrowRight size={16} className="text-[var(--text-muted)] group-hover:text-white transition-transform group-hover:translate-x-1" />
+          <ArrowRight size={16} className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-transform group-hover:translate-x-1" />
         </button>
 
         <button
@@ -290,7 +290,7 @@ export function ProfilePage({ onNavigate, showToast }) {
           className="p-4 rounded-[var(--radius-md)] bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] flex items-center justify-between transition-all group text-left"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white group-hover:bg-white group-hover:text-black transition-colors">
+            <div className="w-10 h-10 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] group-hover:bg-[var(--text-primary)] group-hover:text-[var(--bg-card)] transition-colors">
               <Sparkles size={18} />
             </div>
             <div>
@@ -300,7 +300,7 @@ export function ProfilePage({ onNavigate, showToast }) {
               </div>
             </div>
           </div>
-          <ArrowRight size={16} className="text-[var(--text-muted)] group-hover:text-white transition-transform group-hover:translate-x-1" />
+          <ArrowRight size={16} className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-transform group-hover:translate-x-1" />
         </button>
       </div>
 

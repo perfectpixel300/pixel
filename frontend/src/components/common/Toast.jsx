@@ -11,7 +11,7 @@ export function Toast({ toast, onClose }) {
       {toast.type === "error" ? (
         <AlertCircle size={17} className="text-[var(--color-danger)] shrink-0" />
       ) : toast.type === "info" ? (
-        <Info size={17} className="text-white shrink-0" />
+        <Info size={17} className="text-[var(--text-primary)] shrink-0" />
       ) : (
         <CheckCircle2 size={17} className="text-[var(--color-success)] shrink-0" />
       )}

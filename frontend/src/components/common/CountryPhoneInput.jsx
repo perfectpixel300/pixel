@@ -45,7 +45,7 @@ export function CountryPhoneInput({
       {/* Input Group: Compact Country Selector on the left, spacious Phone input on the right */}
       <div className="flex items-stretch rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus-within:border-white transition-colors overflow-hidden bg-[var(--bg-input)]">
         {/* Compact Country Selector (Fixed width ~88px so it never expands too wide) */}
-        <div className="relative shrink-0 w-[84px] sm:w-[90px] border-r border-[var(--border-medium)] bg-[var(--bg-elevated)] hover:bg-white/5 transition-colors flex items-center justify-between px-2.5 select-none cursor-pointer">
+        <div className="relative shrink-0 w-[84px] sm:w-[90px] border-r border-[var(--border-medium)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-input-focus)] transition-colors flex items-center justify-between px-2.5 select-none cursor-pointer">
           <div className="flex items-center gap-1.5 min-w-0 pointer-events-none">
             <span className="text-sm leading-none shrink-0">{selectedCountry.flag}</span>
             <span className="text-xs font-mono font-bold text-[var(--text-primary)] truncate">
@@ -63,7 +63,7 @@ export function CountryPhoneInput({
             title="Select Country Dial Code"
           >
             {COUNTRIES.map((c) => (
-              <option key={c.iso} value={c.code} className="bg-zinc-900 text-white py-1">
+              <option key={c.iso} value={c.code} className="bg-[var(--bg-card)] text-[var(--text-primary)] py-1">
                 {c.flag} {c.code} — {c.name}
               </option>
             ))}

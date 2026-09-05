@@ -137,7 +137,7 @@ export function CartDrawer({ onInquireWithCart }) {
             <div>
               <h2 className="text-base sm:text-lg font-bold m-0 flex items-center gap-2">
                 <span>Your Cart</span>
-                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-white/10 text-white font-semibold">
+                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold">
                   {totalItems}
                 </span>
               </h2>
@@ -257,7 +257,7 @@ export function CartDrawer({ onInquireWithCart }) {
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="w-7 h-7 flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-white/5 transition-colors"
+                            className="w-7 h-7 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
                             aria-label="Decrease quantity"
                           >
                             <Minus size={12} />
@@ -268,7 +268,7 @@ export function CartDrawer({ onInquireWithCart }) {
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="w-7 h-7 flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-white/5 transition-colors"
+                            className="w-7 h-7 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition-colors"
                             aria-label="Increase quantity"
                           >
                             <Plus size={12} />

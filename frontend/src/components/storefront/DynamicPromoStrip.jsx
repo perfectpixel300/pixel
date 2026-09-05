@@ -91,7 +91,7 @@ export function DynamicPromoStrip({ promoBanners = [], onCtaClick }) {
                   {hasTimer ? (
                     <Flame size={12} className="text-amber-400 fill-amber-400" />
                   ) : (
-                    <Sparkles size={12} className="text-white" />
+                    <Sparkles size={12} className="text-[var(--text-primary)]" />
                   )}
                   <span>{currentPromo.badge}</span>
                 </div>

@@ -96,8 +96,8 @@ export function VerifyEmailPage({ onNavigate }) {
         {/* State: Verifying */}
         {status === "verifying" && (
           <div className="py-6">
-            <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
-              <Loader2 size={26} className="animate-spin text-white" />
+            <div className="w-14 h-14 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] flex items-center justify-center mx-auto mb-4">
+              <Loader2 size={26} className="animate-spin text-[var(--text-primary)]" />
             </div>
             <h2 className="text-xl font-bold m-0">Verifying Email...</h2>
             <p className="text-xs text-[var(--text-muted)] mt-2">
@@ -189,7 +189,7 @@ export function VerifyEmailPage({ onNavigate }) {
             <button
               type="button"
               onClick={() => (onNavigate ? onNavigate("login") : navigate("/login"))}
-              className="text-xs text-[var(--text-muted)] hover:text-white transition-colors"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             >
               Back to Login
             </button>

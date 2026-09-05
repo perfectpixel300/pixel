@@ -105,7 +105,7 @@ export function ReviewModal({ isOpen, onClose, product, onReviewSubmitted }) {
           <button
             type="button"
             onClick={onClose}
-            className="btn-icon btn-ghost !w-7 !h-7 text-[var(--text-muted)] hover:text-white"
+            className="btn-icon btn-ghost !w-7 !h-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             aria-label="Close modal"
           >
             <X size={16} />

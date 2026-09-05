@@ -95,12 +95,12 @@ export function RegisterPage({ onNavigate }) {
             We have dispatched an activation link to:
           </p>
 
-          <div className="p-3 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] font-mono text-xs sm:text-sm font-bold text-white mb-6 select-all break-all">
+          <div className="p-3 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] font-mono text-xs sm:text-sm font-bold text-[var(--text-primary)] mb-6 select-all break-all">
             {registeredEmail}
           </div>
 
           <div className="text-left bg-[var(--bg-elevated)] p-4 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] space-y-2 mb-6">
-            <div className="font-semibold text-white flex items-center gap-1.5">
+            <div className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
               <Sparkles size={14} className="text-amber-400" />
               <span>Next Steps:</span>
             </div>
@@ -212,7 +212,7 @@ export function RegisterPage({ onNavigate }) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2.5 text-[var(--text-muted)] hover:text-white p-1"
+                className="absolute right-2.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -260,7 +260,7 @@ export function RegisterPage({ onNavigate }) {
           <button
             type="button"
             onClick={() => (onNavigate ? onNavigate("login") : navigate("/login"))}
-            className="font-bold text-white hover:underline ml-1"
+            className="font-bold text-[var(--text-primary)] hover:underline ml-1"
           >
             Sign In
           </button>

@@ -38,7 +38,7 @@ export function LoginPage({ onNavigate }) {
           </div>
           <h2 className="text-xl font-bold m-0">You're already logged in</h2>
           <p className="text-xs text-[var(--text-muted)] mt-2 mb-6">
-            Signed in as <strong className="text-white">{user.email}</strong> ({user.fullName || user.name})
+            Signed in as <strong className="text-[var(--text-primary)]">{user.email}</strong> ({user.fullName || user.name})
           </p>
           <div className="flex flex-col gap-2.5">
             <button
@@ -213,7 +213,7 @@ export function LoginPage({ onNavigate }) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2.5 text-[var(--text-muted)] hover:text-white p-1"
+                className="absolute right-2.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -241,7 +241,7 @@ export function LoginPage({ onNavigate }) {
           <button
             type="button"
             onClick={() => (onNavigate ? onNavigate("register") : navigate("/register"))}
-            className="font-bold text-white hover:underline ml-1"
+            className="font-bold text-[var(--text-primary)] hover:underline ml-1"
           >
             Create an Account
           </button>

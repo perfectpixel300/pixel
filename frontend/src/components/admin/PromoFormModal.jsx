@@ -299,7 +299,7 @@ export function PromoFormModal({
               <button
                 type="button"
                 onClick={() => setShowManualUrl(!showManualUrl)}
-                className="text-[0.7rem] text-[var(--text-muted)] hover:text-white underline cursor-pointer bg-transparent border-0"
+                className="text-[0.7rem] text-[var(--text-muted)] hover:text-[var(--text-primary)] underline cursor-pointer bg-transparent border-0"
               >
                 {showManualUrl ? "Upload File instead" : "Enter Image URL directly"}
               </button>

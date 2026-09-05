@@ -538,7 +538,7 @@ export function Navbar({
               setShowStatusPopover(false);
               if (onOpenShopClosedModal) onOpenShopClosedModal();
             }}
-            className="w-full mt-3 py-1.5 text-center text-xs font-semibold text-white bg-red-500/20 hover:bg-red-500/30 rounded border border-red-500/30 cursor-pointer transition-colors"
+            className="w-full mt-3 py-1.5 text-center text-xs font-semibold text-red-600 dark:text-red-200 bg-red-500/15 hover:bg-red-500/25 rounded border border-red-500/30 cursor-pointer transition-colors"
           >
             View Full Notice & Contacts
           </button>
@@ -577,7 +577,7 @@ export function Navbar({
               setShowStatusPopover(false);
               if (onOpenShopClosedModal) onOpenShopClosedModal();
             }}
-            className="w-full mt-3 py-1.5 text-center text-xs font-semibold text-white bg-blue-500/20 hover:bg-blue-500/30 rounded border border-blue-500/30 cursor-pointer transition-colors"
+            className="w-full mt-3 py-1.5 text-center text-xs font-semibold text-blue-600 dark:text-blue-200 bg-blue-500/15 hover:bg-blue-500/25 rounded border border-blue-500/30 cursor-pointer transition-colors"
           >
             View Schedule Notice & Details
           </button>
@@ -615,7 +615,7 @@ export function Navbar({
             setShowStatusPopover(false);
             if (onOpenShopClosedModal) onOpenShopClosedModal();
           }}
-          className="w-full mt-3 py-1.5 text-center text-xs font-semibold text-white bg-emerald-500/20 hover:bg-emerald-500/30 rounded border border-emerald-500/30 cursor-pointer transition-colors"
+          className="w-full mt-3 py-1.5 text-center text-xs font-semibold text-emerald-600 dark:text-emerald-200 bg-emerald-500/15 hover:bg-emerald-500/25 rounded border border-emerald-500/30 cursor-pointer transition-colors"
         >
           View Operating Notice
         </button>
@@ -1024,7 +1024,7 @@ export function Navbar({
           >
             <ShoppingBag size={16} />
             {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-white text-black font-mono font-black text-[0.58rem] w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-[scaleUp_0.15s_ease-out]">
+              <span className="absolute -top-1 -right-1 bg-[var(--text-primary)] text-[var(--bg-card)] font-mono font-black text-[0.58rem] w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-[scaleUp_0.15s_ease-out]">
                 {totalItems > 99 ? "99+" : totalItems}
               </span>
             )}
@@ -1052,7 +1052,7 @@ export function Navbar({
                 className="flex items-center gap-1.5 py-1 px-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors text-xs font-medium max-w-[130px] sm:max-w-[170px] md:max-w-[210px]"
                 title={user.email}
               >
-                <div className="w-5 h-5 rounded-full bg-zinc-800 text-white font-bold text-[0.625rem] flex items-center justify-center shrink-0 border border-zinc-700">
+                <div className="w-5 h-5 rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] font-bold text-[0.625rem] flex items-center justify-center shrink-0 border border-[var(--border-medium)]">
                   {(user.fullName || user.name || user.email || "U")[0].toUpperCase()}
                 </div>
                 <span className="truncate text-[var(--text-primary)]">
@@ -1085,7 +1085,7 @@ export function Navbar({
                         setIsUserMenuOpen(false);
                         if (setActivePage) setActivePage("profile");
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-elevated)] rounded-[var(--radius-xs)] transition-colors text-left font-medium"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-[var(--radius-xs)] transition-colors text-left font-medium"
                     >
                       <User size={13} />
                       <span>Manage Profile</span>
@@ -1097,14 +1097,14 @@ export function Navbar({
                         setIsUserMenuOpen(false);
                         openCart();
                       }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-elevated)] rounded-[var(--radius-xs)] transition-colors text-left font-medium"
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-[var(--radius-xs)] transition-colors text-left font-medium"
                     >
                       <div className="flex items-center gap-2.5">
                         <ShoppingBag size={13} />
                         <span>Shopping Cart</span>
                       </div>
                       {totalItems > 0 && (
-                        <span className="text-[0.625rem] font-mono font-bold px-1.5 py-0.2 rounded-full bg-white text-black">
+                        <span className="text-[0.625rem] font-mono font-bold px-1.5 py-0.2 rounded-full bg-[var(--text-primary)] text-[var(--bg-card)]">
                           {totalItems}
                         </span>
                       )}
@@ -1156,7 +1156,7 @@ export function Navbar({
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="btn-icon btn-ghost !w-6 !h-6 text-[var(--text-muted)] hover:text-white"
+                    className="btn-icon btn-ghost !w-6 !h-6 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                     title="Clear search text"
                   >
                     <X size={14} />
@@ -1169,7 +1169,7 @@ export function Navbar({
                 <button
                   type="button"
                   onClick={() => setIsSearchOpen(false)}
-                  className="btn-icon btn-ghost !w-7 !h-7 text-[var(--text-muted)] hover:text-white"
+                  className="btn-icon btn-ghost !w-7 !h-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   title="Close search"
                 >
                   <X size={16} />
@@ -1767,10 +1767,10 @@ export function Navbar({
                   className="flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-left"
                 >
                   <div className="flex items-center gap-2">
-                    <ShoppingBag size={14} className="text-white" />
+                    <ShoppingBag size={14} className="text-[var(--text-primary)]" />
                     <span className="text-xs font-semibold">Shopping Cart</span>
                   </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-white text-black">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--text-primary)] text-[var(--bg-app)]">
                     {totalItems} {totalItems === 1 ? "item" : "items"}
                   </span>
                 </button>
@@ -1780,11 +1780,11 @@ export function Navbar({
                   <div className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] font-bold text-xs flex items-center justify-center shrink-0 border border-[var(--border-medium)]">
                           {(user.fullName || user.name || user.email || "U")[0].toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xs font-bold truncate text-white">
+                          <div className="text-xs font-bold truncate text-[var(--text-primary)]">
                             {user.fullName || user.name || "Member"}
                           </div>
                           <div className="text-[0.65rem] font-mono text-[var(--text-muted)] truncate">
@@ -1830,7 +1830,7 @@ export function Navbar({
                     className="flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-left"
                   >
                     <div className="flex items-center gap-2">
-                      <User size={14} className="text-white" />
+                      <User size={14} className="text-[var(--text-primary)]" />
                       <span className="text-xs font-semibold">Sign In / Register</span>
                     </div>
                     <ArrowRight size={13} className="text-[var(--text-muted)]" />
