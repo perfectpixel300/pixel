@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageSquare, MessageCircle, Package, Loader2, Share2 } from "lucide-react";
+import { ArrowLeft, MessageSquare, MessageCircle, Package, Loader2, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 import { ShareModal } from "../components/common/ShareModal";
 import { SwipableImageGallery } from "../components/common/SwipableImageGallery";
+import { ProductCard } from "../components/storefront/ProductCard";
+import { useSmoothSwiper } from "../utils/useSmoothSwiper";
 import { api } from "../services/api";
 
 export function ProductDetailPage({
@@ -27,6 +29,37 @@ export function ProductDetailPage({
 
   const [loading, setLoading] = useState(!product && Boolean(idOrSlug));
   const [shareModalOpen, setShareModalOpen] = useState(false);
+
+  // Filter products in the same category excluding the currently viewed product
+  const relatedProducts = useMemo(() => {
+    if (!product || !products || products.length === 0) return [];
+    return products.filter(
+      (p) =>
+        p &&
+        p.category === product.category &&
+        p._id !== product._id &&
+        p.slug !== product.slug
+    );
+  }, [products, product]);
+
+  const {
+    currentIndex,
+    itemsPerView,
+    maxIndex,
+    handlePrev,
+    handleNext,
+    trackStyle,
+    sliderProps,
+    totalDots,
+    activeDotIndex,
+    handleDotClick,
+  } = useSmoothSwiper({ itemCount: relatedProducts.length, defaultItemsPerView: 4 });
+
+  const handleViewRelatedProduct = (selectedProd) => {
+    setProduct(selectedProd);
+    navigate(`/products/${selectedProd.slug || selectedProd._id}`);
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  };
 
   useEffect(() => {
     if (initialProduct) {
@@ -286,6 +319,108 @@ export function ProductDetailPage({
             </div>
           </div>
         </div>
+
+        {/* Products You May Like (Same Category Products) */}
+        {relatedProducts.length > 0 && (
+          <section className="mt-20 sm:mt-24 pt-12 sm:pt-16 border-t border-[var(--border-subtle)]">
+            {/* Section Header */}
+            <div className="flex justify-between items-end mb-8 flex-wrap gap-4">
+              <div>
+                <span className="text-[0.75rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                  More in {product.category}
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-extrabold mt-1 tracking-[-0.03em]">
+                  Products You May Like
+                </h2>
+              </div>
+
+              {/* Swiper Arrow Buttons (Only when items exceed itemsPerView) */}
+              {relatedProducts.length > itemsPerView && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    disabled={currentIndex === 0}
+                    className={`w-9 h-9 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[var(--text-primary)] flex items-center justify-center transition-all ${
+                      currentIndex === 0
+                        ? "opacity-30 cursor-not-allowed"
+                        : "hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] hover:border-transparent cursor-pointer shadow-md"
+                    }`}
+                    aria-label="Previous product"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={currentIndex >= maxIndex}
+                    className={`w-9 h-9 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[var(--text-primary)] flex items-center justify-center transition-all ${
+                      currentIndex >= maxIndex
+                        ? "opacity-30 cursor-not-allowed"
+                        : "hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] hover:border-transparent cursor-pointer shadow-md"
+                    }`}
+                    aria-label="Next product"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* If items fit, show responsive grid; if too many items, smooth swiper */}
+            {relatedProducts.length > itemsPerView ? (
+              <div {...sliderProps}>
+                <div className="overflow-hidden -mx-2 sm:-mx-3">
+                  <div className="flex items-stretch select-none" style={trackStyle}>
+                    {relatedProducts.map((relProduct) => (
+                      <div
+                        key={relProduct._id || relProduct.slug}
+                        className="px-2 sm:px-3 shrink-0 flex flex-col pointer-events-auto"
+                        style={{ width: `${100 / itemsPerView}%` }}
+                      >
+                        <ProductCard
+                          product={relProduct}
+                          onViewDetails={handleViewRelatedProduct}
+                          onInquire={onInquire}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Swiper Pagination Dots */}
+                {totalDots > 0 && (
+                  <div className="flex justify-center items-center gap-2 mt-8">
+                    {Array.from({ length: totalDots }).map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleDotClick(idx)}
+                        className={`h-1.5 rounded-full transition-all duration-300 border-none p-0 cursor-pointer ${
+                          activeDotIndex === idx
+                            ? "w-7 bg-[var(--text-primary)]"
+                            : "w-2 bg-[var(--border-bright)] hover:bg-[var(--text-secondary)] opacity-60 hover:opacity-100"
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {relatedProducts.map((relProduct) => (
+                  <ProductCard
+                    key={relProduct._id || relProduct.slug}
+                    product={relProduct}
+                    onViewDetails={handleViewRelatedProduct}
+                    onInquire={onInquire}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </div>
 
       {/* Share Modal */}

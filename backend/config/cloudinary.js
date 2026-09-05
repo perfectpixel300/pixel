@@ -71,14 +71,78 @@ const uploadToCloudinary = (fileBuffer, options = {}) => {
 };
 
 /**
- * Delete an asset from Cloudinary by public ID
- * @param {string} publicId
+ * Extract Cloudinary public_id from a URL or public_id string.
+ * Handles transformed URLs (e.g. f_auto,q_auto, w_2000, etc.),
+ * version strings (e.g. v123456789), and nested folders (pixel_perfect/products/...).
+ * @param {string} urlOrId
+ * @returns {string|null}
+ */
+const extractPublicId = (urlOrId) => {
+  if (!urlOrId || typeof urlOrId !== "string") return null;
+  const str = urlOrId.trim();
+  if (!str.startsWith("http://") && !str.startsWith("https://")) {
+    return str;
+  }
+  if (!str.includes("res.cloudinary.com") && !str.includes("cloudinary.com")) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(str);
+    const pathname = parsed.pathname;
+    const uploadIndex = pathname.indexOf("/upload/");
+    if (uploadIndex === -1) return null;
+
+    let pathAfterUpload = pathname.substring(uploadIndex + "/upload/".length);
+
+    // Strip out version if present: /v\d+/
+    const versionMatch = pathAfterUpload.match(/(?:^|\/)v\d+\/(.+)$/);
+    if (versionMatch) {
+      pathAfterUpload = versionMatch[1];
+    } else {
+      const segments = pathAfterUpload.split("/");
+      const cleanSegments = [];
+      let foundContent = false;
+      for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i];
+        if (!foundContent) {
+          if (seg.startsWith("pixel_perfect") || (!seg.includes(",") && !seg.match(/^[a-z]{1,2}_/))) {
+            foundContent = true;
+            cleanSegments.push(seg);
+          }
+        } else {
+          cleanSegments.push(seg);
+        }
+      }
+      pathAfterUpload = cleanSegments.join("/");
+    }
+
+    // Remove file extension
+    const lastDotIndex = pathAfterUpload.lastIndexOf(".");
+    if (lastDotIndex !== -1) {
+      pathAfterUpload = pathAfterUpload.substring(0, lastDotIndex);
+    }
+
+    return pathAfterUpload || null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Delete an asset from Cloudinary by public ID or full Cloudinary URL
+ * @param {string} publicIdOrUrl
  * @returns {Promise<Object>}
  */
-const deleteFromCloudinary = (publicId) => {
+const deleteFromCloudinary = (publicIdOrUrl) => {
   return new Promise((resolve, reject) => {
     if (!isCloudinaryConfigured()) {
       return reject(new Error("Cloudinary credentials are not configured."));
+    }
+
+    const publicId = extractPublicId(publicIdOrUrl) || publicIdOrUrl;
+    if (!publicId) {
+      return resolve({ result: "not_found" });
     }
 
     cloudinary.uploader.destroy(publicId, (error, result) => {
@@ -93,4 +157,6 @@ module.exports = {
   isCloudinaryConfigured,
   uploadToCloudinary,
   deleteFromCloudinary,
+  extractPublicId,
 };
+

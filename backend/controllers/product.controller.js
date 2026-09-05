@@ -1,4 +1,5 @@
 const Product = require("../models/product.model");
+const { deleteFromCloudinary, extractPublicId } = require("../config/cloudinary");
 
 // Helper function to generate slug from name
 const generateSlug = (name) => {
@@ -20,8 +21,9 @@ exports.getProducts = async (req, res) => {
       isAvailable,
       featured,
       sortBy = "createdAt_desc",
-      page = 1,
-      limit = 50,
+      page,
+      limit,
+      all,
     } = req.query;
 
     const query = {};
@@ -60,22 +62,32 @@ exports.getProducts = async (req, res) => {
     else if (sortBy === "createdAt_asc") sort = { createdAt: 1 };
     else if (sortBy === "createdAt_desc") sort = { createdAt: -1 };
 
-    const pageNumber = Math.max(1, parseInt(page, 10) || 1);
-    const pageSize = Math.min(100, Math.max(1, parseInt(limit, 10) || 50));
-    const skip = (pageNumber - 1) * pageSize;
-
     const total = await Product.countDocuments(query);
-    const products = await Product.find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(pageSize);
+    let productsQuery = Product.find(query).sort(sort);
+
+    const isAllRequested = all === "true" || all === true || limit === "0" || limit === "all";
+    const hasPagination = !isAllRequested && (req.query.page !== undefined || req.query.limit !== undefined);
+
+    let pageNumber = 1;
+    let pageSize = total;
+    let totalPages = 1;
+
+    if (hasPagination) {
+      pageNumber = Math.max(1, parseInt(page, 10) || 1);
+      pageSize = Math.max(1, parseInt(limit, 10) || 50);
+      const skip = (pageNumber - 1) * pageSize;
+      totalPages = Math.ceil(total / pageSize) || 1;
+      productsQuery = productsQuery.skip(skip).limit(pageSize);
+    }
+
+    const products = await productsQuery;
 
     res.status(200).json({
       success: true,
       count: products.length,
       total,
       page: pageNumber,
-      totalPages: Math.ceil(total / pageSize) || 1,
+      totalPages,
       products,
     });
   } catch (error) {
@@ -278,7 +290,7 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findByIdAndDelete(id);
+    const product = await Product.findById(id);
 
     if (!product) {
       return res.status(404).json({
@@ -286,6 +298,21 @@ exports.deleteProduct = async (req, res) => {
         message: "Product not found",
       });
     }
+
+    // Delete associated images from Cloudinary if any exist
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      try {
+        const deleteTasks = product.images.map((imageUrl) => {
+          const publicId = extractPublicId(imageUrl);
+          return publicId ? deleteFromCloudinary(publicId) : Promise.resolve();
+        });
+        await Promise.allSettled(deleteTasks);
+      } catch (cloudErr) {
+        console.warn("Non-critical error deleting product images from Cloudinary:", cloudErr.message);
+      }
+    }
+
+    await Product.findByIdAndDelete(id);
 
     res.status(200).json({
       success: true,

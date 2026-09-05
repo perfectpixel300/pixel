@@ -160,7 +160,11 @@ class ApiService {
 
   async getProducts(params = {}) {
     try {
-      const query = new URLSearchParams(params).toString();
+      const queryParams = { ...params };
+      if (!queryParams.page && !queryParams.limit && !queryParams.all) {
+        queryParams.all = "true";
+      }
+      const query = new URLSearchParams(queryParams).toString();
       const res = await fetch(`${API_BASE_URL}/products${query ? `?${query}` : ""}`);
       if (res.ok) {
         const data = await res.json();
