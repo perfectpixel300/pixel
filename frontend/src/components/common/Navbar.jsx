@@ -41,6 +41,24 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+// Helper to extract first name before space instead of showing email address
+const getUserFirstName = (userData) => {
+  if (!userData) return "User";
+  const name = (userData.fullName || userData.name || "").trim();
+  if (name) {
+    return name.split(/\s+/)[0];
+  }
+  if (userData.email) {
+    const localPart = userData.email.split("@")[0] || "";
+    const prefix = localPart.split(/[._\s-]/)[0];
+    if (prefix) {
+      return prefix.charAt(0).toUpperCase() + prefix.slice(1);
+    }
+    return localPart;
+  }
+  return "User";
+};
+
 export function Navbar({
   activePage,
   setActivePage,
@@ -627,7 +645,7 @@ export function Navbar({
     <>
       <header
         ref={headerRef}
-        className="fixed top-0 left-0 right-0 z-[100] w-full bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] will-change-transform shadow-xs pt-[env(safe-area-inset-top,0px)]"
+        className="fixed top-0 left-0 right-0 z-[100] w-full max-w-full overflow-x-clip bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] will-change-transform shadow-xs pt-[env(safe-area-inset-top,0px)]"
       >
         {/* Top Sub-Nav (Contact on Left, Status and Social Icons on Right) */}
         <div className="w-full border-b border-[var(--border-subtle)] bg-[var(--bg-card)]/90 antialiased">
@@ -644,16 +662,19 @@ export function Navbar({
               </a>
             </div>
 
-            {/* Right: Shop Status (Desktop) & Social Icons */}
-            <div className="flex items-center justify-end gap-2.5 sm:gap-3 shrink-0 h-full">
-              {/* Desktop Shop Status & Timer */}
+            {/* Right: Shop Status & Social Icons */}
+            <div className="flex items-center justify-end gap-2 sm:gap-2.5 lg:gap-3 shrink-0 h-full">
+              {/* Shop Status & Timer (Both Mobile and Desktop) */}
               <div
-                className="hidden lg:flex items-center h-full"
-                ref={desktopStatusPopoverRef}
+                className="flex items-center h-full"
+                ref={(el) => {
+                  desktopStatusPopoverRef.current = el;
+                  statusPopoverRef.current = el;
+                }}
               >
                 <div className="relative flex items-center">
                   {isStatusLoading || !shopStatus ? (
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.72rem] font-medium border border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[var(--text-muted)] animate-pulse leading-none">
+                    <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[0.68rem] sm:text-[0.72rem] font-medium border border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[var(--text-muted)] animate-pulse leading-none">
                       <Loader2 size={11} className="animate-spin text-[var(--text-muted)] shrink-0" />
                       <span className="leading-none">Status...</span>
                     </div>
@@ -661,7 +682,7 @@ export function Navbar({
                     <button
                       type="button"
                       onClick={() => setShowStatusPopover(!showStatusPopover)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.72rem] sm:text-[0.75rem] font-semibold border transition-all cursor-pointer leading-none ${
+                      className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[0.68rem] sm:text-[0.72rem] lg:text-[0.75rem] font-semibold border transition-all cursor-pointer leading-none ${
                         shopStatus?.status === "partial"
                           ? "bg-blue-500/15 border-blue-500/40 text-blue-300 hover:bg-blue-500/25"
                           : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
@@ -708,7 +729,7 @@ export function Navbar({
                       {/* Countdown text chip if timer set */}
                       {timerText && (
                         <span
-                          className={`text-[0.68rem] sm:text-[0.72rem] font-mono font-normal opacity-90 border-l pl-1.5 flex items-center gap-1 leading-none ${
+                          className={`text-[0.65rem] sm:text-[0.72rem] font-mono font-normal opacity-90 border-l pl-1.5 hidden xs:flex items-center gap-1 leading-none ${
                             shopStatus?.status === "partial"
                               ? "border-blue-500/40 text-blue-300"
                               : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
@@ -718,7 +739,9 @@ export function Navbar({
                         >
                           <Clock size={10.5} className="shrink-0" />
                           <span className="leading-none">
-                            {shopStatus?.timerLabel ? `${shopStatus.timerLabel}: ` : ""}
+                            <span className="hidden sm:inline">
+                              {shopStatus?.timerLabel ? `${shopStatus.timerLabel}: ` : ""}
+                            </span>
                             {timerText}
                           </span>
                         </span>
@@ -726,16 +749,16 @@ export function Navbar({
                     </button>
                   )}
 
-                  {/* Popover on click for Open / Partial / Closed store info (Desktop) */}
+                  {/* Popover on click for Open / Partial / Closed store info */}
                   {showStatusPopover && (
-                    <div className="absolute top-full right-0 mt-2 w-80 p-4 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
+                    <div className="fixed top-[38px] left-3 right-3 max-w-[320px] ml-auto sm:ml-0 sm:max-w-none sm:left-auto sm:right-0 sm:absolute sm:top-full mt-2 sm:w-80 p-4 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
                       {renderStatusPopoverContent()}
                     </div>
                   )}
                 </div>
               </div>
 
-              <span className="hidden lg:block w-px h-3 bg-[var(--border-medium)] shrink-0 self-center" />
+              <span className="w-px h-3 bg-[var(--border-medium)] shrink-0 self-center block" />
 
               {/* WhatsApp */}
               <a
@@ -788,13 +811,13 @@ export function Navbar({
           </div>
         </div>
 
-        <div className="storefront-container h-[64px] sm:h-[72px] flex items-center justify-between gap-1.5 sm:gap-2.5 lg:gap-3 px-3 sm:px-4 md:px-6">
+        <div className="storefront-container h-[64px] sm:h-[72px] flex items-center justify-between gap-1 sm:gap-2 lg:gap-2.5 px-2.5 sm:px-4 md:px-6 min-w-0">
         {/* Brand Logo */}
         <div
           onClick={() => handleNavClick("home")}
           className="cursor-pointer flex flex-col shrink-0 group select-none"
         >
-          <span className="text-[0.85rem] sm:text-[0.95rem] xl:text-[1.1rem] font-extrabold tracking-[0.06em] uppercase text-[var(--text-primary)] leading-tight group-hover:opacity-85 transition-opacity">
+          <span className="text-[0.8rem] xs:text-[0.85rem] sm:text-[0.95rem] xl:text-[1.1rem] font-extrabold tracking-[0.04em] sm:tracking-[0.06em] uppercase text-[var(--text-primary)] leading-tight group-hover:opacity-85 transition-opacity">
             PIXEL PERFECT
           </span>
           <span className="text-[0.525rem] sm:text-[0.575rem] font-medium tracking-[0.12em] uppercase text-[var(--text-muted)] mt-0.5 hidden sm:inline group-hover:text-[var(--text-secondary)] transition-colors">
@@ -803,7 +826,7 @@ export function Navbar({
         </div>
 
         {/* Desktop Navigation Links with Responsive Scaling & Category Dropdowns */}
-        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 2xl:gap-1.5 min-w-0">
+        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 min-w-0">
           {navLinks.map((link) => {
             const isActive =
               activePage === link.id ||
@@ -822,7 +845,7 @@ export function Navbar({
                 <button
                   type="button"
                   onClick={() => handleNavClick(link.id)}
-                  className={`border-none text-[0.75rem] xl:text-[0.8rem] 2xl:text-[0.825rem] uppercase tracking-[0.02em] xl:tracking-[0.04em] cursor-pointer px-2 xl:px-2.5 2xl:px-3.5 py-1.5 rounded-[var(--radius-sm)] relative transition-all duration-200 whitespace-nowrap shrink-0 flex items-center gap-1 ${
+                  className={`border-none text-[0.72rem] xl:text-[0.78rem] 2xl:text-[0.825rem] uppercase tracking-[0.01em] xl:tracking-[0.03em] cursor-pointer px-1.5 xl:px-2.5 2xl:px-3 py-1.5 rounded-[var(--radius-sm)] relative transition-all duration-200 whitespace-nowrap shrink-0 flex items-center gap-1 ${
                     isActive
                       ? "font-bold text-[var(--text-primary)] bg-[var(--bg-elevated)] shadow-xs"
                       : isHovered
@@ -894,100 +917,8 @@ export function Navbar({
           })}
         </nav>
 
-        {/* Right Side - Shop Status (Mobile only), Search trigger, Theme Toggle */}
+        {/* Right Side - Search trigger, Theme Toggle, Shopping Cart, User Account */}
         <div className="flex items-center gap-1 sm:gap-1.5 xl:gap-2 shrink-0">
-          {/* Live Shop Status Indicator Pill (Mobile only; on desktop it is placed at center of sub-nav) */}
-          <div className="lg:hidden">
-            {isStatusLoading || !shopStatus ? (
-              <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[0.68rem] sm:text-[0.72rem] font-medium border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-muted)] animate-pulse">
-                <Loader2 size={11} className="animate-spin text-[var(--text-muted)] shrink-0" />
-                <span className="hidden sm:inline">Status...</span>
-                <span className="sm:hidden">...</span>
-              </div>
-            ) : (
-              <div className="relative" ref={statusPopoverRef}>
-                <button
-                  onClick={() => setShowStatusPopover(!showStatusPopover)}
-                  className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-[0.68rem] sm:text-[0.72rem] font-bold border transition-all cursor-pointer ${
-                    shopStatus?.status === "partial"
-                      ? "bg-blue-500/15 border-blue-500/40 text-blue-300 hover:bg-blue-500/25"
-                      : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
-                      ? "bg-red-500/15 border-red-500/40 text-red-300 hover:bg-red-500/25"
-                      : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
-                  }`}
-                  title={
-                    shopStatus?.status === "partial"
-                      ? "Some services limited / unavailable • Click for schedule & details"
-                      : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
-                      ? "Store is currently closed • Click to view reopen timer"
-                      : "Store is currently open • Click for operating hours & schedule"
-                  }
-                >
-                  <span className="relative flex h-2 w-2 shrink-0">
-                    <span
-                      className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                        shopStatus?.status === "partial"
-                          ? "bg-blue-400"
-                          : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
-                          ? "bg-red-400"
-                          : "bg-emerald-400"
-                      }`}
-                    />
-                    <span
-                      className={`relative inline-flex rounded-full h-2 w-2 ${
-                        shopStatus?.status === "partial"
-                          ? "bg-blue-400"
-                          : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
-                          ? "bg-red-500"
-                          : "bg-emerald-500"
-                      }`}
-                    />
-                  </span>
-
-                  {shopStatus?.status === "partial" ? (
-                    <>
-                      <span className="hidden sm:inline">Partial</span>
-                      <span className="sm:hidden">Partial</span>
-                    </>
-                  ) : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen) ? (
-                    <>
-                      <span className="hidden sm:inline">Closed</span>
-                      <span className="sm:hidden">Closed</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="hidden sm:inline">Open</span>
-                      <span className="sm:hidden">Open</span>
-                    </>
-                  )}
-
-                  {/* Countdown text chip if timer set (Shown on mobile/tablet) */}
-                  {timerText && (
-                    <span
-                      className={`text-[0.625rem] sm:text-[0.675rem] font-mono font-normal opacity-90 border-l pl-1 sm:pl-1.5 flex items-center gap-0.5 ${
-                        shopStatus?.status === "partial"
-                          ? "border-blue-500/40 text-blue-300"
-                          : shopStatus?.status === "closed" || (!shopStatus?.status && !shopStatus?.isOpen)
-                          ? "border-red-500/30 text-red-300"
-                          : "border-emerald-500/30 text-emerald-300"
-                      }`}
-                    >
-                      <Clock size={10} />
-                      <span>{timerText}</span>
-                    </span>
-                  )}
-                </button>
-
-                {/* Popover on click for Open / Partial / Closed store info (Mobile) */}
-                {showStatusPopover && (
-                  <div className="fixed top-[68px] left-3 right-3 max-w-[320px] ml-auto sm:ml-0 sm:max-w-none sm:left-auto sm:right-0 sm:absolute sm:top-full mt-2 sm:w-80 p-4 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
-                    {renderStatusPopoverContent()}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
           {/* Universal Search Trigger Button (Desktop & Mobile) */}
           <button
             onClick={() => {
@@ -1037,7 +968,7 @@ export function Navbar({
               onClick={() => {
                 if (setActivePage) setActivePage("login");
               }}
-              className="btn btn-secondary btn-sm gap-1.5 text-xs !py-1.5 !px-3 font-semibold shrink-0"
+              className="btn btn-secondary btn-sm gap-1 sm:gap-1.5 text-xs !py-1.5 !px-2.5 sm:!px-3 font-semibold shrink-0"
               title="Sign In or Create Account"
             >
               <User size={13} />
@@ -1045,18 +976,18 @@ export function Navbar({
               <span className="sm:hidden">Login</span>
             </button>
           ) : (
-            <div className="relative shrink-0" ref={userMenuRef}>
+            <div className="relative shrink-0 min-w-0" ref={userMenuRef}>
               <button
                 type="button"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-1.5 py-1 px-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors text-xs font-medium max-w-[130px] sm:max-w-[170px] md:max-w-[210px]"
-                title={user.email}
+                className="flex items-center gap-1 sm:gap-1.5 py-1 px-2 sm:px-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors text-xs font-medium max-w-[95px] xs:max-w-[130px] sm:max-w-[160px] lg:max-w-[130px] xl:max-w-[190px] min-w-0"
+                title={user.fullName ? `${user.fullName} (${user.email})` : user.email}
               >
                 <div className="w-5 h-5 rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] font-bold text-[0.625rem] flex items-center justify-center shrink-0 border border-[var(--border-medium)]">
-                  {(user.fullName || user.name || user.email || "U")[0].toUpperCase()}
+                  {(getUserFirstName(user) || "U")[0].toUpperCase()}
                 </div>
-                <span className="truncate text-[var(--text-primary)]">
-                  {user.email}
+                <span className="truncate text-[var(--text-primary)] min-w-0">
+                  {getUserFirstName(user)}
                 </span>
                 <ChevronDown
                   size={12}
@@ -1781,11 +1712,11 @@ export function Navbar({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="w-6 h-6 rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] font-bold text-xs flex items-center justify-center shrink-0 border border-[var(--border-medium)]">
-                          {(user.fullName || user.name || user.email || "U")[0].toUpperCase()}
+                          {(getUserFirstName(user) || "U")[0].toUpperCase()}
                         </div>
                         <div className="min-w-0">
                           <div className="text-xs font-bold truncate text-[var(--text-primary)]">
-                            {user.fullName || user.name || "Member"}
+                            {user.fullName || user.name || getUserFirstName(user)}
                           </div>
                           <div className="text-[0.65rem] font-mono text-[var(--text-muted)] truncate">
                             {user.email}

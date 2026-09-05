@@ -532,7 +532,10 @@ function AppContent() {
             )}
           </main>
 
-          <Footer setActivePage={setActivePage} categories={categories} />
+          {/* Hide footer on sign in and sign up pages */}
+          {!["login", "register", "verify-email", "setup-profile"].includes(activePage) && (
+            <Footer setActivePage={setActivePage} categories={categories} />
+          )}
         </div>
       ) : (
         /* Protected Admin Studio Layout (Accessed exclusively by visiting /admin) */

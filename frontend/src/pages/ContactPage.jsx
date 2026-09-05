@@ -1,18 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Send, CheckCircle2, MapPin, Mail, Clock, ChevronDown, ChevronUp, Phone, MessageCircle, ArrowRight } from "lucide-react";
 import { api } from "../services/api";
+import { CountryPhoneInput } from "../components/common/CountryPhoneInput";
+import { validatePhoneNumber } from "../utils/phoneValidation";
+import { useAuth } from "../context/AuthContext";
 
 export function ContactPage() {
+  const { user } = useAuth();
+  const [countryCode, setCountryCode] = useState(() => user?.countryCode || "+977");
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
+    name: user?.fullName || user?.name || "",
+    email: user?.email || "",
+    phone: user?.contactNumber || "",
     subject: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      if (user.countryCode) setCountryCode(user.countryCode);
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || user.fullName || user.name || "",
+        email: prev.email || user.email || "",
+        phone: prev.phone || user.contactNumber || "",
+      }));
+    }
+  }, [user]);
 
   const [activeFaq, setActiveFaq] = useState(null);
 
@@ -72,13 +89,10 @@ export function ContactPage() {
       return;
     }
 
-    if (!trimmedPhone) {
-      setError("Please enter your phone number.");
-      return;
-    }
-    const phoneDigits = trimmedPhone.replace(/\D/g, "");
-    if (!/^[+]?[\d\s().-]{7,20}$/.test(trimmedPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
-      setError("Please enter a valid phone number (e.g. +977 9808950275).");
+    // Verify contact number with selected country code like in user account creation
+    const phoneValidation = validatePhoneNumber(trimmedPhone, countryCode);
+    if (!phoneValidation.isValid) {
+      setError(`Phone Number: ${phoneValidation.message}`);
       return;
     }
 
@@ -94,10 +108,11 @@ export function ContactPage() {
     try {
       setIsSubmitting(true);
       setError("");
+      const fullPhone = `${countryCode} ${phoneValidation.cleanNumber}`;
       await api.submitContact({
         name: trimmedName,
         email: trimmedEmail,
-        phone: trimmedPhone,
+        phone: fullPhone,
         subject: trimmedSubject,
         message: trimmedMessage,
       });
@@ -181,14 +196,13 @@ export function ContactPage() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Phone Number *</label>
-                    <input
-                      type="tel"
-                      required
-                      className="form-input"
-                      placeholder="e.g. +977 9808950275"
+                    <CountryPhoneInput
+                      label="Phone Number"
+                      required={true}
+                      countryCode={countryCode}
+                      onCountryCodeChange={setCountryCode}
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(val) => setFormData({ ...formData, phone: val })}
                     />
                   </div>
 

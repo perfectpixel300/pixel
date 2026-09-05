@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { X, Send, CheckCircle2, MessageSquare, MessageCircle, ArrowRight } from "lucide-react";
 import { api } from "../../services/api";
+import { CountryPhoneInput } from "../common/CountryPhoneInput";
+import { validatePhoneNumber } from "../../utils/phoneValidation";
+import { useAuth } from "../../context/AuthContext";
 
 export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
+  const { user } = useAuth();
+  const [countryCode, setCountryCode] = useState("+977");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     subject: "",
     message: "",
+    phone: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -16,15 +22,21 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
   const supportWhatsAppNumber = "9779808950275"; // Nepal WhatsApp hotline
 
   useEffect(() => {
+    const defaultCountry = user?.countryCode || "+977";
+    const defaultPhone = user?.contactNumber || "";
+    const defaultName = user?.fullName || user?.name || "";
+    const defaultEmail = user?.email || "";
+    setCountryCode(defaultCountry);
+
     if (product) {
       const isService = product.type === "service" || product.packageTier;
       const itemName = product.name || product.title || "Selected Item";
       const priceStr = product.indicativePrice || product.price ? `NRs. ${Number(product.indicativePrice || product.price).toLocaleString()}` : "";
 
       setFormData({
-        name: "",
-        email: "",
-        phone: "",
+        name: defaultName,
+        email: defaultEmail,
+        phone: defaultPhone,
         subject: `Inquiry: ${itemName}`,
         message: isService
           ? `Hello Pixel Perfect Team,\n\nI would like to inquire about your "${itemName}" service ${priceStr ? `(${priceStr})` : ""}.\nPlease share the project timeline, kickoff process, and proposal details.\n\nThank you.`
@@ -32,16 +44,16 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
       });
     } else {
       setFormData({
-        name: "",
-        email: "",
-        phone: "",
+        name: defaultName,
+        email: defaultEmail,
+        phone: defaultPhone,
         subject: "General Project & Studio Inquiry",
         message: "",
       });
     }
     setIsSuccess(false);
     setError("");
-  }, [product, isOpen]);
+  }, [product, isOpen, user]);
 
   if (!isOpen) return null;
 
@@ -51,10 +63,13 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
     if (product) {
       const itemName = product.name || product.title;
       const priceVal = product.indicativePrice || product.price;
-      text += `I am inquiring about "${itemName}" ${priceVal ? `(Price: NRs. ${Number(priceVal).toLocaleString()})` : ""}.\nCategory: ${product.category || "General"}.\nCould you please advise on availability, scope, and next steps?`;
+      text += `I am inquiring about "${itemName}" ${priceVal ? `(Price: NRs. ${Number(priceVal).toLocaleString()})` : ""}.\nCategory: ${product.category || "General"}.\n`;
     } else {
-      text += "I would like to ask a question regarding your products and IT web development services.";
+      text += "I would like to ask a question regarding your products and IT web development services.\n";
     }
+    if (formData.name) text += `Name: ${formData.name}\n`;
+    if (formData.phone) text += `Contact: ${countryCode} ${formData.phone}\n`;
+    text += "Could you please advise on availability, scope, and next steps?";
     return `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(text)}`;
   };
 
@@ -92,13 +107,10 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
       return;
     }
 
-    if (!trimmedPhone) {
-      setError("Please enter your phone number.");
-      return;
-    }
-    const phoneDigits = trimmedPhone.replace(/\D/g, "");
-    if (!/^[+]?[\d\s().-]{7,20}$/.test(trimmedPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
-      setError("Please enter a valid phone number (e.g. +977 9808950275).");
+    // Verify contact number with selected country code like in user account creation
+    const phoneValidation = validatePhoneNumber(trimmedPhone, countryCode);
+    if (!phoneValidation.isValid) {
+      setError(`Phone Number: ${phoneValidation.message}`);
       return;
     }
 
@@ -114,11 +126,12 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
     try {
       setIsSubmitting(true);
       setError("");
+      const fullPhone = `${countryCode} ${phoneValidation.cleanNumber}`;
       const payload = {
         ...formData,
         name: trimmedName,
         email: trimmedEmail,
-        phone: trimmedPhone,
+        phone: fullPhone,
         message: trimmedMessage,
         productTitle: product ? product.name : "",
       };
@@ -138,7 +151,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="modal-card max-w-[580px] max-h-[90vh] flex flex-col overflow-hidden"
+        className="modal-card w-[calc(100%-1.5rem)] sm:w-full max-w-[580px] max-h-[92vh] flex flex-col overflow-hidden mx-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header shrink-0">
@@ -233,14 +246,13 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
                 </div>
 
                 <div className="form-group sm:col-span-2">
-                  <label className="form-label">Phone Number *</label>
-                  <input
-                    type="tel"
-                    required
-                    className="form-input"
-                    placeholder="e.g. +977 9808950275"
+                  <CountryPhoneInput
+                    label="Phone Number"
+                    required={true}
+                    countryCode={countryCode}
+                    onCountryCodeChange={setCountryCode}
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(val) => setFormData({ ...formData, phone: val })}
                   />
                 </div>
               </div>

@@ -119,7 +119,7 @@ export function LoginPage({ onNavigate }) {
   };
 
   return (
-    <div className="storefront-container py-12 sm:py-20 max-w-md mx-auto">
+    <div className="storefront-container py-12 sm:py-20 max-w-md mx-auto min-h-[calc(100vh-160px)] flex flex-col justify-center">
       <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] p-6 sm:p-8 shadow-2xl">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">

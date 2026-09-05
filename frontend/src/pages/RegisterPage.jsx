@@ -78,7 +78,7 @@ export function RegisterPage({ onNavigate }) {
   // If successfully registered, show confirmation screen
   if (registeredEmail) {
     return (
-      <div className="storefront-container py-12 sm:py-20 max-w-md mx-auto">
+      <div className="storefront-container py-12 sm:py-20 max-w-md mx-auto min-h-[calc(100vh-160px)] flex flex-col justify-center">
         <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] p-6 sm:p-8 shadow-2xl text-center animate-[scaleUp_0.2s_ease-out]">
           <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-5">
             <Mail size={32} />
@@ -143,7 +143,7 @@ export function RegisterPage({ onNavigate }) {
   }
 
   return (
-    <div className="storefront-container py-12 sm:py-20 max-w-md mx-auto">
+    <div className="storefront-container py-12 sm:py-20 max-w-md mx-auto min-h-[calc(100vh-160px)] flex flex-col justify-center">
       <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] p-6 sm:p-8 shadow-2xl">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">

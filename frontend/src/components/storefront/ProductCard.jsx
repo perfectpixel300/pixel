@@ -59,7 +59,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
     >
       {/* Image Container with zoom */}
       <div
-        className="h-44 sm:h-56 md:h-64 lg:h-72 relative overflow-hidden bg-[#050505] flex items-center justify-center shrink-0"
+        className="h-38 xs:h-44 sm:h-56 md:h-64 lg:h-72 relative overflow-hidden bg-[#050505] flex items-center justify-center shrink-0"
       >
         {imageUrl ? (
           <img
@@ -81,7 +81,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
         {/* Top Badges */}
         <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between gap-1.5 pointer-events-none">
           {categoryName ? (
-            <span className="badge badge-dark backdrop-blur-md text-[0.6rem] sm:text-[0.6875rem] px-2 py-0.5 sm:px-2.5 sm:py-1 font-medium shadow-sm whitespace-normal text-left max-w-[62%] leading-tight">
+            <span className="badge badge-dark backdrop-blur-md text-[0.6rem] sm:text-[0.6875rem] px-2 py-0.5 sm:px-2.5 sm:py-1 font-medium shadow-sm whitespace-normal text-left max-w-[55%] xs:max-w-[62%] leading-tight truncate">
               {categoryName}
             </span>
           ) : <div />}
@@ -107,18 +107,18 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
       </div>
 
       {/* Info Body */}
-      <div className="p-3.5 sm:p-5 flex flex-col gap-2 flex-1">
+      <div className="p-2.5 xs:p-3 sm:p-4.5 md:p-5 flex flex-col gap-1.5 sm:gap-2 flex-1">
         <div>
           {categoryName && (
             <div className="text-[0.65rem] sm:text-[0.7rem] uppercase tracking-wider text-[var(--text-muted)] font-semibold mb-1 truncate">
               {categoryName}
             </div>
           )}
-          <h3 className="text-xs sm:text-base font-bold m-0 leading-snug hover:text-zinc-400 transition-colors capitalize line-clamp-2 min-h-[34px] sm:min-h-[44px]">
+          <h3 className="text-xs sm:text-base font-bold m-0 leading-snug hover:text-zinc-400 transition-colors capitalize line-clamp-2 min-h-[30px] sm:min-h-[44px]">
             {product.name}
           </h3>
 
-          <div className="mt-2 flex items-baseline gap-2 flex-wrap">
+          <div className="mt-1.5 sm:mt-2 flex items-baseline gap-2 flex-wrap">
             {hasDiscount ? (
               <>
                 <span className="font-bold font-mono text-xs sm:text-[0.95rem] whitespace-nowrap text-emerald-400">
@@ -136,14 +136,14 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
           </div>
         </div>
 
-        <p className="text-[0.7rem] sm:text-[0.8rem] text-[var(--text-secondary)] leading-relaxed m-0 line-clamp-2 min-h-[30px] sm:min-h-[38px]">
+        <p className="text-[0.7rem] sm:text-[0.8rem] text-[var(--text-secondary)] leading-relaxed m-0 line-clamp-2 min-h-[28px] sm:min-h-[38px]">
           {product.description}
         </p>
 
         {/* Card Footer Actions */}
-        <div className="mt-auto pt-2.5 sm:pt-3 flex flex-col gap-2.5 border-t border-[var(--border-subtle)]">
+        <div className="mt-auto pt-2.5 sm:pt-3 flex flex-col gap-2 border-t border-[var(--border-subtle)]">
           {/* Availability Status: Dedicated Uncongested Row */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between min-w-0">
             <span
               className={`inline-flex items-center gap-1.5 text-[0.6875rem] sm:text-xs font-semibold ${
                 isStocked ? "text-emerald-400" : "text-zinc-500"
@@ -154,22 +154,29 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
                   isStocked ? "bg-emerald-400" : "bg-zinc-500"
                 }`}
               />
-              {isStocked ? "Available in Stock" : "Out of Stock"}
+              {isStocked ? (
+                <>
+                  <span className="hidden sm:inline">Available in Stock</span>
+                  <span className="sm:hidden">In Stock</span>
+                </>
+              ) : (
+                "Out of Stock"
+              )}
             </span>
 
             {isStocked && product.stock !== undefined && Number(product.stock) > 0 && Number(product.stock) <= 5 && (
-              <span className="text-[0.625rem] sm:text-[0.6875rem] font-mono text-amber-400 font-medium">
+              <span className="text-[0.625rem] sm:text-[0.6875rem] font-mono text-amber-400 font-medium shrink-0 ml-1">
                 Only {product.stock} left
               </span>
             )}
           </div>
 
-          {/* Action Buttons: Evenly Distributed 3-Column Grid */}
-          <div className="grid grid-cols-3 gap-1.5 w-full">
+          {/* Action Buttons: Adaptive Mobile-First Grid (Full Cart row + 2-col Inquire/Specs on mobile; 3-col on desktop) */}
+          <div className="flex flex-col sm:grid sm:grid-cols-3 gap-1.5 w-full">
             <button
               onClick={handleAddToCart}
               disabled={!isStocked}
-              className={`btn btn-sm gap-1 text-[0.6875rem] sm:text-xs !py-1.5 px-1 justify-center ${
+              className={`btn btn-sm gap-1 text-[0.72rem] sm:text-xs !py-1.5 px-2 justify-center w-full font-semibold ${
                 isStocked
                   ? "btn-primary"
                   : "btn-secondary opacity-40 cursor-not-allowed"
@@ -179,20 +186,23 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
               <ShoppingBag size={12} className="shrink-0" />
               <span>Cart</span>
             </button>
-            <button
-              onClick={handleInquire}
-              className="btn btn-secondary btn-sm gap-1 text-[0.6875rem] sm:text-xs !py-1.5 px-1 justify-center"
-              title="Inquire about this piece"
-            >
-              <MessageSquare size={12} className="shrink-0" />
-              <span>Inquire</span>
-            </button>
-            <button
-              onClick={handleNavigate}
-              className="btn btn-ghost btn-sm text-[0.6875rem] sm:text-xs !py-1.5 px-1 justify-center border border-[var(--border-subtle)] hover:border-white"
-            >
-              Specs
-            </button>
+            <div className="grid grid-cols-2 gap-1.5 sm:contents">
+              <button
+                onClick={handleInquire}
+                className="btn btn-secondary btn-sm gap-1 text-[0.72rem] sm:text-xs !py-1.5 px-1.5 justify-center w-full"
+                title="Inquire about this piece"
+              >
+                <MessageSquare size={12} className="shrink-0" />
+                <span className="truncate">Inquire</span>
+              </button>
+              <button
+                onClick={handleNavigate}
+                className="btn btn-ghost btn-sm text-[0.72rem] sm:text-xs !py-1.5 px-1.5 justify-center w-full border border-[var(--border-subtle)] hover:border-white"
+                title="View Specifications"
+              >
+                <span className="truncate">Specs</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
