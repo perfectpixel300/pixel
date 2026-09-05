@@ -657,7 +657,301 @@ async function sendActivationEmail({ toEmail, activationLink }) {
     return { success: true, messageId: data.messageId, activationLink };
   } catch (err) {
     console.error("[Email Service] Error sending activation email:", err.message);
-    return { success: false, error: err.message, activationLink };
+/**
+ * Build HTML and Plain Text templates for Account Deletion Request
+ */
+function buildDeletionRequestedTemplate({ email, name }) {
+  const safeName = escapeHtml(name || "Valued Customer");
+  const safeEmail = escapeHtml(email);
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Deletion Request Received</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0c0d0e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f4f4f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0c0d0e; padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width: 580px; background-color: #141517; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.5);" cellspacing="0" cellpadding="0" border="0">
+          <tr>
+            <td style="padding: 28px 32px; background-color: #09090b; border-bottom: 1px solid #27272a;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td>
+                    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #a1a1aa;">
+                      PIXEL PERFECT
+                    </div>
+                    <h1 style="margin: 6px 0 0 0; font-size: 19px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">
+                      Account Deletion Request
+                    </h1>
+                  </td>
+                  <td align="right" style="vertical-align: middle;">
+                    <span style="display: inline-block; padding: 5px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 20px;">
+                      Processing (24 Hours)
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 32px;">
+              <p style="margin: 0 0 16px 0; font-size: 14px; color: #e4e4e7; line-height: 1.6;">
+                Hello <strong>${safeName}</strong>,
+              </p>
+
+              <p style="margin: 0 0 16px 0; font-size: 14px; color: #a1a1aa; line-height: 1.6;">
+                We have received your request to permanently delete your Pixel Perfect account (<strong>${safeEmail}</strong>).
+              </p>
+
+              <div style="background-color: #1c1917; border-left: 3px solid #f59e0b; padding: 16px; border-radius: 6px; margin-bottom: 24px;">
+                <p style="margin: 0; font-size: 13px; color: #fef3c7; line-height: 1.5;">
+                  <strong>Status:</strong> Your request has been queued. Full account deletion and data removal will take approximately <strong>24 hours</strong> to finalize.
+                </p>
+              </div>
+
+              <p style="margin: 0 0 16px 0; font-size: 13px; color: #a1a1aa; line-height: 1.6;">
+                If this request was made by mistake, or if you changed your mind, you can cancel this request from your profile management page within 24 hours, or contact our support team immediately at <a href="mailto:perfectpixel300@gmail.com" style="color: #38bdf8; text-decoration: none;">perfectpixel300@gmail.com</a>.
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 20px 32px; background-color: #09090b; border-top: 1px solid #27272a; text-align: center;">
+              <p style="margin: 0; font-size: 11px; color: #71717a;">
+                Pixel Perfect Stationery & IT Services • Mahalaxmi-08, Lalitpur, Nepal
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+
+  const text = `
+PIXEL PERFECT - ACCOUNT DELETION REQUEST
+
+Hello ${name || "Valued Customer"},
+
+We have received your request to permanently delete your Pixel Perfect account (${email}).
+
+Status: Your request has been queued. Full account deletion and data removal will take approximately 24 hours to finalize.
+
+If this request was made by mistake, you can cancel it from your profile page within 24 hours or contact us immediately at perfectpixel300@gmail.com.
+
+Pixel Perfect Stationery & IT Services
+`;
+
+  return { html, text };
+}
+
+/**
+ * Build HTML and Plain Text templates for Account Deletion Approved / Completed
+ */
+function buildDeletionApprovedTemplate({ email, name }) {
+  const safeName = escapeHtml(name || "Valued Customer");
+  const safeEmail = escapeHtml(email);
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Successfully Deleted</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0c0d0e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f4f4f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0c0d0e; padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width: 580px; background-color: #141517; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.5);" cellspacing="0" cellpadding="0" border="0">
+          <tr>
+            <td style="padding: 28px 32px; background-color: #09090b; border-bottom: 1px solid #27272a;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td>
+                    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #a1a1aa;">
+                      PIXEL PERFECT
+                    </div>
+                    <h1 style="margin: 6px 0 0 0; font-size: 19px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">
+                      Account Successfully Deleted
+                    </h1>
+                  </td>
+                  <td align="right" style="vertical-align: middle;">
+                    <span style="display: inline-block; padding: 5px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; background-color: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px;">
+                      Closed
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 32px;">
+              <p style="margin: 0 0 16px 0; font-size: 14px; color: #e4e4e7; line-height: 1.6;">
+                Hello <strong>${safeName}</strong>,
+              </p>
+
+              <p style="margin: 0 0 16px 0; font-size: 14px; color: #a1a1aa; line-height: 1.6;">
+                This notification confirms that your Pixel Perfect account (<strong>${safeEmail}</strong>) has been successfully and permanently deleted.
+              </p>
+
+              <div style="background-color: #18181b; border: 1px solid #27272a; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                <p style="margin: 0; font-size: 13px; color: #d4d4d8; line-height: 1.5;">
+                  All your personal profile data, addresses, contact details, and account credentials have been completely removed from our active databases.
+                </p>
+              </div>
+
+              <p style="margin: 0 0 16px 0; font-size: 13px; color: #a1a1aa; line-height: 1.6;">
+                Thank you for being part of Pixel Perfect. If you ever wish to join us again in the future, you are always welcome to register for a new account.
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 20px 32px; background-color: #09090b; border-top: 1px solid #27272a; text-align: center;">
+              <p style="margin: 0; font-size: 11px; color: #71717a;">
+                Pixel Perfect Stationery & IT Services • Mahalaxmi-08, Lalitpur, Nepal
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+
+  const text = `
+PIXEL PERFECT - ACCOUNT DELETED SUCCESSFULLY
+
+Hello ${name || "Valued Customer"},
+
+This email confirms that your Pixel Perfect account (${email}) has been successfully and permanently deleted.
+
+All your personal profile data, addresses, contact details, and account credentials have been completely removed from our database.
+
+Thank you for having been part of Pixel Perfect. You are always welcome to register again in the future.
+
+Pixel Perfect Stationery & IT Services
+`;
+
+  return { html, text };
+}
+
+/**
+ * Send Account Deletion Requested Email
+ */
+async function sendDeletionRequestedEmail({ toEmail, name }) {
+  if (!toEmail || !toEmail.includes("@")) {
+    return { success: false, reason: "invalid_email" };
+  }
+
+  const apiKey = (process.env.BREVO_API_KEY || "").trim();
+  const senderEmail = (process.env.BREVO_SENDER_EMAIL || "perfectpixel300@gmail.com").trim();
+  const senderName = (process.env.BREVO_SENDER_NAME || "Pixel Perfect").trim();
+
+  if (!apiKey) {
+    console.warn("[Email Service] Notice: BREVO_API_KEY is not configured. Deletion request email skipped.");
+    return { success: false, reason: "apiKey_missing" };
+  }
+
+  const { html, text } = buildDeletionRequestedTemplate({
+    email: toEmail,
+    name,
+  });
+
+  const payload = {
+    sender: { name: senderName, email: senderEmail },
+    to: [{ email: toEmail.trim(), name: name || toEmail.split("@")[0] }],
+    subject: "Pixel Perfect - Account Deletion Request Received",
+    htmlContent: html,
+    textContent: text,
+  };
+
+  try {
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "api-key": apiKey,
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      console.error("[Email Service] Brevo API error (deletion request):", data.message);
+      return { success: false, error: data.message };
+    }
+    console.log(`[Email Service] Deletion request email sent to ${toEmail}`);
+    return { success: true, messageId: data.messageId };
+  } catch (err) {
+    console.error("[Email Service] Error sending deletion request email:", err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Send Account Deletion Approved & Completed Email
+ */
+async function sendDeletionApprovedEmail({ toEmail, name }) {
+  if (!toEmail || !toEmail.includes("@")) {
+    return { success: false, reason: "invalid_email" };
+  }
+
+  const apiKey = (process.env.BREVO_API_KEY || "").trim();
+  const senderEmail = (process.env.BREVO_SENDER_EMAIL || "perfectpixel300@gmail.com").trim();
+  const senderName = (process.env.BREVO_SENDER_NAME || "Pixel Perfect").trim();
+
+  if (!apiKey) {
+    console.warn("[Email Service] Notice: BREVO_API_KEY is not configured. Deletion confirmation email skipped.");
+    return { success: false, reason: "apiKey_missing" };
+  }
+
+  const { html, text } = buildDeletionApprovedTemplate({
+    email: toEmail,
+    name,
+  });
+
+  const payload = {
+    sender: { name: senderName, email: senderEmail },
+    to: [{ email: toEmail.trim(), name: name || toEmail.split("@")[0] }],
+    subject: "Pixel Perfect - Your Account Has Been Deleted",
+    htmlContent: html,
+    textContent: text,
+  };
+
+  try {
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "api-key": apiKey,
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      console.error("[Email Service] Brevo API error (deletion approved):", data.message);
+      return { success: false, error: data.message };
+    }
+    console.log(`[Email Service] Deletion approved email sent to ${toEmail}`);
+    return { success: true, messageId: data.messageId };
+  } catch (err) {
+    console.error("[Email Service] Error sending deletion approved email:", err.message);
+    return { success: false, error: err.message };
   }
 }
 
@@ -665,5 +959,7 @@ module.exports = {
   sendInquiryNotification,
   sendReviewConfirmationEmail,
   sendActivationEmail,
+  sendDeletionRequestedEmail,
+  sendDeletionApprovedEmail,
 };
 

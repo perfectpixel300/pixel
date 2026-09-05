@@ -19,6 +19,7 @@ import {
   BookOpen,
   X,
   Star,
+  Users,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -35,6 +36,8 @@ export function AdminSidebar({
   promoBannersCount = 0,
   blogsCount = 0,
   reviewsCount = 0,
+  usersCount = 0,
+  pendingDeletionsCount = 0,
   inquiriesCount,
   shopStatus = { isOpen: true },
   isCollapsed,
@@ -138,6 +141,13 @@ export function AdminSidebar({
       icon: <Star size={17} />,
       badge: reviewsCount || 0,
       badgeColor: "success",
+    },
+    {
+      id: "users",
+      label: "Users",
+      icon: <Users size={17} />,
+      badge: pendingDeletionsCount > 0 ? `${pendingDeletionsCount} req` : usersCount || 0,
+      badgeColor: pendingDeletionsCount > 0 ? "danger" : "neutral",
     },
     {
       id: "inquiries",

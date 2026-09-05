@@ -43,6 +43,8 @@ export function AdminHeader({
         return "Home Page Hero Banners";
       case "reviews":
         return "Customer Reviews & Star Ratings";
+      case "users":
+        return "Registered Customers & User Directory";
       case "inquiries":
         return "Client Inquiries & Correspondence";
       default:
@@ -74,6 +76,8 @@ export function AdminHeader({
         return "Banners";
       case "reviews":
         return "Reviews";
+      case "users":
+        return "Users";
       case "inquiries":
         return "Inquiries";
       default:
@@ -178,7 +182,7 @@ export function AdminHeader({
             <span className="hidden sm:inline">Create Banner</span>
             <span className="sm:hidden">Banner</span>
           </button>
-        ) : activeTab === "shop-status" ? null : (
+        ) : activeTab === "shop-status" || activeTab === "users" || activeTab === "reviews" || activeTab === "inquiries" || activeTab === "about" ? null : (
           <button onClick={onOpenProductModal} className="btn btn-primary btn-sm gap-1 !px-2.5 sm:!px-3.5 !h-8 sm:!h-9 shadow-xs">
             <PackagePlus size={14} />
             <span className="hidden sm:inline">Add Product</span>

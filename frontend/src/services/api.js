@@ -1024,6 +1024,33 @@ class ApiService {
     }
     return data;
   }
+
+  /* ==========================================================================
+     USER MANAGEMENT (CUSTOMERS) API - ADMIN
+     ========================================================================== */
+
+  async getCustomers() {
+    const res = await fetch(`${API_BASE_URL}/auth/admin/customers`, {
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to fetch customers");
+    }
+    return data;
+  }
+
+  async approveDeleteCustomer(id) {
+    const res = await fetch(`${API_BASE_URL}/auth/admin/customers/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete customer");
+    }
+    return data;
+  }
 }
 
 export const api = new ApiService();

@@ -74,7 +74,14 @@ export function CartDrawer({ onInquireWithCart }) {
       orderText += `*Customer Information:*\n`;
       orderText += `Name: ${user.fullName || user.name || "Customer"}\n`;
       orderText += `Email: ${user.email}\n`;
-      if (user.contactNumber) orderText += `Phone: ${user.contactNumber}\n`;
+      if (user.contactNumber) {
+        const pCode = user.countryCode ? `${user.countryCode} ` : "";
+        orderText += `Primary Phone: ${pCode}${user.contactNumber}\n`;
+      }
+      if (user.secondaryContactNumber) {
+        const sCode = user.secondaryCountryCode ? `${user.secondaryCountryCode} ` : "";
+        orderText += `Secondary Phone: ${sCode}${user.secondaryContactNumber}\n`;
+      }
       if (user.currentAddress) orderText += `Delivery Address: ${user.currentAddress}\n`;
       if (user.nearbyLandmark) orderText += `Landmark: ${user.nearbyLandmark}\n`;
     }

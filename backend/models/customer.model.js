@@ -25,10 +25,26 @@ const customerSchema = new mongoose.Schema(
       minlength: [6, "Password must be at least 6 characters"],
       select: false,
     },
+    countryCode: {
+      type: String,
+      trim: true,
+      default: "+977",
+    },
     contactNumber: {
       type: String,
       trim: true,
       maxlength: [30, "Contact number cannot exceed 30 characters"],
+    },
+    secondaryCountryCode: {
+      type: String,
+      trim: true,
+      default: "+977",
+    },
+    secondaryContactNumber: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: [30, "Secondary contact number cannot exceed 30 characters"],
     },
     currentAddress: {
       type: String,
@@ -59,6 +75,13 @@ const customerSchema = new mongoose.Schema(
     isProfileComplete: {
       type: Boolean,
       default: false,
+    },
+    deletionRequested: {
+      type: Boolean,
+      default: false,
+    },
+    deletionRequestedAt: {
+      type: Date,
     },
     lastLogin: {
       type: Date,

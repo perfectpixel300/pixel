@@ -10,6 +10,10 @@ const {
   customerLogin,
   customerGetMe,
   customerUpdateProfile,
+  customerRequestDeletion,
+  customerCancelDeletion,
+  adminGetCustomers,
+  adminApproveDeleteCustomer,
 } = require("../controllers/auth.controller");
 const { protect, protectCustomer } = require("../middleware/auth.middleware");
 
@@ -21,6 +25,10 @@ router.post("/admin/login", adminLogin);
 router.post("/login", adminLogin); // Admin portal login
 router.get("/admin/me", protect, adminGetMe);
 router.get("/me", protect, adminGetMe); // Admin identity check
+
+// Admin customer management
+router.get("/admin/customers", protect, adminGetCustomers);
+router.delete("/admin/customers/:id", protect, adminApproveDeleteCustomer);
 
 // ==========================================
 // 2. CUSTOMER ROUTES (Normal Storefront Users)
@@ -36,5 +44,7 @@ router.post("/setup-profile", protectCustomer, customerSetupProfile);
 router.post("/customer/login", customerLogin);
 router.get("/customer/me", protectCustomer, customerGetMe);
 router.put("/customer/profile", protectCustomer, customerUpdateProfile);
+router.post("/customer/delete-request", protectCustomer, customerRequestDeletion);
+router.post("/customer/cancel-delete-request", protectCustomer, customerCancelDeletion);
 
 module.exports = router;

@@ -14,6 +14,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { CountryPhoneInput } from "../components/common/CountryPhoneInput";
+import { validatePhoneNumber } from "../utils/phoneValidation";
 
 export function SetupProfilePage({ onNavigate, showToast }) {
   const navigate = useNavigate();
@@ -23,7 +25,10 @@ export function SetupProfilePage({ onNavigate, showToast }) {
   const [tempToken, setTempToken] = useState("");
 
   const [fullName, setFullName] = useState("");
+  const [countryCode, setCountryCode] = useState("+977");
   const [contactNumber, setContactNumber] = useState("");
+  const [secondaryCountryCode, setSecondaryCountryCode] = useState("+977");
+  const [secondaryContactNumber, setSecondaryContactNumber] = useState("");
   const [currentAddress, setCurrentAddress] = useState("");
   const [nearbyLandmark, setNearbyLandmark] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -40,7 +45,10 @@ export function SetupProfilePage({ onNavigate, showToast }) {
 
     if (user) {
       if (user.fullName) setFullName(user.fullName);
+      if (user.countryCode) setCountryCode(user.countryCode);
       if (user.contactNumber) setContactNumber(user.contactNumber);
+      if (user.secondaryCountryCode) setSecondaryCountryCode(user.secondaryCountryCode);
+      if (user.secondaryContactNumber) setSecondaryContactNumber(user.secondaryContactNumber);
       if (user.currentAddress) setCurrentAddress(user.currentAddress);
       if (user.nearbyLandmark) setNearbyLandmark(user.nearbyLandmark);
       if (user.dateOfBirth) setDateOfBirth(user.dateOfBirth);
@@ -55,10 +63,25 @@ export function SetupProfilePage({ onNavigate, showToast }) {
       setError("Please enter your full name.");
       return;
     }
-    if (!contactNumber.trim()) {
-      setError("Please enter your contact phone number.");
+
+    // Verify Primary Contact Number
+    const primaryValidation = validatePhoneNumber(contactNumber, countryCode);
+    if (!primaryValidation.isValid) {
+      setError(`Primary Contact Number: ${primaryValidation.message}`);
       return;
     }
+
+    // Verify Secondary Contact Number (if entered)
+    let cleanSecondary = "";
+    if (secondaryContactNumber && secondaryContactNumber.trim()) {
+      const secondaryValidation = validatePhoneNumber(secondaryContactNumber, secondaryCountryCode);
+      if (!secondaryValidation.isValid) {
+        setError(`Secondary Contact Number: ${secondaryValidation.message}`);
+        return;
+      }
+      cleanSecondary = secondaryValidation.cleanNumber;
+    }
+
     if (!currentAddress.trim()) {
       setError("Please enter your current delivery/residence address.");
       return;
@@ -72,7 +95,10 @@ export function SetupProfilePage({ onNavigate, showToast }) {
       setLoading(true);
       const profileData = {
         fullName: fullName.trim(),
-        contactNumber: contactNumber.trim(),
+        countryCode,
+        contactNumber: primaryValidation.cleanNumber,
+        secondaryCountryCode,
+        secondaryContactNumber: cleanSecondary,
         currentAddress: currentAddress.trim(),
         nearbyLandmark: (nearbyLandmark || "").trim(),
         dateOfBirth,
@@ -173,26 +199,25 @@ export function SetupProfilePage({ onNavigate, showToast }) {
             </div>
           </div>
 
-          {/* Contact Number */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">
-              Contact Number <span className="text-rose-400">*</span>
-            </label>
-            <div className="relative flex items-center">
-              <Phone
-                size={16}
-                className="absolute left-3 text-[var(--text-muted)] pointer-events-none"
-              />
-              <input
-                type="tel"
-                required
-                value={contactNumber}
-                onChange={(e) => setContactNumber(e.target.value)}
-                placeholder="e.g. +977 9801234567"
-                className="form-input !pl-9.5 text-xs sm:text-sm py-2.5 w-full bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-white transition-colors font-mono"
-              />
-            </div>
-          </div>
+          {/* Primary Contact Number (Required with Country Selector) */}
+          <CountryPhoneInput
+            label="Primary Contact Number"
+            required={true}
+            countryCode={countryCode}
+            onCountryCodeChange={setCountryCode}
+            value={contactNumber}
+            onChange={setContactNumber}
+          />
+
+          {/* Secondary Contact Number (Optional with Country Selector) */}
+          <CountryPhoneInput
+            label="Secondary Contact Number"
+            required={false}
+            countryCode={secondaryCountryCode}
+            onCountryCodeChange={setSecondaryCountryCode}
+            value={secondaryContactNumber}
+            onChange={setSecondaryContactNumber}
+          />
 
           {/* Current Address */}
           <div>

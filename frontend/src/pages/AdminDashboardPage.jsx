@@ -17,6 +17,7 @@ import { InquiriesManagement } from "../components/admin/InquiriesManagement";
 import { AboutManagement } from "../components/admin/AboutManagement";
 import { BlogManagement } from "../components/admin/BlogManagement";
 import { ReviewManagement } from "../components/admin/ReviewManagement";
+import { UserManagement } from "../components/admin/UserManagement";
 import { ProductFormModal } from "../components/admin/ProductFormModal";
 import { PrintingFormModal } from "../components/admin/PrintingFormModal";
 import { PrintingCategoryFormModal } from "../components/admin/PrintingCategoryFormModal";
@@ -71,6 +72,20 @@ export function AdminDashboardPage({
   const [blogModal, setBlogModal] = useState({ isOpen: false, blog: null });
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: "product", id: null, name: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [usersSummary, setUsersSummary] = useState({ total: 0, pendingDeletions: 0 });
+
+  // Fetch users count & pending deletions for sidebar badge
+  React.useEffect(() => {
+    api.getCustomers()
+      .then((res) => {
+        if (res && res.customers) {
+          const total = res.customers.length;
+          const pendingDeletions = res.customers.filter((c) => c.deletionRequested).length;
+          setUsersSummary({ total, pendingDeletions });
+        }
+      })
+      .catch(() => {});
+  }, [activeTab]);
 
   const webTiersCount = (services || []).filter((s) => s && s.isWebDevPackage).length;
   const itServicesCount = (services || []).filter((s) => s && !s.isWebDevPackage).length;
@@ -608,6 +623,8 @@ export function AdminDashboardPage({
         promoBannersCount={(promoBanners || []).length}
         blogsCount={(blogs || []).length}
         reviewsCount={(reviews || []).length}
+        usersCount={usersSummary.total}
+        pendingDeletionsCount={usersSummary.pendingDeletions}
         webTiersCount={webTiersCount}
         servicesCount={itServicesCount}
         serviceCategoriesCount={(serviceCategories || []).length}
@@ -803,6 +820,12 @@ export function AdminDashboardPage({
               reviews={reviews}
               onDeleteReview={handleDeleteReviewPrompt}
               isLoading={isRefreshing}
+            />
+          )}
+
+          {activeTab === "users" && (
+            <UserManagement
+              showToast={showToast}
             />
           )}
 

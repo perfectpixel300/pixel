@@ -2,7 +2,11 @@ const crypto = require("crypto");
 const User = require("../models/user.model");
 const Customer = require("../models/customer.model");
 const generateToken = require("../utils/generateToken");
-const { sendActivationEmail } = require("../utils/emailService");
+const {
+  sendActivationEmail,
+  sendDeletionRequestedEmail,
+  sendDeletionApprovedEmail,
+} = require("../utils/emailService");
 
 // Helper to ensure default admin user exists
 const ensureDefaultAdmin = async () => {
@@ -335,12 +339,21 @@ exports.customerVerifyEmail = async (req, res) => {
 // @route   POST /api/auth/customer/setup-profile
 exports.customerSetupProfile = async (req, res) => {
   try {
-    const { fullName, contactNumber, currentAddress, nearbyLandmark, dateOfBirth } = req.body;
+    const {
+      fullName,
+      countryCode,
+      contactNumber,
+      secondaryCountryCode,
+      secondaryContactNumber,
+      currentAddress,
+      nearbyLandmark,
+      dateOfBirth,
+    } = req.body;
 
     if (!fullName || !contactNumber || !currentAddress || !dateOfBirth) {
       return res.status(400).json({
         success: false,
-        message: "Full Name, Contact Number, Current Address, and Date of Birth are all required.",
+        message: "Full Name, Primary Contact Number, Current Address, and Date of Birth are all required.",
       });
     }
 
@@ -360,7 +373,10 @@ exports.customerSetupProfile = async (req, res) => {
     }
 
     customer.fullName = fullName.trim();
+    customer.countryCode = (countryCode || "+977").trim();
     customer.contactNumber = contactNumber.trim();
+    customer.secondaryCountryCode = (secondaryCountryCode || "+977").trim();
+    customer.secondaryContactNumber = (secondaryContactNumber || "").trim();
     customer.currentAddress = currentAddress.trim();
     customer.nearbyLandmark = (nearbyLandmark || "").trim();
     customer.dateOfBirth = dateOfBirth.trim();
@@ -368,7 +384,7 @@ exports.customerSetupProfile = async (req, res) => {
 
     await customer.save({ validateBeforeSave: false });
 
-    const token = generateToken(customer);
+    const token = generateToken(customer, "customer");
 
     res.status(200).json({
       success: true,
@@ -378,7 +394,10 @@ exports.customerSetupProfile = async (req, res) => {
         id: customer._id,
         fullName: customer.fullName,
         email: customer.email,
+        countryCode: customer.countryCode || "+977",
         contactNumber: customer.contactNumber,
+        secondaryCountryCode: customer.secondaryCountryCode || "+977",
+        secondaryContactNumber: customer.secondaryContactNumber || "",
         currentAddress: customer.currentAddress,
         nearbyLandmark: customer.nearbyLandmark,
         dateOfBirth: customer.dateOfBirth,
@@ -460,12 +479,17 @@ exports.customerLogin = async (req, res) => {
         id: customer._id,
         fullName: customer.fullName,
         email: customer.email,
+        countryCode: customer.countryCode || "+977",
         contactNumber: customer.contactNumber,
+        secondaryCountryCode: customer.secondaryCountryCode || "+977",
+        secondaryContactNumber: customer.secondaryContactNumber || "",
         currentAddress: customer.currentAddress,
         nearbyLandmark: customer.nearbyLandmark,
         dateOfBirth: customer.dateOfBirth,
         isEmailVerified: customer.isEmailVerified,
         isProfileComplete: customer.isProfileComplete,
+        deletionRequested: customer.deletionRequested || false,
+        deletionRequestedAt: customer.deletionRequestedAt || null,
       },
     });
   } catch (error) {
@@ -496,12 +520,17 @@ exports.customerGetMe = async (req, res) => {
         id: customer._id,
         fullName: customer.fullName,
         email: customer.email,
+        countryCode: customer.countryCode || "+977",
         contactNumber: customer.contactNumber,
+        secondaryCountryCode: customer.secondaryCountryCode || "+977",
+        secondaryContactNumber: customer.secondaryContactNumber || "",
         currentAddress: customer.currentAddress,
         nearbyLandmark: customer.nearbyLandmark,
         dateOfBirth: customer.dateOfBirth,
         isEmailVerified: customer.isEmailVerified,
         isProfileComplete: customer.isProfileComplete,
+        deletionRequested: customer.deletionRequested || false,
+        deletionRequestedAt: customer.deletionRequestedAt || null,
         lastLogin: customer.lastLogin,
         createdAt: customer.createdAt,
       },
@@ -519,7 +548,16 @@ exports.customerGetMe = async (req, res) => {
 // @route   PUT /api/auth/customer/profile
 exports.customerUpdateProfile = async (req, res) => {
   try {
-    const { fullName, contactNumber, currentAddress, nearbyLandmark, dateOfBirth } = req.body;
+    const {
+      fullName,
+      countryCode,
+      contactNumber,
+      secondaryCountryCode,
+      secondaryContactNumber,
+      currentAddress,
+      nearbyLandmark,
+      dateOfBirth,
+    } = req.body;
 
     const customer = await Customer.findById(req.customer.id);
     if (!customer) {
@@ -530,7 +568,10 @@ exports.customerUpdateProfile = async (req, res) => {
     }
 
     if (fullName) customer.fullName = fullName.trim();
+    if (countryCode) customer.countryCode = countryCode.trim();
     if (contactNumber) customer.contactNumber = contactNumber.trim();
+    if (secondaryCountryCode !== undefined) customer.secondaryCountryCode = secondaryCountryCode.trim();
+    if (secondaryContactNumber !== undefined) customer.secondaryContactNumber = secondaryContactNumber.trim();
     if (currentAddress) customer.currentAddress = currentAddress.trim();
     if (nearbyLandmark !== undefined) customer.nearbyLandmark = nearbyLandmark.trim();
     if (dateOfBirth) customer.dateOfBirth = dateOfBirth.trim();
@@ -544,12 +585,17 @@ exports.customerUpdateProfile = async (req, res) => {
         id: customer._id,
         fullName: customer.fullName,
         email: customer.email,
+        countryCode: customer.countryCode || "+977",
         contactNumber: customer.contactNumber,
+        secondaryCountryCode: customer.secondaryCountryCode || "+977",
+        secondaryContactNumber: customer.secondaryContactNumber || "",
         currentAddress: customer.currentAddress,
         nearbyLandmark: customer.nearbyLandmark,
         dateOfBirth: customer.dateOfBirth,
         isEmailVerified: customer.isEmailVerified,
         isProfileComplete: customer.isProfileComplete,
+        deletionRequested: customer.deletionRequested || false,
+        deletionRequestedAt: customer.deletionRequestedAt || null,
       },
     });
   } catch (error) {
@@ -557,6 +603,157 @@ exports.customerUpdateProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update profile.",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Customer requests account deletion
+// @route   POST /api/auth/customer/delete-request
+exports.customerRequestDeletion = async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    const customer = await Customer.findById(req.customer.id).select("+password");
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer account not found.",
+      });
+    }
+
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter your password to confirm account deletion request.",
+      });
+    }
+
+    const isMatch = await customer.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Incorrect password. Verification failed.",
+      });
+    }
+
+    customer.deletionRequested = true;
+    customer.deletionRequestedAt = new Date();
+    await customer.save({ validateBeforeSave: false });
+
+    // Send confirmation email to customer
+    await sendDeletionRequestedEmail({
+      toEmail: customer.email,
+      name: customer.fullName,
+    });
+
+    res.status(200).json({
+      success: true,
+      message:
+        "Your account deletion request has been submitted. It will take approximately 24 hours to process and finalize. A confirmation email has been sent.",
+      deletionRequested: true,
+      deletionRequestedAt: customer.deletionRequestedAt,
+    });
+  } catch (error) {
+    console.error("Customer Request Deletion error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to submit account deletion request.",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Customer cancels account deletion request
+// @route   POST /api/auth/customer/cancel-delete-request
+exports.customerCancelDeletion = async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.customer.id);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer account not found.",
+      });
+    }
+
+    customer.deletionRequested = false;
+    customer.deletionRequestedAt = null;
+    await customer.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: "Your account deletion request has been cancelled.",
+      deletionRequested: false,
+    });
+  } catch (error) {
+    console.error("Customer Cancel Deletion error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to cancel deletion request.",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Admin: Get all registered customers / users
+// @route   GET /api/auth/admin/customers
+exports.adminGetCustomers = async (req, res) => {
+  try {
+    const customers = await Customer.find()
+      .select("-password -emailVerificationToken -emailVerificationExpires")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: customers.length,
+      customers,
+    });
+  } catch (error) {
+    console.error("Admin Get Customers error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve registered users.",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Admin: Approve and permanently delete customer account
+// @route   DELETE /api/auth/admin/customers/:id
+exports.adminApproveDeleteCustomer = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const customer = await Customer.findById(id);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer account not found.",
+      });
+    }
+
+    const email = customer.email;
+    const name = customer.fullName;
+
+    // Send final deletion approved notification email to customer
+    await sendDeletionApprovedEmail({
+      toEmail: email,
+      name,
+    });
+
+    // Permanently remove customer from database
+    await Customer.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: `Customer account for ${email} has been permanently deleted and confirmed via email.`,
+      deletedId: id,
+    });
+  } catch (error) {
+    console.error("Admin Approve Delete Customer error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to permanently delete customer account.",
       error: error.message,
     });
   }

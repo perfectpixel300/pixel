@@ -198,6 +198,65 @@ export const customerAuthService = {
     }
   },
 
+  async requestDeletion(password) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/customer/delete-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...this.getAuthHeader(),
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to submit account deletion request");
+      }
+
+      const currentUser = this.getCurrentUser();
+      if (currentUser) {
+        currentUser.deletionRequested = true;
+        currentUser.deletionRequestedAt = data.deletionRequestedAt || new Date().toISOString();
+        localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+      }
+
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  async cancelDeletion() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/customer/cancel-delete-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...this.getAuthHeader(),
+        },
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to cancel deletion request");
+      }
+
+      const currentUser = this.getCurrentUser();
+      if (currentUser) {
+        currentUser.deletionRequested = false;
+        currentUser.deletionRequestedAt = null;
+        localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+      }
+
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  },
+
   logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

@@ -112,6 +112,34 @@ export function AuthProvider({ children }) {
     return await customerAuthService.resendVerification(email);
   };
 
+  const customerRequestDeletion = async (password) => {
+    const res = await customerAuthService.requestDeletion(password);
+    setCustomerUser((prev) =>
+      prev
+        ? {
+            ...prev,
+            deletionRequested: true,
+            deletionRequestedAt: res.deletionRequestedAt || new Date().toISOString(),
+          }
+        : prev
+    );
+    return res;
+  };
+
+  const customerCancelDeletion = async () => {
+    const res = await customerAuthService.cancelDeletion();
+    setCustomerUser((prev) =>
+      prev
+        ? {
+            ...prev,
+            deletionRequested: false,
+            deletionRequestedAt: null,
+          }
+        : prev
+    );
+    return res;
+  };
+
   const customerLogout = () => {
     customerAuthService.logout();
     setCustomerUser(null);
@@ -138,6 +166,8 @@ export function AuthProvider({ children }) {
         customerSetupProfile,
         customerUpdateProfile,
         customerResendVerification,
+        customerRequestDeletion,
+        customerCancelDeletion,
         customerLogout,
 
         // Storefront standard aliases for customer
@@ -150,6 +180,8 @@ export function AuthProvider({ children }) {
         setupProfile: customerSetupProfile,
         updateProfile: customerUpdateProfile,
         resendVerification: customerResendVerification,
+        requestDeletion: customerRequestDeletion,
+        cancelDeletion: customerCancelDeletion,
         logout: customerLogout,
       }}
     >
