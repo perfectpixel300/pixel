@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Phone, CheckCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, ChevronDown } from "lucide-react";
 import { COUNTRIES, validatePhoneNumber, getCountryByCodeOrIso } from "../../utils/phoneValidation";
 
 export function CountryPhoneInput({
@@ -42,53 +42,53 @@ export function CountryPhoneInput({
         )}
       </div>
 
-      {/* Input Group: Country Selector on the left, Phone input on the right */}
+      {/* Input Group: Compact Country Selector on the left, spacious Phone input on the right */}
       <div className="flex items-stretch rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus-within:border-white transition-colors overflow-hidden bg-[var(--bg-input)]">
-        {/* Country Selector Dropdown */}
-        <div className="relative shrink-0 border-r border-[var(--border-medium)] bg-[var(--bg-elevated)] flex items-center">
+        {/* Compact Country Selector (Fixed width ~88px so it never expands too wide) */}
+        <div className="relative shrink-0 w-[84px] sm:w-[90px] border-r border-[var(--border-medium)] bg-[var(--bg-elevated)] hover:bg-white/5 transition-colors flex items-center justify-between px-2.5 select-none cursor-pointer">
+          <div className="flex items-center gap-1.5 min-w-0 pointer-events-none">
+            <span className="text-sm leading-none shrink-0">{selectedCountry.flag}</span>
+            <span className="text-xs font-mono font-bold text-[var(--text-primary)] truncate">
+              {selectedCountry.code}
+            </span>
+          </div>
+          <ChevronDown size={12} className="text-[var(--text-muted)] shrink-0 pointer-events-none ml-1" />
+
+          {/* Invisible full-sized native select overlaid for optimal native mobile & desktop UX */}
           <select
             value={countryCode}
             disabled={disabled}
             onChange={(e) => onCountryCodeChange && onCountryCodeChange(e.target.value)}
-            className="appearance-none bg-transparent pl-2.5 pr-6 py-2.5 text-xs font-medium text-[var(--text-primary)] cursor-pointer focus:outline-none"
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
             title="Select Country Dial Code"
           >
             {COUNTRIES.map((c) => (
-              <option key={c.iso} value={c.code} className="bg-zinc-900 text-white">
-                {c.flag} {c.code} ({c.name})
+              <option key={c.iso} value={c.code} className="bg-zinc-900 text-white py-1">
+                {c.flag} {c.code} — {c.name}
               </option>
             ))}
           </select>
-          <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-[0.6rem] text-[var(--text-muted)]">
-            ▼
-          </div>
         </div>
 
-        {/* Number Input Field */}
-        <div className="relative flex-1 flex items-center">
-          <Phone
-            size={14}
-            className={`absolute left-3 pointer-events-none ${
-              isVerified ? "text-emerald-400" : isInvalid ? "text-rose-400" : "text-[var(--text-muted)]"
-            }`}
-          />
+        {/* Number Input Field (Spacious & uncluttered) */}
+        <div className="relative flex-1 flex items-center min-w-0">
           <input
             type="tel"
             disabled={disabled}
             value={value}
             onChange={(e) => onChange && onChange(e.target.value)}
-            placeholder={selectedCountry.placeholder || "Phone digits"}
-            className="w-full bg-transparent pl-8.5 pr-8 py-2.5 text-xs sm:text-sm font-mono text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)]"
+            placeholder={selectedCountry.placeholder || "Phone number"}
+            className="w-full bg-transparent px-3 py-2.5 text-xs sm:text-sm font-mono text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-muted)] tracking-wide"
           />
           {isVerified && (
             <CheckCircle
-              size={15}
+              size={14}
               className="absolute right-3 text-emerald-400 pointer-events-none shrink-0"
             />
           )}
           {isInvalid && (
             <AlertCircle
-              size={15}
+              size={14}
               className="absolute right-3 text-rose-400 pointer-events-none shrink-0"
             />
           )}

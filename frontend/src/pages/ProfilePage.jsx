@@ -19,6 +19,7 @@ import {
   Lock,
   X,
   Clock,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";

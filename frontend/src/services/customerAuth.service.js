@@ -1,7 +1,8 @@
 const TOKEN_KEY = "pixel_customer_token";
 const USER_KEY = "pixel_customer_user";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const RAW_API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = RAW_API_URL.replace(/\/+$/, "");
 
 export const customerAuthService = {
   async register(email, password) {

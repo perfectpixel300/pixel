@@ -28,7 +28,9 @@ router.get("/me", protect, adminGetMe); // Admin identity check
 
 // Admin customer management
 router.get("/admin/customers", protect, adminGetCustomers);
+router.get("/customers", protect, adminGetCustomers);
 router.delete("/admin/customers/:id", protect, adminApproveDeleteCustomer);
+router.delete("/customers/:id", protect, adminApproveDeleteCustomer);
 
 // ==========================================
 // 2. CUSTOMER ROUTES (Normal Storefront Users)
@@ -45,6 +47,8 @@ router.post("/customer/login", customerLogin);
 router.get("/customer/me", protectCustomer, customerGetMe);
 router.put("/customer/profile", protectCustomer, customerUpdateProfile);
 router.post("/customer/delete-request", protectCustomer, customerRequestDeletion);
+router.post("/delete-request", protectCustomer, customerRequestDeletion);
 router.post("/customer/cancel-delete-request", protectCustomer, customerCancelDeletion);
+router.post("/cancel-delete-request", protectCustomer, customerCancelDeletion);
 
 module.exports = router;

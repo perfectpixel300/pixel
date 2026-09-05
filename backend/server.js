@@ -54,6 +54,8 @@ app.use((req, res, next) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/customer", authRoutes);
+app.use("/api/customers", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/banners", bannerRoutes);
