@@ -657,6 +657,10 @@ async function sendActivationEmail({ toEmail, activationLink }) {
     return { success: true, messageId: data.messageId, activationLink };
   } catch (err) {
     console.error("[Email Service] Error sending activation email:", err.message);
+    return { success: false, error: err.message, activationLink };
+  }
+}
+
 /**
  * Build HTML and Plain Text templates for Account Deletion Request
  */
