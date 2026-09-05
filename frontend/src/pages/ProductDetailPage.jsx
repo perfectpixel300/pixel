@@ -21,6 +21,7 @@ import { ProductCard } from "../components/storefront/ProductCard";
 import { ReviewModal } from "../components/storefront/ReviewModal";
 import { useSmoothSwiper } from "../utils/useSmoothSwiper";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
 
 export function ProductDetailPage({
@@ -43,6 +44,7 @@ export function ProductDetailPage({
   });
 
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(!product && Boolean(idOrSlug));
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -442,7 +444,13 @@ export function ProductDetailPage({
 
                 <button
                   type="button"
-                  onClick={() => addToCart(product, quantity)}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      navigate("/login", { state: { from: window.location.pathname } });
+                      return;
+                    }
+                    addToCart(product, quantity);
+                  }}
                   disabled={!(product.isAvailable && (product.stock === undefined || Number(product.stock) > 0))}
                   className={`btn flex-1 py-3.5 text-xs sm:text-sm font-bold gap-2 shadow-md ${
                     product.isAvailable && (product.stock === undefined || Number(product.stock) > 0)

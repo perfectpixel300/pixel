@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { MessageSquare, ArrowUpRight, Package, ShoppingBag } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 
 export function ProductCard({ product, onViewDetails, onInquire }) {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
 
   if (!product) return null;
 
@@ -41,6 +43,10 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
   const handleAddToCart = (e) => {
     e?.preventDefault?.();
     e?.stopPropagation?.();
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: window.location.pathname } });
+      return;
+    }
     addToCart(product, 1);
   };
 

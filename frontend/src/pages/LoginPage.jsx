@@ -74,7 +74,10 @@ export function LoginPage({ onNavigate }) {
       const res = await login(email, password);
 
       // Successfully authenticated
-      if (onNavigate) {
+      const returnUrl = location.state?.from;
+      if (returnUrl) {
+        navigate(returnUrl);
+      } else if (onNavigate) {
         onNavigate("home");
       } else {
         navigate("/");

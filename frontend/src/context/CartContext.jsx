@@ -1,9 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 const CartContext = createContext(null);
 const CART_STORAGE_KEY = "pixel_cart_items";
 
 export function CartProvider({ children }) {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
   const [cartItems, setCartItems] = useState(() => {
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
@@ -26,6 +31,10 @@ export function CartProvider({ children }) {
   }, [cartItems]);
 
   const addToCart = (product, quantity = 1, selectedOptions = {}) => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return false;
+    }
     if (!product) return;
 
     const productId = product._id || product.slug || product.id;
