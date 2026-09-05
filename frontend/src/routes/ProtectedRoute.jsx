@@ -3,9 +3,9 @@ import { useAuth } from "../context/AuthContext";
 import { AdminLoginPage } from "../pages/AdminLoginPage";
 
 export function ProtectedRoute({ children, onBackToStore }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAdminAuthenticated, isAdminLoading } = useAuth();
 
-  if (isLoading) {
+  if (isAdminLoading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center text-[var(--text-muted)] text-sm">
         Verifying administrative authorization...
@@ -13,7 +13,7 @@ export function ProtectedRoute({ children, onBackToStore }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAdminAuthenticated) {
     return <AdminLoginPage onBackToStore={onBackToStore} />;
   }
 

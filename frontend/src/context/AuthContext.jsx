@@ -1,44 +1,142 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { authService } from "../services/auth.service";
+import { customerAuthService } from "../services/customerAuth.service";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // 1. Separate Administrative Studio Auth State
+  const [adminUser, setAdminUser] = useState(null);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [isAdminLoading, setIsAdminLoading] = useState(true);
 
+  // 2. Separate Storefront Customer (Normal User) Auth State
+  const [customerUser, setCustomerUser] = useState(null);
+  const [isCustomerAuthenticated, setIsCustomerAuthenticated] = useState(false);
+  const [isCustomerLoading, setIsCustomerLoading] = useState(true);
+
+  // Initialize both sessions independently from their respective storage keys
   useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    const token = authService.getToken();
-    if (token && currentUser) {
-      setUser(currentUser);
-      setIsAuthenticated(true);
+    // Admin session
+    const currentAdmin = authService.getCurrentUser();
+    const isAdmAuth = authService.isAuthenticated();
+    if (isAdmAuth && currentAdmin) {
+      setAdminUser(currentAdmin);
+      setIsAdminAuthenticated(true);
     }
-    setIsLoading(false);
+    setIsAdminLoading(false);
+
+    // Customer session
+    const currentCust = customerAuthService.getCurrentUser();
+    const isCustAuth = customerAuthService.isAuthenticated();
+    if (isCustAuth && currentCust) {
+      setCustomerUser(currentCust);
+      setIsCustomerAuthenticated(true);
+      customerAuthService
+        .getMe()
+        .then((res) => {
+          if (res?.user) setCustomerUser(res.user);
+        })
+        .catch(() => {});
+    }
+    setIsCustomerLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  // --- Admin Methods (Protected Studio only) ---
+  const adminLogin = async (email, password) => {
     const res = await authService.login(email, password);
-    setUser(res.user);
-    setIsAuthenticated(true);
+    setAdminUser(res.user);
+    setIsAdminAuthenticated(true);
     return res;
   };
 
-  const logout = () => {
+  const adminLogout = () => {
     authService.logout();
-    setUser(null);
-    setIsAuthenticated(false);
+    setAdminUser(null);
+    setIsAdminAuthenticated(false);
+  };
+
+  // --- Customer Methods (Storefront normal users) ---
+  const customerLogin = async (email, password) => {
+    const res = await customerAuthService.login(email, password);
+    setCustomerUser(res.user);
+    setIsCustomerAuthenticated(true);
+    return res;
+  };
+
+  const customerRegister = async (email, password) => {
+    return await customerAuthService.register(email, password);
+  };
+
+  const customerVerifyEmail = async (token) => {
+    const res = await customerAuthService.verifyEmail(token);
+    if (res.token && res.user) {
+      setCustomerUser(res.user);
+      setIsCustomerAuthenticated(true);
+    }
+    return res;
+  };
+
+  const customerSetupProfile = async (profileData, tempToken) => {
+    const res = await customerAuthService.setupProfile(profileData, tempToken);
+    if (res.user) {
+      setCustomerUser(res.user);
+      setIsCustomerAuthenticated(true);
+    }
+    return res;
+  };
+
+  const customerUpdateProfile = async (profileData) => {
+    const res = await customerAuthService.updateProfile(profileData);
+    if (res.user) {
+      setCustomerUser(res.user);
+    }
+    return res;
+  };
+
+  const customerResendVerification = async (email) => {
+    return await customerAuthService.resendVerification(email);
+  };
+
+  const customerLogout = () => {
+    customerAuthService.logout();
+    setCustomerUser(null);
+    setIsCustomerAuthenticated(false);
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        isAuthenticated,
-        isLoading,
-        login,
-        logout,
+        // Admin exports (Strictly separated for Admin Studio)
+        adminUser,
+        isAdminAuthenticated,
+        isAdminLoading,
+        adminLogin,
+        adminLogout,
+
+        // Customer exports (Strictly for normal storefront members)
+        customerUser,
+        isCustomerAuthenticated,
+        isCustomerLoading,
+        customerLogin,
+        customerRegister,
+        customerVerifyEmail,
+        customerSetupProfile,
+        customerUpdateProfile,
+        customerResendVerification,
+        customerLogout,
+
+        // Storefront standard aliases for customer
+        user: customerUser,
+        isAuthenticated: isCustomerAuthenticated,
+        isLoading: isCustomerLoading,
+        login: customerLogin,
+        register: customerRegister,
+        verifyEmail: customerVerifyEmail,
+        setupProfile: customerSetupProfile,
+        updateProfile: customerUpdateProfile,
+        resendVerification: customerResendVerification,
+        logout: customerLogout,
       }}
     >
       {children}
@@ -53,3 +151,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

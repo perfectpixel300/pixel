@@ -492,8 +492,178 @@ async function sendReviewConfirmationEmail({ toEmail, firstName, lastName, ratin
   }
 }
 
+/**
+ * Build HTML and Plain Text templates for account activation email
+ */
+function buildActivationEmailTemplate({ activationLink, email }) {
+  const safeEmail = escapeHtml(email || "");
+  const safeLink = escapeHtml(activationLink || "#");
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activate Your Account - Pixel Perfect</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #090a0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f4f4f5;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #090a0f; padding: 36px 16px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card -->
+        <table role="presentation" width="100%" style="max-width: 580px; background-color: #121318; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,0.6);" cellspacing="0" cellpadding="0" border="0">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 32px 36px; background-color: #09090b; border-bottom: 1px solid #27272a; text-align: left;">
+              <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: #a1a1aa; margin-bottom: 6px;">
+                PIXEL PERFECT
+              </div>
+              <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">
+                Verify Your Email Address
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 36px;">
+              <p style="margin: 0 0 16px 0; font-size: 15px; color: #f4f4f5; line-height: 1.6;">
+                Welcome to <strong>Pixel Perfect</strong>!
+              </p>
+              <p style="margin: 0 0 24px 0; font-size: 14px; color: #a1a1aa; line-height: 1.6;">
+                You recently registered with the email address <strong style="color: #ffffff;">${safeEmail}</strong>. To complete your account setup and activate your account, please verify your email address by clicking the button below:
+              </p>
+
+              <!-- CTA Button -->
+              <div style="text-align: center; margin: 32px 0;">
+                <a href="${safeLink}" style="display: inline-block; background-color: #ffffff; color: #09090b; font-size: 14px; font-weight: 700; padding: 14px 32px; border-radius: 8px; text-decoration: none; letter-spacing: 0.02em; box-shadow: 0 4px 14px rgba(255,255,255,0.2);">
+                  Activate &amp; Verify Account &rarr;
+                </a>
+              </div>
+
+              <!-- Expiry Note -->
+              <div style="background-color: #18181b; border: 1px solid #27272a; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px;">
+                <p style="margin: 0; font-size: 12px; color: #a1a1aa; line-height: 1.5;">
+                  ⏱️ <strong>Note:</strong> This verification link will expire in <strong>24 hours</strong>. After verifying, you will be prompted to enter your profile details (name, contact, address, landmark, and birth date).
+                </p>
+              </div>
+
+              <p style="margin: 0 0 8px 0; font-size: 12px; color: #71717a; line-height: 1.5;">
+                If the button above does not work, copy and paste this link into your browser:
+              </p>
+              <p style="margin: 0 0 24px 0; font-size: 12px; word-break: break-all; color: #38bdf8;">
+                <a href="${safeLink}" style="color: #38bdf8; text-decoration: underline;">${safeLink}</a>
+              </p>
+
+              <div style="border-top: 1px solid #27272a; padding-top: 20px; font-size: 12px; color: #71717a; line-height: 1.5;">
+                If you did not register for an account at Pixel Perfect, please safely disregard this email.
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 36px; background-color: #09090b; border-top: 1px solid #27272a; text-align: center; font-size: 11px; color: #71717a;">
+              Pixel Perfect &bull; Design, Engineering &amp; Fine Print Catalog
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+
+  const text = `
+PIXEL PERFECT - ACCOUNT ACTIVATION
+===================================
+
+Welcome to Pixel Perfect!
+
+You registered with the email: ${email}
+
+To activate your account and complete your profile setup, please open the following link in your browser:
+${activationLink}
+
+This activation link will expire in 24 hours.
+
+Once verified, you can complete your profile information (full name, contact number, address, landmark, and date of birth).
+
+If you did not create an account on Pixel Perfect, you can safely ignore this email.
+`;
+
+  return { html, text };
+}
+
+/**
+ * Send account activation / email verification email via Brevo REST API
+ */
+async function sendActivationEmail({ toEmail, activationLink }) {
+  if (!toEmail || !toEmail.includes("@")) {
+    return { success: false, reason: "invalid_email" };
+  }
+
+  const apiKey = (process.env.BREVO_API_KEY || "").trim();
+  const senderEmail = (process.env.BREVO_SENDER_EMAIL || "perfectpixel300@gmail.com").trim();
+  const senderName = (process.env.BREVO_SENDER_NAME || "Pixel Perfect").trim();
+
+  if (!apiKey) {
+    console.warn("[Email Service] Notice: BREVO_API_KEY is not configured. Activation email skipped.");
+    return { success: false, reason: "apiKey_missing", activationLink };
+  }
+
+  const { html, text } = buildActivationEmailTemplate({
+    activationLink,
+    email: toEmail,
+  });
+
+  const payload = {
+    sender: {
+      name: senderName,
+      email: senderEmail,
+    },
+    to: [
+      {
+        email: toEmail.trim(),
+        name: toEmail.split("@")[0],
+      },
+    ],
+    subject: "Activate your Pixel Perfect Account - Email Verification",
+    htmlContent: html,
+    textContent: text,
+  };
+
+  try {
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "api-key": apiKey,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      console.error("[Email Service] Brevo API rejected activation email:", data.message || response.statusText);
+      return { success: false, error: data.message, activationLink };
+    }
+
+    console.log(`[Email Service] Activation email sent to ${toEmail} (MessageId: ${data.messageId || "ok"})`);
+    return { success: true, messageId: data.messageId, activationLink };
+  } catch (err) {
+    console.error("[Email Service] Error sending activation email:", err.message);
+    return { success: false, error: err.message, activationLink };
+  }
+}
+
 module.exports = {
   sendInquiryNotification,
   sendReviewConfirmationEmail,
+  sendActivationEmail,
 };
 

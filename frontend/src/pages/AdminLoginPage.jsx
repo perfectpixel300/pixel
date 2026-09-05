@@ -8,7 +8,7 @@ export function AdminLoginPage({ onBackToStore, onLoginSuccess }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { login } = useAuth();
+  const { adminLogin } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -29,7 +29,7 @@ export function AdminLoginPage({ onBackToStore, onLoginSuccess }) {
     try {
       setIsLoading(true);
       setError("");
-      await login(trimmedEmail, trimmedPassword);
+      await adminLogin(trimmedEmail, trimmedPassword);
       if (onLoginSuccess) onLoginSuccess();
     } catch (err) {
       setError(err.message || "Invalid administrative credentials");

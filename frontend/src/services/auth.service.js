@@ -9,7 +9,7 @@ export const authService = {
     const cleanPassword = (password || "").trim();
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      const res = await fetch(`${API_BASE_URL}/auth/admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -23,11 +23,11 @@ export const authService = {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        throw new Error(data.message || "Login failed");
+        throw new Error(data.message || "Administrative login failed");
       }
 
       if (!data.success || !data.token) {
-        throw new Error(data.message || "Invalid login response");
+        throw new Error(data.message || "Invalid administrative response");
       }
 
       localStorage.setItem(TOKEN_KEY, data.token);
@@ -35,7 +35,7 @@ export const authService = {
 
       return data;
     } catch (err) {
-      throw new Error(err.message || "Unable to connect to server");
+      throw new Error(err.message || "Unable to connect to administrative server");
     }
   },
 
@@ -63,6 +63,8 @@ export const authService = {
   },
 
   isAuthenticated() {
-    return Boolean(this.getToken());
+    const user = this.getCurrentUser();
+    const token = this.getToken();
+    return Boolean(token && user && (user.role === "admin" || user.role === "editor"));
   },
 };

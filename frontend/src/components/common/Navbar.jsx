@@ -28,9 +28,14 @@ import {
   Sparkles,
   Loader2,
   Download,
+  User,
+  LogOut,
+  Shield,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 import { usePWA } from "../../context/PWAContext";
+import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -61,15 +66,30 @@ export function Navbar({
   const [showStatusPopover, setShowStatusPopover] = useState(false);
   const [timerText, setTimerText] = useState("");
   const [hoveredNav, setHoveredNav] = useState(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const { isInstalled, installApp } = usePWA();
+  const { user, isAuthenticated, logout, isAdminAuthenticated } = useAuth();
+  const { openCart, totalItems } = useCart();
 
   const headerRef = useRef(null);
   const statusPopoverRef = useRef(null);
   const desktopStatusPopoverRef = useRef(null);
   const searchContainerRef = useRef(null);
   const searchInputRef = useRef(null);
+  const userMenuRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
+
+  // Close user dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleMouseEnter = (id) => {
     if (hoverTimeoutRef.current) {
@@ -993,6 +1013,135 @@ export function Navbar({
           >
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </button>
+
+          {/* Shopping Cart Button with Dynamic Badge */}
+          <button
+            type="button"
+            onClick={openCart}
+            className="btn-icon btn-ghost relative"
+            title="Shopping Cart"
+            aria-label="View Shopping Cart"
+          >
+            <ShoppingBag size={16} />
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 bg-white text-black font-mono font-black text-[0.58rem] w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-[scaleUp_0.15s_ease-out]">
+                {totalItems > 99 ? "99+" : totalItems}
+              </span>
+            )}
+          </button>
+
+          {/* User Auth: Login / Register OR User Email & Profile Menu */}
+          {!isAuthenticated || !user ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (setActivePage) setActivePage("login");
+              }}
+              className="btn btn-secondary btn-sm gap-1.5 text-xs !py-1.5 !px-3 font-semibold shrink-0"
+              title="Sign In or Create Account"
+            >
+              <User size={13} />
+              <span className="hidden sm:inline">Login / Register</span>
+              <span className="sm:hidden">Login</span>
+            </button>
+          ) : (
+            <div className="relative shrink-0" ref={userMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center gap-1.5 py-1 px-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors text-xs font-medium max-w-[130px] sm:max-w-[170px] md:max-w-[210px]"
+                title={user.email}
+              >
+                <div className="w-5 h-5 rounded-full bg-zinc-800 text-white font-bold text-[0.625rem] flex items-center justify-center shrink-0 border border-zinc-700">
+                  {(user.fullName || user.name || user.email || "U")[0].toUpperCase()}
+                </div>
+                <span className="truncate text-[var(--text-primary)]">
+                  {user.email}
+                </span>
+                <ChevronDown
+                  size={12}
+                  className={`text-[var(--text-muted)] shrink-0 transition-transform duration-200 ${
+                    isUserMenuOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* User Dropdown Menu */}
+              {isUserMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 p-1.5 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
+                  <div className="px-3 py-2 border-b border-[var(--border-subtle)]">
+                    <div className="text-xs font-bold truncate text-[var(--text-primary)]">
+                      {user.fullName || user.name || "Member"}
+                    </div>
+                    <div className="text-[0.675rem] font-mono text-[var(--text-muted)] truncate">
+                      {user.email}
+                    </div>
+                  </div>
+
+                  <div className="py-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        if (setActivePage) setActivePage("profile");
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-elevated)] rounded-[var(--radius-xs)] transition-colors text-left font-medium"
+                    >
+                      <User size={13} />
+                      <span>Manage Profile</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        openCart();
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-white hover:bg-[var(--bg-elevated)] rounded-[var(--radius-xs)] transition-colors text-left font-medium"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <ShoppingBag size={13} />
+                        <span>Shopping Cart</span>
+                      </div>
+                      {totalItems > 0 && (
+                        <span className="text-[0.625rem] font-mono font-bold px-1.5 py-0.2 rounded-full bg-white text-black">
+                          {totalItems}
+                        </span>
+                      )}
+                    </button>
+
+                    {(user.role === "admin" || isAdminAuthenticated) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          if (setActivePage) setActivePage("admin");
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-amber-400 hover:bg-amber-500/10 rounded-[var(--radius-xs)] transition-colors text-left font-medium"
+                      >
+                        <Shield size={13} />
+                        <span>Admin Studio</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="border-t border-[var(--border-subtle)] pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-[var(--radius-xs)] transition-colors text-left font-medium"
+                    >
+                      <LogOut size={13} />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1615,6 +1764,106 @@ export function Navbar({
                   </a>
                 </div>
               </div>
+
+            {/* Section: Account & Cart (Mobile) */}
+            <div>
+              <div className="text-[0.65rem] font-bold uppercase tracking-[0.1em] text-[var(--text-muted)] mb-1.5">
+                Account & Cart
+              </div>
+              <div className="flex flex-col gap-2">
+                {/* Cart Row */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuDrawerOpen(false);
+                    openCart();
+                  }}
+                  className="flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag size={14} className="text-white" />
+                    <span className="text-xs font-semibold">Shopping Cart</span>
+                  </div>
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-white text-black">
+                    {totalItems} {totalItems === 1 ? "item" : "items"}
+                  </span>
+                </button>
+
+                {/* User Row */}
+                {isAuthenticated && user ? (
+                  <div className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-6 h-6 rounded-full bg-zinc-800 border border-zinc-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                          {(user.fullName || user.name || user.email || "U")[0].toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold truncate text-white">
+                            {user.fullName || user.name || "Member"}
+                          </div>
+                          <div className="text-[0.65rem] font-mono text-[var(--text-muted)] truncate">
+                            {user.email}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                        Verified
+                      </span>
+                    </div>
+
+                    <div className="flex gap-1.5 pt-1 border-t border-[var(--border-subtle)]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMenuDrawerOpen(false);
+                          if (setActivePage) setActivePage("profile");
+                        }}
+                        className="btn btn-secondary btn-sm flex-1 !py-1 text-xs"
+                      >
+                        Manage Profile
+                      </button>
+                      {(user.role === "admin" || isAdminAuthenticated) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsMenuDrawerOpen(false);
+                            if (setActivePage) setActivePage("admin");
+                          }}
+                          className="btn btn-secondary btn-sm !py-1 text-xs text-amber-400"
+                        >
+                          Admin
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMenuDrawerOpen(false);
+                          logout();
+                        }}
+                        className="btn btn-ghost btn-sm !py-1 text-xs text-rose-400"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuDrawerOpen(false);
+                      if (setActivePage) setActivePage("login");
+                    }}
+                    className="flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <User size={14} className="text-white" />
+                      <span className="text-xs font-semibold">Sign In / Register</span>
+                    </div>
+                    <ArrowRight size={13} className="text-[var(--text-muted)]" />
+                  </button>
+                )}
+              </div>
+            </div>
 
             {/* Section 4: Display & Theme */}
             <div>

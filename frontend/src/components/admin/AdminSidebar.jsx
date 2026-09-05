@@ -44,7 +44,7 @@ export function AdminSidebar({
   mobileSidebarOpen = false,
   setMobileSidebarOpen,
 }) {
-  const { logout } = useAuth();
+  const { adminLogout } = useAuth();
 
   const navItems = [
     {
@@ -291,7 +291,7 @@ export function AdminSidebar({
             <button
               onClick={() => {
                 if (setMobileSidebarOpen) setMobileSidebarOpen(false);
-                logout();
+                adminLogout();
               }}
               className={`w-full flex items-center gap-2.5 rounded-[var(--radius-sm)] bg-transparent text-[var(--color-danger)] cursor-pointer text-[0.78rem] font-semibold hover:bg-[var(--color-danger-bg)] transition-colors ${
                 isCollapsed ? "py-2 justify-center" : "py-2 px-3 justify-start"

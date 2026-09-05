@@ -1,12 +1,26 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageSquare, MessageCircle, Package, Loader2, Share2, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import {
+  ArrowLeft,
+  MessageSquare,
+  MessageCircle,
+  Package,
+  Loader2,
+  Share2,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  ShoppingBag,
+  Plus,
+  Minus,
+} from "lucide-react";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 import { ShareModal } from "../components/common/ShareModal";
 import { SwipableImageGallery } from "../components/common/SwipableImageGallery";
 import { ProductCard } from "../components/storefront/ProductCard";
 import { ReviewModal } from "../components/storefront/ReviewModal";
 import { useSmoothSwiper } from "../utils/useSmoothSwiper";
+import { useCart } from "../context/CartContext";
 import { api } from "../services/api";
 
 export function ProductDetailPage({
@@ -28,6 +42,8 @@ export function ProductDetailPage({
     return null;
   });
 
+  const { addToCart } = useCart();
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(!product && Boolean(idOrSlug));
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -395,22 +411,69 @@ export function ProductDetailPage({
               </div>
             )}
 
-            {/* Direct Inquiry & WhatsApp Action Buttons */}
-            <div className="pt-4 flex flex-col gap-2.5">
+            {/* Cart & Inquiry Actions */}
+            <div className="pt-4 flex flex-col gap-3">
+              {/* Quantity Selector + Add to Cart Primary Button */}
+              <div className="flex items-stretch gap-2.5">
+                <div className="flex items-center border border-[var(--border-medium)] rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] px-1">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    className="w-8 h-10 flex items-center justify-center text-[var(--text-muted)] hover:text-white transition-colors"
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus size={13} />
+                  </button>
+                  <span className="w-9 text-center font-mono font-bold text-sm select-none">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const maxStock = product.stock !== undefined ? Number(product.stock) : Infinity;
+                      setQuantity((q) => (maxStock > 0 ? Math.min(maxStock, q + 1) : q + 1));
+                    }}
+                    className="w-8 h-10 flex items-center justify-center text-[var(--text-muted)] hover:text-white transition-colors"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus size={13} />
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => addToCart(product, quantity)}
+                  disabled={!(product.isAvailable && (product.stock === undefined || Number(product.stock) > 0))}
+                  className={`btn flex-1 py-3.5 text-xs sm:text-sm font-bold gap-2 shadow-md ${
+                    product.isAvailable && (product.stock === undefined || Number(product.stock) > 0)
+                      ? "btn-primary cursor-pointer"
+                      : "btn-secondary opacity-40 cursor-not-allowed"
+                  }`}
+                >
+                  <ShoppingBag size={17} />
+                  <span>
+                    {product.isAvailable && (product.stock === undefined || Number(product.stock) > 0)
+                      ? "Add to Cart"
+                      : "Out of Stock"}
+                  </span>
+                </button>
+              </div>
+
+              {/* Direct Inquiry & WhatsApp Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <a
                   href={whatsAppUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="btn btn-primary py-3.5 text-sm gap-2"
+                  className="btn btn-secondary py-3 text-xs sm:text-sm gap-2 font-semibold"
                 >
-                  <MessageCircle size={17} />
-                  <span>WhatsApp</span>
+                  <MessageCircle size={16} />
+                  <span>WhatsApp Inquiry</span>
                 </a>
 
                 <button
                   onClick={() => onInquire(product)}
-                  className="btn btn-secondary py-3.5 text-sm gap-2"
+                  className="btn btn-secondary py-3 text-xs sm:text-sm gap-2 font-semibold"
                 >
                   <MessageSquare size={16} />
                   <span>Send Web Inquiry</span>
@@ -419,10 +482,10 @@ export function ProductDetailPage({
 
               <button
                 onClick={() => setShareModalOpen(true)}
-                className="btn w-full py-3.5 text-xs sm:text-sm font-bold gap-2.5 bg-emerald-500/15 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 rounded-[var(--radius-sm)] transition-all shadow-xs hover:shadow-sm"
+                className="btn w-full py-2.5 text-xs sm:text-sm font-semibold gap-2 bg-emerald-500/10 border border-emerald-500/30 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 rounded-[var(--radius-sm)] transition-all"
                 title="Share with Friends"
               >
-                <Share2 size={16} className="text-emerald-400" />
+                <Share2 size={15} className="text-emerald-400" />
                 <span>Share with Friends</span>
               </button>
 
@@ -432,6 +495,108 @@ export function ProductDetailPage({
             </div>
           </div>
         </div>
+
+        {/* Products You May Like (Same Category Products) */}
+        {relatedProducts.length > 0 && (
+          <section className="mt-16 sm:mt-20 pt-12 sm:pt-16 border-t border-[var(--border-subtle)]">
+            {/* Section Header */}
+            <div className="flex justify-between items-end mb-8 flex-wrap gap-4">
+              <div>
+                <span className="text-[0.75rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                  More in {product.category}
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-extrabold mt-1 tracking-[-0.03em]">
+                  Products You May Like
+                </h2>
+              </div>
+
+              {/* Swiper Arrow Buttons (Only when items exceed itemsPerView) */}
+              {relatedProducts.length > itemsPerView && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    disabled={currentIndex === 0}
+                    className={`w-9 h-9 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[var(--text-primary)] flex items-center justify-center transition-all ${
+                      currentIndex === 0
+                        ? "opacity-30 cursor-not-allowed"
+                        : "hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] hover:border-transparent cursor-pointer shadow-md"
+                    }`}
+                    aria-label="Previous product"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={currentIndex >= maxIndex}
+                    className={`w-9 h-9 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[var(--text-primary)] flex items-center justify-center transition-all ${
+                      currentIndex >= maxIndex
+                        ? "opacity-30 cursor-not-allowed"
+                        : "hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] hover:border-transparent cursor-pointer shadow-md"
+                    }`}
+                    aria-label="Next product"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* If items fit, show responsive grid; if too many items, smooth swiper */}
+            {relatedProducts.length > itemsPerView ? (
+              <div {...sliderProps}>
+                <div className="overflow-hidden -mx-2 sm:-mx-3">
+                  <div className="flex items-stretch select-none" style={trackStyle}>
+                    {relatedProducts.map((relProduct) => (
+                      <div
+                        key={relProduct._id || relProduct.slug}
+                        className="px-2 sm:px-3 shrink-0 flex flex-col pointer-events-auto"
+                        style={{ width: `${100 / itemsPerView}%` }}
+                      >
+                        <ProductCard
+                          product={relProduct}
+                          onViewDetails={handleViewRelatedProduct}
+                          onInquire={onInquire}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Swiper Pagination Dots */}
+                {totalDots > 0 && (
+                  <div className="flex justify-center items-center gap-2 mt-8">
+                    {Array.from({ length: totalDots }).map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleDotClick(idx)}
+                        className={`h-1.5 rounded-full transition-all duration-300 border-none p-0 cursor-pointer ${
+                          activeDotIndex === idx
+                            ? "w-7 bg-[var(--text-primary)]"
+                            : "w-2 bg-[var(--border-bright)] hover:bg-[var(--text-secondary)] opacity-60 hover:opacity-100"
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {relatedProducts.map((relProduct) => (
+                  <ProductCard
+                    key={relProduct._id || relProduct.slug}
+                    product={relProduct}
+                    onViewDetails={handleViewRelatedProduct}
+                    onInquire={onInquire}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Customer Reviews Section */}
         <section ref={reviewsSectionRef} className="mt-16 sm:mt-20 pt-12 sm:pt-16 border-t border-[var(--border-subtle)]">
@@ -595,108 +760,6 @@ export function ProductDetailPage({
             </div>
           )}
         </section>
-
-        {/* Products You May Like (Same Category Products) */}
-        {relatedProducts.length > 0 && (
-          <section className="mt-20 sm:mt-24 pt-12 sm:pt-16 border-t border-[var(--border-subtle)]">
-            {/* Section Header */}
-            <div className="flex justify-between items-end mb-8 flex-wrap gap-4">
-              <div>
-                <span className="text-[0.75rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
-                  More in {product.category}
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold mt-1 tracking-[-0.03em]">
-                  Products You May Like
-                </h2>
-              </div>
-
-              {/* Swiper Arrow Buttons (Only when items exceed itemsPerView) */}
-              {relatedProducts.length > itemsPerView && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handlePrev}
-                    disabled={currentIndex === 0}
-                    className={`w-9 h-9 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[var(--text-primary)] flex items-center justify-center transition-all ${
-                      currentIndex === 0
-                        ? "opacity-30 cursor-not-allowed"
-                        : "hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] hover:border-transparent cursor-pointer shadow-md"
-                    }`}
-                    aria-label="Previous product"
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    disabled={currentIndex >= maxIndex}
-                    className={`w-9 h-9 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-medium)] text-[var(--text-primary)] flex items-center justify-center transition-all ${
-                      currentIndex >= maxIndex
-                        ? "opacity-30 cursor-not-allowed"
-                        : "hover:bg-[var(--btn-primary-bg)] hover:text-[var(--btn-primary-text)] hover:border-transparent cursor-pointer shadow-md"
-                    }`}
-                    aria-label="Next product"
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* If items fit, show responsive grid; if too many items, smooth swiper */}
-            {relatedProducts.length > itemsPerView ? (
-              <div {...sliderProps}>
-                <div className="overflow-hidden -mx-2 sm:-mx-3">
-                  <div className="flex items-stretch select-none" style={trackStyle}>
-                    {relatedProducts.map((relProduct) => (
-                      <div
-                        key={relProduct._id || relProduct.slug}
-                        className="px-2 sm:px-3 shrink-0 flex flex-col pointer-events-auto"
-                        style={{ width: `${100 / itemsPerView}%` }}
-                      >
-                        <ProductCard
-                          product={relProduct}
-                          onViewDetails={handleViewRelatedProduct}
-                          onInquire={onInquire}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Swiper Pagination Dots */}
-                {totalDots > 0 && (
-                  <div className="flex justify-center items-center gap-2 mt-8">
-                    {Array.from({ length: totalDots }).map((_, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleDotClick(idx)}
-                        className={`h-1.5 rounded-full transition-all duration-300 border-none p-0 cursor-pointer ${
-                          activeDotIndex === idx
-                            ? "w-7 bg-[var(--text-primary)]"
-                            : "w-2 bg-[var(--border-bright)] hover:bg-[var(--text-secondary)] opacity-60 hover:opacity-100"
-                        }`}
-                        aria-label={`Go to slide ${idx + 1}`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                {relatedProducts.map((relProduct) => (
-                  <ProductCard
-                    key={relProduct._id || relProduct.slug}
-                    product={relProduct}
-                    onViewDetails={handleViewRelatedProduct}
-                    onInquire={onInquire}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        )}
       </div>
 
       {/* Share Modal */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 import { PWAProvider } from "./context/PWAContext";
 import { PWAInstallModal } from "./components/common/PWAInstallModal";
 import { Navbar } from "./components/common/Navbar";
@@ -15,9 +16,15 @@ import { AboutPage } from "./pages/AboutPage";
 import { ContactPage } from "./pages/ContactPage";
 import { BlogsPage } from "./pages/BlogsPage";
 import { BlogDetailPage } from "./pages/BlogDetailPage";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
+import { VerifyEmailPage } from "./pages/VerifyEmailPage";
+import { SetupProfilePage } from "./pages/SetupProfilePage";
+import { ProfilePage } from "./pages/ProfilePage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { CartDrawer } from "./components/storefront/CartDrawer";
 import { InquiryModal } from "./components/storefront/InquiryModal";
 import { ShopClosedModal } from "./components/storefront/ShopClosedModal";
 import { Preloader } from "./components/common/Preloader";
@@ -53,6 +60,11 @@ const getRouteInfoFromPath = (pathname) => {
   }
   if (path === "/about") return { page: "about" };
   if (path === "/contact") return { page: "contact" };
+  if (path === "/login") return { page: "login" };
+  if (path === "/register") return { page: "register" };
+  if (path === "/verify-email" || path.startsWith("/verify-email")) return { page: "verify-email" };
+  if (path === "/setup-profile") return { page: "setup-profile" };
+  if (path === "/profile") return { page: "profile" };
   return { page: "home" };
 };
 
@@ -498,6 +510,26 @@ function AppContent() {
             {activePage === "contact" && (
               <ContactPage />
             )}
+
+            {activePage === "login" && (
+              <LoginPage onNavigate={setActivePage} />
+            )}
+
+            {activePage === "register" && (
+              <RegisterPage onNavigate={setActivePage} />
+            )}
+
+            {activePage === "verify-email" && (
+              <VerifyEmailPage onNavigate={setActivePage} />
+            )}
+
+            {activePage === "setup-profile" && (
+              <SetupProfilePage onNavigate={setActivePage} showToast={showToast} />
+            )}
+
+            {activePage === "profile" && (
+              <ProfilePage onNavigate={setActivePage} showToast={showToast} />
+            )}
           </main>
 
           <Footer setActivePage={setActivePage} categories={categories} />
@@ -534,6 +566,9 @@ function AppContent() {
         </ProtectedRoute>
       )}
 
+      {/* Slide-over Cart Drawer */}
+      <CartDrawer onInquireWithCart={handleOpenInquiry} />
+
       {/* Floating Action Buttons: WhatsApp, Email & Scroll-to-Top */}
       <ScrollToTop shopStatus={shopStatus} />
 
@@ -547,7 +582,9 @@ export default function App() {
   return (
     <AuthProvider>
       <PWAProvider>
-        <AppContent />
+        <CartProvider>
+          <AppContent />
+        </CartProvider>
       </PWAProvider>
     </AuthProvider>
   );

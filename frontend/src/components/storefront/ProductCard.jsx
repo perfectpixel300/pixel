@@ -1,10 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, ArrowUpRight, Package } from "lucide-react";
+import { MessageSquare, ArrowUpRight, Package, ShoppingBag } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
+import { useCart } from "../../context/CartContext";
 
 export function ProductCard({ product, onViewDetails, onInquire }) {
   const navigate = useNavigate();
+  const { addToCart } = useCart();
 
   if (!product) return null;
 
@@ -34,6 +36,12 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
     if (onInquire) {
       onInquire(product);
     }
+  };
+
+  const handleAddToCart = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    addToCart(product, 1);
   };
 
   return (
@@ -131,6 +139,19 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
 
           <div className="flex gap-1 sm:gap-1.5 w-full sm:w-auto">
             <button
+              onClick={handleAddToCart}
+              disabled={!(product.isAvailable && (product.stock === undefined || Number(product.stock) > 0))}
+              className={`btn btn-sm flex-1 sm:flex-initial gap-1 text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5 ${
+                product.isAvailable && (product.stock === undefined || Number(product.stock) > 0)
+                  ? "btn-primary"
+                  : "btn-secondary opacity-40 cursor-not-allowed"
+              }`}
+              title="Add to Shopping Cart"
+            >
+              <ShoppingBag size={11} />
+              <span>Cart</span>
+            </button>
+            <button
               onClick={handleInquire}
               className="btn btn-secondary btn-sm flex-1 sm:flex-initial gap-1 text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5"
               title="Inquire about this piece"
@@ -140,7 +161,7 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
             </button>
             <button
               onClick={handleNavigate}
-              className="btn btn-primary btn-sm flex-1 sm:flex-initial text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5"
+              className="btn btn-ghost btn-sm flex-1 sm:flex-initial text-[0.65rem] sm:text-[0.725rem] !px-2 !py-1 sm:!px-2.5 sm:!py-1.5 border border-[var(--border-subtle)] hover:border-white"
             >
               Specs
             </button>
