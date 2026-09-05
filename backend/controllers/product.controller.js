@@ -184,7 +184,7 @@ exports.createProduct = async (req, res) => {
       isAvailable: isAvailableVal,
       featured: featured !== undefined ? Boolean(featured) : false,
       stock: stockVal,
-      specs: specs || {},
+      specs: specs !== undefined ? specs : [],
     });
 
     const savedProduct = await product.save();
@@ -266,7 +266,8 @@ exports.updateProduct = async (req, res) => {
     product.featured = featured !== undefined ? Boolean(featured) : product.featured;
     product.stock = updatedStockVal;
     if (specs !== undefined) {
-      product.specs = { ...product.specs, ...specs };
+      product.specs = specs;
+      product.markModified("specs");
     }
 
     const updatedProduct = await product.save();

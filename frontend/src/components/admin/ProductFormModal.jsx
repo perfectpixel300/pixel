@@ -3,6 +3,50 @@ import { X, Plus, Trash2, Package, UploadCloud, Loader2, Image as ImageIcon } fr
 import { api } from "../../services/api";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 
+const parseSpecsToArray = (specs) => {
+  if (!specs) return [];
+  if (Array.isArray(specs)) {
+    return specs
+      .map((s) => {
+        if (!s) return null;
+        if (typeof s === "string") {
+          const trimmed = s.trim();
+          if (!trimmed) return null;
+          const colonIdx = trimmed.indexOf(":");
+          if (colonIdx > -1) {
+            return {
+              label: trimmed.slice(0, colonIdx).trim(),
+              value: trimmed.slice(colonIdx + 1).trim(),
+            };
+          }
+          return { label: "Specification", value: trimmed };
+        }
+        return { label: s.label || s.key || "", value: s.value || "" };
+      })
+      .filter(Boolean);
+  }
+  if (typeof specs === "object") {
+    const legacyKeyMap = {
+      paperGsm: "Paper Stock",
+      binding: "Binding / Construction",
+      color: "Color & Finish",
+      dimensions: "Dimensions",
+      origin: "Provenance",
+    };
+    const list = [];
+    for (const [key, val] of Object.entries(specs)) {
+      if (val && typeof val === "string" && val.trim()) {
+        list.push({
+          label: legacyKeyMap[key] || key.replace(/([A-Z])/g, " $1").trim(),
+          value: val.trim(),
+        });
+      }
+    }
+    return list;
+  }
+  return [];
+};
+
 export function ProductFormModal({
   isOpen,
   onClose,
@@ -26,13 +70,7 @@ export function ProductFormModal({
     images: [],
     isAvailable: true,
     featured: false,
-    specs: {
-      paperGsm: "",
-      binding: "",
-      color: "",
-      dimensions: "",
-      origin: "",
-    },
+    specs: [],
   });
 
   const [errors, setErrors] = useState({});
@@ -65,13 +103,7 @@ export function ProductFormModal({
         images: Array.isArray(editingProduct.images) ? [...editingProduct.images] : [],
         isAvailable: editingProduct.isAvailable !== undefined ? editingProduct.isAvailable : true,
         featured: editingProduct.featured !== undefined ? editingProduct.featured : false,
-        specs: {
-          paperGsm: editingProduct.specs?.paperGsm || "",
-          binding: editingProduct.specs?.binding || "",
-          color: editingProduct.specs?.color || "",
-          dimensions: editingProduct.specs?.dimensions || "",
-          origin: editingProduct.specs?.origin || "",
-        },
+        specs: parseSpecsToArray(editingProduct.specs),
       });
     } else {
       setFormData({
@@ -86,13 +118,7 @@ export function ProductFormModal({
         images: [],
         isAvailable: true,
         featured: false,
-        specs: {
-          paperGsm: "",
-          binding: "",
-          color: "",
-          dimensions: "",
-          origin: "",
-        },
+        specs: [],
       });
     }
     setErrors({});
@@ -173,6 +199,28 @@ export function ProductFormModal({
     }));
   };
 
+  const handleSpecChange = (index, field, value) => {
+    setFormData((prev) => {
+      const updated = [...(prev.specs || [])];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, specs: updated };
+    });
+  };
+
+  const handleAddSpec = () => {
+    setFormData((prev) => ({
+      ...prev,
+      specs: [...(prev.specs || []), { label: "", value: "" }],
+    }));
+  };
+
+  const handleRemoveSpec = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      specs: (prev.specs || []).filter((_, i) => i !== index),
+    }));
+  };
+
   const validate = () => {
     const errs = {};
     const trimmedName = formData.name.trim();
@@ -227,6 +275,15 @@ export function ProductFormModal({
     const stockNum = Number(formData.stock);
     const isAvailableVal = stockNum === 0 ? false : Boolean(formData.isAvailable);
 
+    const cleanedSpecs = Array.isArray(formData.specs)
+      ? formData.specs
+          .map((s) => ({
+            label: (s.label || "").trim(),
+            value: (s.value || "").trim(),
+          }))
+          .filter((s) => s.label || s.value)
+      : [];
+
     onSubmit({
       ...formData,
       indicativePrice: Number(formData.indicativePrice),
@@ -249,6 +306,7 @@ export function ProductFormModal({
       featured: Boolean(formData.featured),
       currency: "NRs.",
       images: formData.images.filter((img) => img && img.trim().length > 0),
+      specs: cleanedSpecs,
     });
   };
 
@@ -591,49 +649,54 @@ export function ProductFormModal({
               </div>
             </div>
 
-            {/* Specifications */}
-            <div>
-              <div className="text-[0.725rem] font-bold uppercase text-[var(--text-muted)] tracking-[0.06em] mb-2">
-                Material Specifications (Optional)
+            {/* Dynamic Material Specifications */}
+            <div className="form-group !mb-0">
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="form-label !mb-0">Material Specifications (Optional)</label>
+                <button
+                  type="button"
+                  onClick={handleAddSpec}
+                  className="text-[0.725rem] font-semibold text-[var(--text-primary)] hover:underline flex items-center gap-1 bg-transparent border-0 cursor-pointer"
+                >
+                  <Plus size={12} />
+                  <span>Add Specification</span>
+                </button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  className="form-input text-xs"
-                  placeholder="Paper (e.g. 120 GSM Munken)"
-                  value={formData.specs.paperGsm}
-                  onChange={(e) =>
-                    setFormData({ ...formData, specs: { ...formData.specs, paperGsm: e.target.value } })
-                  }
-                />
-                <input
-                  type="text"
-                  className="form-input text-xs"
-                  placeholder="Binding (e.g. Lay-Flat Smyth Sewn)"
-                  value={formData.specs.binding}
-                  onChange={(e) =>
-                    setFormData({ ...formData, specs: { ...formData.specs, binding: e.target.value } })
-                  }
-                />
-                <input
-                  type="text"
-                  className="form-input text-xs"
-                  placeholder="Finish (e.g. Raw Machined Brass)"
-                  value={formData.specs.color}
-                  onChange={(e) =>
-                    setFormData({ ...formData, specs: { ...formData.specs, color: e.target.value } })
-                  }
-                />
-                <input
-                  type="text"
-                  className="form-input text-xs"
-                  placeholder="Dimensions (e.g. A5 148 x 210 mm)"
-                  value={formData.specs.dimensions}
-                  onChange={(e) =>
-                    setFormData({ ...formData, specs: { ...formData.specs, dimensions: e.target.value } })
-                  }
-                />
-              </div>
+
+              {formData.specs && formData.specs.length > 0 ? (
+                <div className="flex flex-col gap-2 max-h-[160px] overflow-y-auto pr-1">
+                  {formData.specs.map((spec, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Spec (e.g. Paper Stock, Dimensions)"
+                        value={spec.label || ""}
+                        onChange={(e) => handleSpecChange(idx, "label", e.target.value)}
+                        className="form-input text-xs py-1.5 w-1/3 sm:w-2/5"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Value (e.g. 120 GSM Munken, A5)"
+                        value={spec.value || ""}
+                        onChange={(e) => handleSpecChange(idx, "value", e.target.value)}
+                        className="form-input text-xs py-1.5 flex-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSpec(idx)}
+                        className="btn-icon btn-ghost !w-7 !h-7 text-[var(--color-danger)] shrink-0"
+                        title="Remove specification"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-[0.725rem] text-[var(--text-muted)] italic py-1">
+                  No specifications added. Click &quot;Add Specification&quot; to add specifications.
+                </div>
+              )}
             </div>
           </div>
 

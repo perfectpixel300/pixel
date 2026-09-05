@@ -410,7 +410,9 @@ export function ProductManagement({
                         +NRs. {profit.toLocaleString()}
                       </td>
                       <td className="py-3 px-3.5 text-[0.725rem] text-[var(--text-muted)]">
-                        {p.specs?.paperGsm || p.specs?.color || "Standard"}
+                        {Array.isArray(p.specs)
+                          ? p.specs[0]?.value || p.specs[0]?.label || "Standard"
+                          : p.specs?.paperGsm || p.specs?.color || "Standard"}
                       </td>
                       <td className="py-3 px-3.5">
                         <button

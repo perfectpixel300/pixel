@@ -66,11 +66,8 @@ const productSchema = new mongoose.Schema(
       min: [0, "Stock cannot be negative"],
     },
     specs: {
-      paperGsm: { type: String, trim: true, default: "" },
-      binding: { type: String, trim: true, default: "" },
-      color: { type: String, trim: true, default: "" },
-      dimensions: { type: String, trim: true, default: "" },
-      origin: { type: String, trim: true, default: "" },
+      type: mongoose.Schema.Types.Mixed,
+      default: [],
     },
   },
   {

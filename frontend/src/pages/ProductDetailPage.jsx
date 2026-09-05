@@ -152,6 +152,56 @@ export function ProductDetailPage({
   const whatsAppUrl = `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
   const mainImage = images[0] || product?.imageUrl || "";
 
+  const normalizedSpecs = useMemo(() => {
+    const raw = product?.specs;
+    if (!raw) return [];
+    if (Array.isArray(raw)) {
+      return raw
+        .map((s) => {
+          if (!s) return null;
+          if (typeof s === "string") {
+            const trimmed = s.trim();
+            if (!trimmed) return null;
+            const colonIdx = trimmed.indexOf(":");
+            if (colonIdx > -1) {
+              return {
+                label: trimmed.slice(0, colonIdx).trim() || "Specification",
+                value: trimmed.slice(colonIdx + 1).trim() || trimmed,
+              };
+            }
+            return { label: "Specification", value: trimmed };
+          }
+          const label = (s.label || s.key || s.name || "").trim();
+          const value = (s.value || s.val || "").trim();
+          if (!label && !value) return null;
+          return { label: label || "Specification", value: value || label };
+        })
+        .filter(Boolean);
+    }
+    if (typeof raw === "object") {
+      const legacyKeyMap = {
+        paperGsm: "Paper Stock",
+        binding: "Binding / Construction",
+        color: "Color & Finish",
+        dimensions: "Dimensions",
+        origin: "Provenance",
+      };
+      const list = [];
+      for (const [key, val] of Object.entries(raw)) {
+        if (val && typeof val === "string" && val.trim()) {
+          list.push({
+            label:
+              legacyKeyMap[key] ||
+              key.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase()).trim(),
+            value: val.trim(),
+          });
+        }
+      }
+      return list;
+    }
+    return [];
+  }, [product?.specs]);
+
   return (
     <div className="py-12 pb-24">
       <div className="storefront-container">
@@ -242,42 +292,23 @@ export function ProductDetailPage({
             </div>
 
             {/* Technical Specifications Table */}
-            {product.specs && (
+            {normalizedSpecs.length > 0 && (
               <div className="border-t border-[var(--border-subtle)] pt-5">
                 <h4 className="text-[0.75rem] font-bold uppercase tracking-[0.08em] text-[var(--text-muted)] mb-3">
                   Material Specifications
                 </h4>
                 <div className="bg-[var(--bg-card)] rounded-[var(--radius-sm)] overflow-hidden border border-[var(--border-subtle)]">
-                  {product.specs.paperGsm && (
-                    <div className="flex justify-between px-3.5 py-2.5 border-b border-[var(--border-subtle)] text-[0.825rem]">
-                      <span className="text-[var(--text-muted)]">Paper Stock</span>
-                      <span className="font-semibold">{product.specs.paperGsm}</span>
+                  {normalizedSpecs.map((spec, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex justify-between px-3.5 py-2.5 text-[0.825rem] ${
+                        idx < normalizedSpecs.length - 1 ? "border-b border-[var(--border-subtle)]" : ""
+                      }`}
+                    >
+                      <span className="text-[var(--text-muted)]">{spec.label || "Specification"}</span>
+                      <span className="font-semibold text-right">{spec.value || spec.label}</span>
                     </div>
-                  )}
-                  {product.specs.binding && (
-                    <div className="flex justify-between px-3.5 py-2.5 border-b border-[var(--border-subtle)] text-[0.825rem]">
-                      <span className="text-[var(--text-muted)]">Binding / Construction</span>
-                      <span className="font-semibold">{product.specs.binding}</span>
-                    </div>
-                  )}
-                  {product.specs.color && (
-                    <div className="flex justify-between px-3.5 py-2.5 border-b border-[var(--border-subtle)] text-[0.825rem]">
-                      <span className="text-[var(--text-muted)]">Color & Finish</span>
-                      <span className="font-semibold">{product.specs.color}</span>
-                    </div>
-                  )}
-                  {product.specs.dimensions && (
-                    <div className="flex justify-between px-3.5 py-2.5 border-b border-[var(--border-subtle)] text-[0.825rem]">
-                      <span className="text-[var(--text-muted)]">Dimensions</span>
-                      <span className="font-semibold">{product.specs.dimensions}</span>
-                    </div>
-                  )}
-                  {product.specs.origin && (
-                    <div className="flex justify-between px-3.5 py-2.5 text-[0.825rem]">
-                      <span className="text-[var(--text-muted)]">Provenance</span>
-                      <span className="font-semibold">{product.specs.origin}</span>
-                    </div>
-                  )}
+                  ))}
                 </div>
               </div>
             )}
