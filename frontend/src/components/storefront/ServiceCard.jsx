@@ -43,7 +43,10 @@ export function ServiceCard({ service, onViewDetails, onInquire }) {
   };
 
   return (
-    <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-md)] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-md)] group h-full">
+    <div
+      onClick={handleNavigate}
+      className="bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-bright)] rounded-[var(--radius-md)] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[var(--shadow-md)] group h-full cursor-pointer"
+    >
       {/* Top image or banner if available */}
       {service.bannerImage ? (
         <div className="h-36 relative overflow-hidden bg-[var(--bg-sidebar)] shrink-0">
@@ -103,10 +106,7 @@ export function ServiceCard({ service, onViewDetails, onInquire }) {
         )}
 
         <div>
-          <h3
-            onClick={handleNavigate}
-            className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug cursor-pointer hover:text-zinc-400 transition-colors"
-          >
+          <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] m-0 leading-snug hover:text-zinc-400 transition-colors">
             {service.title}
           </h3>
           <p className="text-[0.825rem] text-[var(--text-secondary)] leading-relaxed mt-2 line-clamp-2 min-h-[38px]">

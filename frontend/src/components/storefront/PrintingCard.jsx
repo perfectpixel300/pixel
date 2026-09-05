@@ -44,11 +44,13 @@ export function PrintingCard({ service, onViewDetails, onInquire }) {
   };
 
   return (
-    <div className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col h-full transition-all duration-300 border border-[var(--border-subtle)] hover:shadow-xl group">
+    <div
+      onClick={handleNavigate}
+      className="bg-[var(--bg-card)] rounded-[var(--radius-md)] overflow-hidden flex flex-col h-full transition-all duration-300 border border-[var(--border-subtle)] hover:shadow-xl group cursor-pointer"
+    >
       {/* Image Container with zoom */}
       <div
-        onClick={handleNavigate}
-        className="h-44 sm:h-56 md:h-64 lg:h-72 relative overflow-hidden cursor-pointer bg-[#050505] flex items-center justify-center shrink-0"
+        className="h-44 sm:h-56 md:h-64 lg:h-72 relative overflow-hidden bg-[#050505] flex items-center justify-center shrink-0"
       >
         {imageUrl ? (
           <img
@@ -97,10 +99,7 @@ export function PrintingCard({ service, onViewDetails, onInquire }) {
       {/* Info Body */}
       <div className="p-3.5 sm:p-5 flex flex-col gap-2 flex-1">
         <div>
-          <h3
-            onClick={handleNavigate}
-            className="text-xs sm:text-base font-bold m-0 leading-snug cursor-pointer hover:text-zinc-400 transition-colors capitalize line-clamp-2 min-h-[34px] sm:min-h-[44px]"
-          >
+          <h3 className="text-xs sm:text-base font-bold m-0 leading-snug hover:text-zinc-400 transition-colors capitalize line-clamp-2 min-h-[34px] sm:min-h-[44px]">
             {service.name}
           </h3>
 
