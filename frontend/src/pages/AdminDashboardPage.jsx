@@ -128,6 +128,16 @@ export function AdminDashboardPage({
     }
   };
 
+  const handleUpdateProductStock = async (productId, newStock) => {
+    if (!productId || productId === "undefined") return;
+    try {
+      await api.updateProduct(productId, { stock: newStock });
+      if (onRefreshData) onRefreshData();
+    } catch (err) {
+      showToast(err.message || "Failed to update stock", "error");
+    }
+  };
+
   // Printing Services CRUD
   const handleOpenCreatePrintingService = () => setPrintingModal({ isOpen: true, service: null });
   const handleOpenEditPrintingService = (service) => setPrintingModal({ isOpen: true, service });
@@ -716,6 +726,7 @@ export function AdminDashboardPage({
               onDeleteProduct={handleDeleteProductPrompt}
               onToggleAvailability={handleToggleProductAvailability}
               onToggleFeatured={handleToggleProductFeatured}
+              onUpdateStock={handleUpdateProductStock}
             />
           )}
 

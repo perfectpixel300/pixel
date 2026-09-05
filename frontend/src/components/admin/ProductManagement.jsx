@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Search, Plus, List, LayoutGrid, Star, Edit2, Trash2, Package, Coins, TrendingUp } from "lucide-react";
+import { Search, Plus, Minus, List, LayoutGrid, Star, Edit2, Trash2, Package, Coins, TrendingUp } from "lucide-react";
 import { CategoryDropdown } from "../common/CategoryDropdown";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
+import { api } from "../../services/api";
 
 export function ProductManagement({
   products = [],
@@ -11,12 +12,31 @@ export function ProductManagement({
   onDeleteProduct,
   onToggleAvailability,
   onToggleFeatured,
+  onUpdateStock,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [stockFilter, setStockFilter] = useState("all"); // 'all' | 'in_stock' | 'out_of_stock'
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [viewMode, setViewMode] = useState("table");
+  const [updatingStockId, setUpdatingStockId] = useState(null);
+
+  const handleStockChange = async (productId, currentStock, delta) => {
+    const newStock = Math.max(0, (Number(currentStock) || 0) + delta);
+    if (newStock === currentStock) return;
+    try {
+      setUpdatingStockId(productId);
+      if (onUpdateStock) {
+        await onUpdateStock(productId, newStock);
+      } else {
+        await api.updateProduct(productId, { stock: newStock });
+      }
+    } catch (err) {
+      console.error("Failed to update stock:", err);
+    } finally {
+      setUpdatingStockId(null);
+    }
+  };
 
   const getEffectivePrice = (p) => {
     if (p?.discountPrice && Number(p.discountPrice) > 0 && Number(p.discountPrice) < Number(p.indicativePrice)) {
@@ -356,7 +376,29 @@ export function ProductManagement({
                         NRs. {Number(p.costPrice || 0).toLocaleString()}
                       </td>
                       <td className="py-3 px-3.5">
-                        <span className="badge badge-neutral">{stockNum} units</span>
+                        <div className="flex flex-col items-start gap-1">
+                          <span className="badge badge-neutral">{stockNum} units</span>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <button
+                              type="button"
+                              onClick={() => handleStockChange(p._id, stockNum, -1)}
+                              disabled={stockNum <= 0 || updatingStockId === p._id}
+                              className="w-5 h-5 rounded flex items-center justify-center bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-red-400 hover:border-red-400/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                              title="Decrease Stock (-1)"
+                            >
+                              <Minus size={11} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleStockChange(p._id, stockNum, 1)}
+                              disabled={updatingStockId === p._id}
+                              className="w-5 h-5 rounded flex items-center justify-center bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-emerald-400 hover:border-emerald-400/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                              title="Increase Stock (+1)"
+                            >
+                              <Plus size={11} />
+                            </button>
+                          </div>
+                        </div>
                       </td>
                       <td className="py-3 px-3.5 font-mono text-[var(--text-primary)]">
                         NRs. {totalCost.toLocaleString()}
@@ -488,7 +530,29 @@ export function ProductManagement({
                   </div>
                   <div className="flex justify-between items-center text-[0.72rem] text-[var(--text-muted)] font-mono">
                     <span>Cost: NRs. {Number(p.costPrice || 0).toLocaleString()}</span>
-                    <span>Stock: {stockNum} units</span>
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span>Stock: {stockNum} units</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleStockChange(p._id, stockNum, -1)}
+                          disabled={stockNum <= 0 || updatingStockId === p._id}
+                          className="w-4.5 h-4.5 rounded flex items-center justify-center bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-red-400 disabled:opacity-30 cursor-pointer"
+                          title="Decrease Stock (-1)"
+                        >
+                          <Minus size={10} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleStockChange(p._id, stockNum, 1)}
+                          disabled={updatingStockId === p._id}
+                          className="w-4.5 h-4.5 rounded flex items-center justify-center bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-emerald-400 disabled:opacity-30 cursor-pointer"
+                          title="Increase Stock (+1)"
+                        >
+                          <Plus size={10} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex justify-between items-center text-[0.72rem] font-mono">
                     <span className="text-[var(--text-muted)]">Cost Total:</span>
