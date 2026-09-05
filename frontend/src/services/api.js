@@ -974,6 +974,56 @@ class ApiService {
       return null;
     }
   }
+
+  /* ==========================================================================
+     REVIEWS API
+     ========================================================================== */
+
+  async getProductReviews(productId) {
+    const res = await fetch(`${API_BASE_URL}/reviews/product/${productId}`);
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to fetch product reviews");
+    }
+    return data;
+  }
+
+  async submitReview(reviewData) {
+    const res = await fetch(`${API_BASE_URL}/reviews`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(reviewData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to submit review");
+    }
+    return data;
+  }
+
+  async getAllReviews(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${API_BASE_URL}/reviews${query ? `?${query}` : ""}`, {
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to fetch reviews");
+    }
+    return data;
+  }
+
+  async deleteReview(id) {
+    const res = await fetch(`${API_BASE_URL}/reviews/${id}`, {
+      method: "DELETE",
+      headers: this.getAuthHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to delete review");
+    }
+    return data;
+  }
 }
 
 export const api = new ApiService();

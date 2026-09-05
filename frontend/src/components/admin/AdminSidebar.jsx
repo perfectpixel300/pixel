@@ -18,6 +18,7 @@ import {
   Info,
   BookOpen,
   X,
+  Star,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -33,6 +34,7 @@ export function AdminSidebar({
   printingCategoriesCount = 0,
   promoBannersCount = 0,
   blogsCount = 0,
+  reviewsCount = 0,
   inquiriesCount,
   shopStatus = { isOpen: true },
   isCollapsed,
@@ -128,6 +130,13 @@ export function AdminSidebar({
       label: "Blogs",
       icon: <BookOpen size={17} />,
       badge: blogsCount || 0,
+      badgeColor: "success",
+    },
+    {
+      id: "reviews",
+      label: "Customer Reviews",
+      icon: <Star size={17} />,
+      badge: reviewsCount || 0,
       badgeColor: "success",
     },
     {

@@ -21,6 +21,7 @@ const printingCategoryRoutes = require("./routes/printingCategory.routes");
 const promoBannerRoutes = require("./routes/promoBanner.routes");
 const aboutRoutes = require("./routes/about.routes");
 const blogRoutes = require("./routes/blog.routes");
+const reviewRoutes = require("./routes/review.routes");
 
 
 const PORT = process.env.PORT || 5000;
@@ -66,6 +67,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/about", aboutRoutes);
 app.use("/api/blogs", blogRoutes);
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/upload", uploadRoutes);
 
 // Base route & Health check

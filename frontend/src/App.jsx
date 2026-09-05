@@ -85,6 +85,7 @@ function AppContent() {
   const [isStatusLoading, setIsStatusLoading] = useState(true);
   const [banners, setBanners] = useState([]);
   const [promoBanners, setPromoBanners] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [aboutData, setAboutData] = useState(null);
   const [blogs, setBlogs] = useState([]);
@@ -225,14 +226,16 @@ function AppContent() {
         }
       }
 
-      // If authorized, load stats and inquiries
+      // If authorized, load stats, inquiries, and reviews
       if (api.checkHealth) {
-        const [statsRes, inqRes] = await Promise.all([
+        const [statsRes, inqRes, reviewsRes] = await Promise.all([
           api.getDashboardStats(),
           api.getInquiries(),
+          api.getAllReviews().catch(() => ({ reviews: [] })),
         ]);
         setStats(statsRes);
         setInquiries(inqRes.inquiries || []);
+        setReviews(reviewsRes?.reviews || []);
       }
     } catch (err) {
       console.warn("Local sandbox mode fallback:", err);
@@ -515,6 +518,7 @@ function AppContent() {
             banners={banners}
             promoBanners={promoBanners}
             blogs={blogs}
+            reviews={reviews}
             inquiries={inquiries}
             aboutData={aboutData}
             onUpdateAbout={handleUpdateAbout}

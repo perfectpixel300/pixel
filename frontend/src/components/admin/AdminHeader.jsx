@@ -41,6 +41,8 @@ export function AdminHeader({
         return "Product Categories & Disciplines";
       case "banners":
         return "Home Page Hero Banners";
+      case "reviews":
+        return "Customer Reviews & Star Ratings";
       case "inquiries":
         return "Client Inquiries & Correspondence";
       default:
@@ -70,6 +72,8 @@ export function AdminHeader({
         return "Categories";
       case "banners":
         return "Banners";
+      case "reviews":
+        return "Reviews";
       case "inquiries":
         return "Inquiries";
       default:

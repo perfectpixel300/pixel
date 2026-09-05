@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageSquare, MessageCircle, Package, Loader2, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, MessageSquare, MessageCircle, Package, Loader2, Share2, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 import { ShareModal } from "../components/common/ShareModal";
 import { SwipableImageGallery } from "../components/common/SwipableImageGallery";
 import { ProductCard } from "../components/storefront/ProductCard";
+import { ReviewModal } from "../components/storefront/ReviewModal";
 import { useSmoothSwiper } from "../utils/useSmoothSwiper";
 import { api } from "../services/api";
 
@@ -29,6 +30,49 @@ export function ProductDetailPage({
 
   const [loading, setLoading] = useState(!product && Boolean(idOrSlug));
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [reviewStats, setReviewStats] = useState({
+    totalReviews: 0,
+    averageRating: 0,
+    ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+  });
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const reviewsSectionRef = useRef(null);
+
+  const fetchReviews = async (prodId) => {
+    if (!prodId) return;
+    try {
+      setReviewsLoading(true);
+      const res = await api.getProductReviews(prodId);
+      if (res && res.reviews) {
+        setReviews(res.reviews);
+        setReviewStats(
+          res.stats || {
+            totalReviews: 0,
+            averageRating: 0,
+            ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+          }
+        );
+      }
+    } catch (err) {
+      console.error("Failed to load product reviews:", err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (product?._id) {
+      fetchReviews(product._id);
+    }
+  }, [product?._id]);
+
+  const handleReviewSubmitted = () => {
+    if (product?._id) {
+      fetchReviews(product._id);
+    }
+  };
 
   // Filter products in the same category excluding the currently viewed product
   const relatedProducts = useMemo(() => {
@@ -261,9 +305,47 @@ export function ProductDetailPage({
                 {product.featured && <span className="badge badge-white">Featured Object</span>}
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight m-0 mb-2 capitalize">
+              <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight m-0 mb-1 capitalize">
                 {product.name}
               </h1>
+
+              {/* Star Rating Badge / Review link */}
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <div
+                  onClick={() => reviewsSectionRef.current?.scrollIntoView({ behavior: "smooth" })}
+                  className="flex items-center gap-1.5 cursor-pointer group"
+                >
+                  <div className="flex items-center text-amber-400">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        size={14}
+                        className={
+                          (reviewStats.averageRating || 0) >= star
+                            ? "fill-amber-400 text-amber-400"
+                            : (reviewStats.averageRating || 0) >= star - 0.5
+                            ? "fill-amber-400/50 text-amber-400"
+                            : "text-zinc-600"
+                        }
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs font-bold text-amber-400 font-mono">
+                    {reviewStats.totalReviews > 0 ? `${reviewStats.averageRating} / 5` : "0.0"}
+                  </span>
+                  <span className="text-xs text-[var(--text-muted)] group-hover:underline">
+                    ({reviewStats.totalReviews} {reviewStats.totalReviews === 1 ? "review" : "reviews"})
+                  </span>
+                </div>
+                <span className="text-xs text-[var(--border-medium)]">•</span>
+                <button
+                  type="button"
+                  onClick={() => setReviewModalOpen(true)}
+                  className="text-xs font-semibold text-[var(--text-primary)] hover:text-amber-400 hover:underline bg-transparent border-0 cursor-pointer p-0"
+                >
+                  Write a Review
+                </button>
+              </div>
 
               {hasDiscount ? (
                 <div className="flex items-baseline gap-3 mt-2">
@@ -350,6 +432,169 @@ export function ProductDetailPage({
             </div>
           </div>
         </div>
+
+        {/* Customer Reviews Section */}
+        <section ref={reviewsSectionRef} className="mt-16 sm:mt-20 pt-12 sm:pt-16 border-t border-[var(--border-subtle)]">
+          {/* Section Header */}
+          <div className="flex justify-between items-end mb-8 flex-wrap gap-4">
+            <div>
+              <span className="text-[0.75rem] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                Verified Feedback
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold mt-1 tracking-[-0.03em]">
+                Customer Reviews
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setReviewModalOpen(true)}
+              className="btn btn-primary btn-sm gap-1.5 text-xs !py-2.5 !px-4 shadow-sm"
+            >
+              <Star size={14} fill="currentColor" />
+              <span>Write a Review</span>
+            </button>
+          </div>
+
+          {/* Rating Summary Card & Distribution */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] p-6 sm:p-8">
+            {/* Left: Big Average */}
+            <div className="md:col-span-4 flex flex-col items-center justify-center text-center p-4 border-b md:border-b-0 md:border-r border-[var(--border-subtle)]">
+              <div className="text-5xl font-black font-mono tracking-tight text-[var(--text-primary)]">
+                {reviewStats.averageRating > 0 ? reviewStats.averageRating : "0.0"}
+              </div>
+              <div className="flex items-center gap-1 text-amber-400 my-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    size={18}
+                    className={
+                      (reviewStats.averageRating || 0) >= star
+                        ? "fill-amber-400 text-amber-400"
+                        : (reviewStats.averageRating || 0) >= star - 0.5
+                        ? "fill-amber-400/50 text-amber-400"
+                        : "text-zinc-600"
+                    }
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-[var(--text-muted)] m-0">
+                Based on {reviewStats.totalReviews} {reviewStats.totalReviews === 1 ? "review" : "reviews"}
+              </p>
+            </div>
+
+            {/* Right: Distribution Bars */}
+            <div className="md:col-span-8 flex flex-col justify-center gap-2 px-0 sm:px-4">
+              {[5, 4, 3, 2, 1].map((score) => {
+                const count = reviewStats.ratingDistribution?.[score] || 0;
+                const percentage =
+                  reviewStats.totalReviews > 0
+                    ? Math.round((count / reviewStats.totalReviews) * 100)
+                    : 0;
+
+                return (
+                  <div key={score} className="flex items-center gap-3 text-xs">
+                    <span className="w-12 text-[var(--text-muted)] flex items-center gap-1 shrink-0 font-mono">
+                      <span>{score}</span>
+                      <Star size={11} className="fill-amber-400 text-amber-400" />
+                    </span>
+                    <div className="flex-1 h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden border border-[var(--border-subtle)]">
+                      <div
+                        className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                    <span className="w-10 text-right text-[var(--text-muted)] font-mono text-[0.7rem] shrink-0">
+                      {count}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Review List */}
+          {reviewsLoading ? (
+            <div className="py-12 text-center text-xs text-[var(--text-muted)] font-mono flex items-center justify-center gap-2">
+              <Loader2 size={16} className="animate-spin" />
+              <span>Loading reviews...</span>
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="bg-[var(--bg-card)] border border-dashed border-[var(--border-medium)] rounded-[var(--radius-md)] p-12 text-center">
+              <Star size={28} className="text-[var(--text-muted)] mb-2 mx-auto opacity-40" />
+              <h3 className="text-base font-bold m-0">No reviews yet</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-1.5 mb-5 max-w-sm mx-auto">
+                Be the first to share your thoughts on the craftsmanship, finish, and details of this piece.
+              </p>
+              <button
+                type="button"
+                onClick={() => setReviewModalOpen(true)}
+                className="btn btn-secondary btn-sm gap-1.5"
+              >
+                <Star size={13} fill="currentColor" />
+                <span>Write the First Review</span>
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {reviews.map((rev) => {
+                const reviewerName = [rev.firstName, rev.lastName].filter(Boolean).join(" ");
+                const initial = (rev.firstName || "U")[0].toUpperCase();
+                const formattedDate = new Date(rev.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                });
+
+                return (
+                  <div
+                    key={rev._id}
+                    className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-md)] p-5 flex flex-col gap-3 transition-all hover:border-[var(--border-medium)]"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                          {initial}
+                        </div>
+                        <div>
+                          <div className="font-bold text-xs sm:text-sm text-[var(--text-primary)]">
+                            {reviewerName}
+                          </div>
+                          <div className="text-[0.675rem] font-mono text-[var(--text-muted)]">
+                            {rev.emailOrContact}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center text-amber-400">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              size={12}
+                              className={
+                                rev.rating >= star
+                                  ? "fill-amber-400 text-amber-400"
+                                  : "text-zinc-600"
+                              }
+                            />
+                          ))}
+                        </div>
+                        <span className="text-[0.65rem] text-[var(--text-muted)] font-mono">
+                          {formattedDate}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs sm:text-[0.825rem] text-[var(--text-secondary)] leading-relaxed m-0 whitespace-pre-line">
+                      &ldquo;{rev.comment}&rdquo;
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
         {/* Products You May Like (Same Category Products) */}
         {relatedProducts.length > 0 && (
@@ -464,6 +709,14 @@ export function ProductDetailPage({
         image={mainImage}
         price={effectivePrice}
         category={product.category}
+      />
+
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        product={product}
+        onReviewSubmitted={handleReviewSubmitted}
       />
     </div>
   );

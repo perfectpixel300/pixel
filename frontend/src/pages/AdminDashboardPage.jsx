@@ -16,6 +16,7 @@ import { PromoManagement } from "../components/admin/PromoManagement";
 import { InquiriesManagement } from "../components/admin/InquiriesManagement";
 import { AboutManagement } from "../components/admin/AboutManagement";
 import { BlogManagement } from "../components/admin/BlogManagement";
+import { ReviewManagement } from "../components/admin/ReviewManagement";
 import { ProductFormModal } from "../components/admin/ProductFormModal";
 import { PrintingFormModal } from "../components/admin/PrintingFormModal";
 import { PrintingCategoryFormModal } from "../components/admin/PrintingCategoryFormModal";
@@ -41,6 +42,7 @@ export function AdminDashboardPage({
   banners = [],
   promoBanners = [],
   blogs = [],
+  reviews = [],
   inquiries = [],
   aboutData = null,
   onUpdateAbout,
@@ -527,6 +529,16 @@ export function AdminDashboardPage({
     }
   };
 
+  // Reviews
+  const handleDeleteReviewPrompt = (review) => {
+    setDeleteModal({
+      isOpen: true,
+      type: "review",
+      id: review._id,
+      name: `Review by ${review.firstName} (${review.rating}★)`,
+    });
+  };
+
   // Inquiries
   const handleDeleteInquiryPrompt = (inquiry) => {
     setDeleteModal({
@@ -568,6 +580,9 @@ export function AdminDashboardPage({
       } else if (deleteModal.type === "blog") {
         await api.deleteBlog(deleteModal.id);
         showToast("Blog article deleted.");
+      } else if (deleteModal.type === "review") {
+        await api.deleteReview(deleteModal.id);
+        showToast("Customer review deleted.");
       } else if (deleteModal.type === "inquiry") {
         await api.deleteInquiry(deleteModal.id);
         showToast("Inquiry archived.");
@@ -592,6 +607,7 @@ export function AdminDashboardPage({
         printingCategoriesCount={(printingCategories || []).length}
         promoBannersCount={(promoBanners || []).length}
         blogsCount={(blogs || []).length}
+        reviewsCount={(reviews || []).length}
         webTiersCount={webTiersCount}
         servicesCount={itServicesCount}
         serviceCategoriesCount={(serviceCategories || []).length}
@@ -779,6 +795,14 @@ export function AdminDashboardPage({
               onTogglePublish={handleToggleBlogPublish}
               onToggleFeature={handleToggleBlogFeature}
               onViewLive={onNavigateToBlogLive}
+            />
+          )}
+
+          {activeTab === "reviews" && (
+            <ReviewManagement
+              reviews={reviews}
+              onDeleteReview={handleDeleteReviewPrompt}
+              isLoading={isRefreshing}
             />
           )}
 
