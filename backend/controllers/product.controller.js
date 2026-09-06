@@ -1,4 +1,5 @@
 const Product = require("../models/product.model");
+const Review = require("../models/review.model");
 const { deleteFromCloudinary, extractPublicId } = require("../config/cloudinary");
 
 // Helper function to generate slug from name
@@ -82,13 +83,47 @@ exports.getProducts = async (req, res) => {
 
     const products = await productsQuery;
 
+    // Aggregate review stats (average rating and total reviews) for returned products
+    const productIds = products.map((p) => p._id);
+    const statsMap = new Map();
+    try {
+      const reviewStats = await Review.aggregate([
+        { $match: { product: { $in: productIds }, isApproved: true } },
+        {
+          $group: {
+            _id: "$product",
+            averageRating: { $avg: "$rating" },
+            totalReviews: { $sum: 1 },
+          },
+        },
+      ]);
+      reviewStats.forEach((stat) => {
+        statsMap.set(String(stat._id), {
+          averageRating: Number(stat.averageRating.toFixed(1)),
+          totalReviews: stat.totalReviews,
+        });
+      });
+    } catch (aggErr) {
+      console.error("Error aggregating product review stats:", aggErr);
+    }
+
+    const enrichedProducts = products.map((p) => {
+      const obj = p.toObject ? p.toObject() : { ...p };
+      const s = statsMap.get(String(obj._id));
+      return {
+        ...obj,
+        averageRating: s ? s.averageRating : (obj.averageRating || 0),
+        totalReviews: s ? s.totalReviews : (obj.totalReviews || 0),
+      };
+    });
+
     res.status(200).json({
       success: true,
-      count: products.length,
+      count: enrichedProducts.length,
       total,
       page: pageNumber,
       totalPages,
-      products,
+      products: enrichedProducts,
     });
   } catch (error) {
     console.error("Error in getProducts:", error);
@@ -120,9 +155,37 @@ exports.getProductById = async (req, res) => {
       });
     }
 
+    let stats = null;
+    try {
+      const reviewStats = await Review.aggregate([
+        { $match: { product: product._id, isApproved: true } },
+        {
+          $group: {
+            _id: "$product",
+            averageRating: { $avg: "$rating" },
+            totalReviews: { $sum: 1 },
+          },
+        },
+      ]);
+      if (reviewStats.length > 0) {
+        stats = {
+          averageRating: Number(reviewStats[0].averageRating.toFixed(1)),
+          totalReviews: reviewStats[0].totalReviews,
+        };
+      }
+    } catch (aggErr) {
+      console.error("Error aggregating single product review stats:", aggErr);
+    }
+
+    const productObj = product.toObject ? product.toObject() : { ...product };
+
     res.status(200).json({
       success: true,
-      product,
+      product: {
+        ...productObj,
+        averageRating: stats ? stats.averageRating : (productObj.averageRating || 0),
+        totalReviews: stats ? stats.totalReviews : (productObj.totalReviews || 0),
+      },
     });
   } catch (error) {
     console.error("Error in getProductById:", error);

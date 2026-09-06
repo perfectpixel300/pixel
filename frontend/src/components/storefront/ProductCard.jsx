@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, ArrowUpRight, Package, ShoppingBag } from "lucide-react";
+import { MessageSquare, ArrowUpRight, Package, ShoppingBag, Star } from "lucide-react";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
@@ -24,6 +24,24 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
   const productUrl = `/products/${product.slug || product._id}`;
   const isStocked = Boolean(product?.isAvailable && (product?.stock === undefined || Number(product?.stock) > 0));
   const categoryName = typeof product?.category === "object" ? product?.category?.name : product?.category;
+
+  const ratingVal = Number(product?.averageRating || product?.rating || product?.ratings || 0);
+  const totalReviewsCount = Number(
+    product?.totalReviews ||
+    product?.numReviews ||
+    product?.reviewCount ||
+    product?.reviewsCount ||
+    0
+  );
+  let avgRating = ratingVal;
+  let reviewsCount = totalReviewsCount;
+  if (!avgRating && Array.isArray(product?.reviews) && product.reviews.length > 0) {
+    const validRev = product.reviews.filter((r) => r && typeof r.rating === "number");
+    if (validRev.length > 0) {
+      avgRating = Number((validRev.reduce((acc, r) => acc + r.rating, 0) / validRev.length).toFixed(1));
+      reviewsCount = validRev.length;
+    }
+  }
 
   const handleNavigate = (e) => {
     e?.preventDefault?.();
@@ -142,6 +160,33 @@ export function ProductCard({ product, onViewDetails, onInquire }) {
 
         {/* Card Footer Actions */}
         <div className="mt-auto pt-2.5 sm:pt-3 flex flex-col gap-2 border-t border-[var(--border-subtle)]">
+          {/* Average Rating Stars */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <div className="flex items-center text-amber-400">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={12}
+                  className={
+                    avgRating >= star
+                      ? "fill-amber-400 text-amber-400"
+                      : avgRating >= star - 0.5
+                      ? "fill-amber-400/50 text-amber-400"
+                      : "text-zinc-600"
+                  }
+                />
+              ))}
+            </div>
+            <span className="text-[0.6875rem] font-mono text-[var(--text-muted)] font-medium">
+              {avgRating > 0 ? avgRating.toFixed(1) : "0.0"}
+            </span>
+            {reviewsCount > 0 && (
+              <span className="text-[0.65rem] text-[var(--text-muted)] font-mono">
+                ({reviewsCount})
+              </span>
+            )}
+          </div>
+
           {/* Availability Status: Dedicated Uncongested Row */}
           <div className="flex items-center justify-between min-w-0">
             <span

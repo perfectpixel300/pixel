@@ -105,7 +105,7 @@ export function useSmoothSwiper({
       if (!isPointerDownRef.current) return;
 
       const deltaX = e.clientX - startXRef.current;
-      if (!hasDraggedRef.current && Math.abs(deltaX) > 4) {
+      if (!hasDraggedRef.current && Math.abs(deltaX) > 10) {
         hasDraggedRef.current = true;
         setIsDragging(true);
       }
@@ -170,9 +170,9 @@ export function useSmoothSwiper({
 
     // Determine direction on first significant movement
     if (isHorizontalSwipeRef.current === null) {
-      if (Math.abs(deltaX) > 6 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
         isHorizontalSwipeRef.current = true;
-      } else if (Math.abs(deltaY) > 6) {
+      } else if (Math.abs(deltaY) > 10) {
         isHorizontalSwipeRef.current = false;
       }
     }

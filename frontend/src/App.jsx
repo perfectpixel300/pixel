@@ -146,6 +146,18 @@ function AppContent() {
     }
   }, [location.pathname]);
 
+  // Keep selectedProduct in sync when route changes to a different product
+  useEffect(() => {
+    if (activePage === "product-detail" && routeInfo.idOrSlug && products.length > 0) {
+      const match = products.find(
+        (p) => p._id === routeInfo.idOrSlug || p.slug === routeInfo.idOrSlug
+      );
+      if (match && selectedProduct?._id !== match._id) {
+        setSelectedProduct(match);
+      }
+    }
+  }, [activePage, routeInfo.idOrSlug, products, selectedProduct]);
+
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
@@ -487,6 +499,7 @@ function AppContent() {
                 products={products}
                 onBack={() => setActivePage("products")}
                 onInquire={handleOpenInquiry}
+                onViewProduct={handleViewProduct}
               />
             )}
 

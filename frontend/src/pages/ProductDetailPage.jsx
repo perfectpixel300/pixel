@@ -30,17 +30,20 @@ export function ProductDetailPage({
   products = [],
   onBack,
   onInquire,
+  onViewProduct,
 }) {
   const params = useParams();
   const navigate = useNavigate();
   const idOrSlug = propIdOrSlug || params?.idOrSlug || params?.slug || params?.id;
 
   const [product, setProduct] = useState(() => {
-    if (initialProduct) return initialProduct;
+    if (initialProduct && (!idOrSlug || initialProduct._id === idOrSlug || initialProduct.slug === idOrSlug)) {
+      return initialProduct;
+    }
     if (idOrSlug && products && products.length > 0) {
       return products.find((p) => p._id === idOrSlug || p.slug === idOrSlug) || null;
     }
-    return null;
+    return initialProduct || null;
   });
 
   const { addToCart } = useCart();
@@ -118,14 +121,21 @@ export function ProductDetailPage({
   } = useSmoothSwiper({ itemCount: relatedProducts.length, defaultItemsPerView: 4 });
 
   const handleViewRelatedProduct = (selectedProd) => {
+    if (!selectedProd) return;
     setProduct(selectedProd);
-    navigate(`/products/${selectedProd.slug || selectedProd._id}`);
+    setQuantity(1);
+    if (onViewProduct) {
+      onViewProduct(selectedProd);
+    } else {
+      navigate(`/products/${selectedProd.slug || selectedProd._id}`);
+    }
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   };
 
   useEffect(() => {
-    if (initialProduct) {
+    if (initialProduct && (!idOrSlug || initialProduct._id === idOrSlug || initialProduct.slug === idOrSlug)) {
       setProduct(initialProduct);
+      setLoading(false);
       return;
     }
 
