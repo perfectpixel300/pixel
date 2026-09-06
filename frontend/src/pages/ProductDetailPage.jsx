@@ -220,7 +220,7 @@ export function ProductDetailPage({
     : 0;
 
   const supportWhatsAppNumber = "+9779808950275";
-  const whatsAppText = `Hello Pixel Perfect,\nI am inquiring about "${product.name}" (Price: NRs. ${effectivePrice.toLocaleString()}). Please advise on availability.`;
+  const whatsAppText = `Hello Pixel Perfect,\nI would like to order "${product.name}" (Price: NRs. ${effectivePrice.toLocaleString()}). Please advise on availability.`;
   const whatsAppUrl = `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
   const mainImage = images[0] || product?.imageUrl || "";
 
@@ -486,7 +486,7 @@ export function ProductDetailPage({
                   className="btn btn-secondary py-3 text-xs sm:text-sm gap-2 font-semibold"
                 >
                   <MessageCircle size={16} />
-                  <span>WhatsApp Inquiry</span>
+                  <span>Order via WhatsApp</span>
                 </a>
 
                 <button
