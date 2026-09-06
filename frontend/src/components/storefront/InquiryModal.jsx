@@ -59,14 +59,14 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
             })
             .join("\n");
           const totalVal = product.subtotal || product.indicativePrice || 0;
-          initialMessage = `Hello Pixel Perfect Team,\n\nI would like to inquire about purchasing the following items from my cart:\n\n${listStr}\n\nTotal Price: NRs. ${Number(totalVal).toLocaleString()}\n\nPlease advise on product availability, delivery timeframe, and payment options.\n\nThank you.`;
+          initialMessage = `Hello Pixel Perfect Team,\n\nI would like to inquire about purchasing the following items from my cart:\n\n${listStr}\n\nTotal Price (delivery charge not included): NRs. ${Number(totalVal).toLocaleString()}\n\nPlease advise on product availability, delivery timeframe, and payment options.\n\nThank you.`;
         } else {
-          initialMessage = `Hello Pixel Perfect Team,\n\nI would like to inquire about purchasing items from my cart ${priceStr ? `(Total: ${priceStr})` : ""}.\nPlease advise on product availability, delivery timeframe, and payment options.\n\nThank you.`;
+          initialMessage = `Hello Pixel Perfect Team,\n\nI would like to inquire about purchasing items from my cart ${priceStr ? `(Total Price: ${priceStr} - delivery charge not included)` : ""}.\nPlease advise on product availability, delivery timeframe, and payment options.\n\nThank you.`;
         }
       } else if (isServ) {
         initialMessage = `Hello Pixel Perfect Team,\n\nI would like to inquire about your "${itemName}" service ${priceStr ? `(${priceStr})` : ""}.\nPlease share the project timeline, kickoff process, and proposal details.\n\nThank you.`;
       } else {
-        initialMessage = `Hello Pixel Perfect,\n\nI would like to inquire about purchasing "${itemName}" ${priceStr ? `(${priceStr})` : ""}. Please advise on availability.\n\nThank you.`;
+        initialMessage = `Hello Pixel Perfect,\n\nI would like to inquire about purchasing "${itemName}" ${priceStr ? `(Price: ${priceStr} - delivery charge not included)` : ""}. Please advise on availability.\n\nThank you.`;
       }
 
       setFormData({
@@ -111,7 +111,8 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
     if (product) {
       const itemName = product.name || product.title;
       const priceVal = product.indicativePrice || product.price;
-      text += `I am inquiring about "${itemName}" ${priceVal ? `(Price: NRs. ${Number(priceVal).toLocaleString()})` : ""}.\nCategory: ${product.category || "General"}.\n`;
+      const deliverySuffix = isProduct ? " - delivery charge not included" : "";
+      text += `I am inquiring about "${itemName}" ${priceVal ? `(Price: NRs. ${Number(priceVal).toLocaleString()}${deliverySuffix})` : ""}.\nCategory: ${product.category || "General"}.\n`;
       if (isProduct && deliveryAddress && deliveryAddress.trim()) {
         text += `Delivery Address: ${deliveryAddress.trim()}\n`;
       }

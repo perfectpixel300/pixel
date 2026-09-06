@@ -95,7 +95,7 @@ export function CartDrawer({ onInquireWithCart }) {
     });
 
     orderText += `------------------------------------\n`;
-    orderText += `*Total Price:* NRs. ${subtotal.toLocaleString()}\n`;
+    orderText += `*Total Price (delivery charge not included):* NRs. ${subtotal.toLocaleString()}\n`;
     orderText += `------------------------------------\n\n`;
 
     if (user) {
@@ -132,7 +132,7 @@ export function CartDrawer({ onInquireWithCart }) {
         })
         .join("\n");
 
-      const orderDescription = `Hello Pixel Perfect Team,\n\nI would like to inquire about purchasing the following items from my cart:\n\n${itemsList}\n\nTotal Price: NRs. ${subtotal.toLocaleString()}\n\nPlease advise on product availability, delivery timeframe, and payment options.\n\nThank you.`;
+      const orderDescription = `Hello Pixel Perfect Team,\n\nI would like to inquire about purchasing the following items from my cart:\n\n${itemsList}\n\nTotal Price (delivery charge not included): NRs. ${subtotal.toLocaleString()}\n\nPlease advise on product availability, delivery timeframe, and payment options.\n\nThank you.`;
 
       onInquireWithCart({
         name: `Cart Order (${totalItems} ${totalItems === 1 ? "item" : "items"})`,
@@ -347,17 +347,19 @@ export function CartDrawer({ onInquireWithCart }) {
         {/* Footer Checkout Actions */}
         {cartItems.length > 0 && (
           <div className="p-4 pb-[max(1.25rem,calc(env(safe-area-inset-bottom)+0.75rem))] sm:p-5 border-t border-[var(--border-subtle)] bg-[var(--bg-card)] shrink-0 flex flex-col gap-3">
-            {/* Subtotal */}
+            {/* Total Price (delivery charge not included) */}
             <div className="flex items-baseline justify-between">
-              <span className="text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold">
-                Subtotal
-              </span>
+              <div>
+                <span className="text-xs uppercase tracking-wider text-[var(--text-muted)] font-semibold block">
+                  Total Price
+                </span>
+                <span className="text-[0.68rem] text-[var(--text-muted)] block">
+                  (delivery charge not included)
+                </span>
+              </div>
               <div className="text-right">
                 <div className="text-lg sm:text-xl font-black font-mono text-[var(--text-primary)]">
                   NRs. {subtotal.toLocaleString()}
-                </div>
-                <div className="text-[0.675rem] text-[var(--text-muted)]">
-                  Taxes and local delivery coordinated directly
                 </div>
               </div>
             </div>

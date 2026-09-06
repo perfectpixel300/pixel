@@ -242,7 +242,7 @@ export function ProductDetailPage({
   const supportWhatsAppNumber = "+9779808950275";
   const deliveryAddressSnippet = deliveryAddress ? `\nDelivery Address: ${deliveryAddress}` : "";
   const landmarkSnippet = nearbyLandmark ? `\nLandmark: ${nearbyLandmark}` : "";
-  const whatsAppText = `Hello Pixel Perfect,\nI would like to order "${product.name}" (Price: NRs. ${effectivePrice.toLocaleString()}).${deliveryAddressSnippet}${landmarkSnippet}\nPlease advise on availability.`;
+  const whatsAppText = `Hello Pixel Perfect,\nI would like to order "${product.name}" (Total Price: NRs. ${effectivePrice.toLocaleString()} - delivery charge not included).${deliveryAddressSnippet}${landmarkSnippet}\nPlease advise on availability.`;
   const whatsAppUrl = `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
   const mainImage = images[0] || product?.imageUrl || "";
 
