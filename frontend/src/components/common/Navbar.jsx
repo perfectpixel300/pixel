@@ -106,7 +106,11 @@ export function Navbar({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   const handleMouseEnter = (id) => {
@@ -145,8 +149,8 @@ export function Navbar({
       const currentScrollY = window.scrollY;
       const delta = currentScrollY - lastScrollY;
 
-      // Keep open if search or status popover is open
-      if (isSearchOpen || showStatusPopover) {
+      // Keep open if search, status popover, or user menu is open
+      if (isSearchOpen || showStatusPopover || isUserMenuOpen) {
         if (isHidden) {
           gsap.to(headerRef.current, {
             yPercent: 0,
@@ -210,7 +214,7 @@ export function Navbar({
       window.removeEventListener("touchmove", handleScroll);
       gsap.killTweensOf(headerRef.current);
     };
-  }, [isSearchOpen, showStatusPopover]);
+  }, [isSearchOpen, showStatusPopover, isUserMenuOpen]);
 
   // Real-time ticking for navbar timer chip (Kathmandu Timezone NPT / UTC+05:45)
   useEffect(() => {
@@ -278,7 +282,11 @@ export function Navbar({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   const navLinks = [
@@ -340,7 +348,11 @@ export function Navbar({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   const navigate = useNavigate();
@@ -645,7 +657,7 @@ export function Navbar({
     <>
       <header
         ref={headerRef}
-        className="fixed top-0 left-0 right-0 z-[100] w-full max-w-full overflow-x-clip bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] will-change-transform shadow-xs pt-[env(safe-area-inset-top,0px)]"
+        className="fixed top-0 left-0 right-0 z-[100] w-full max-w-full bg-[var(--bg-topbar)] backdrop-blur-md border-b border-[var(--border-subtle)] will-change-transform shadow-xs pt-[env(safe-area-inset-top,0px)]"
       >
         {/* Top Sub-Nav (Contact on Left, Status and Social Icons on Right) */}
         <div className="w-full border-b border-[var(--border-subtle)] bg-[var(--bg-card)]/90 antialiased">
@@ -681,7 +693,11 @@ export function Navbar({
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setShowStatusPopover(!showStatusPopover)}
+                      onClick={() => {
+                        setShowStatusPopover(!showStatusPopover);
+                        setIsUserMenuOpen(false);
+                        setIsSearchOpen(false);
+                      }}
                       className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[0.68rem] sm:text-[0.72rem] lg:text-[0.75rem] font-semibold border transition-all cursor-pointer leading-none ${
                         shopStatus?.status === "partial"
                           ? "bg-blue-500/15 border-blue-500/40 text-blue-300 hover:bg-blue-500/25"
@@ -923,6 +939,8 @@ export function Navbar({
           <button
             onClick={() => {
               setIsSearchOpen(!isSearchOpen);
+              setIsUserMenuOpen(false);
+              setShowStatusPopover(false);
             }}
             className={`btn-icon transition-colors ${
               isSearchOpen
@@ -967,8 +985,10 @@ export function Navbar({
               type="button"
               onClick={() => {
                 if (setActivePage) setActivePage("login");
+                navigate("/login");
+                window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className="btn btn-secondary btn-sm gap-1 sm:gap-1.5 text-xs !py-1.5 !px-2.5 sm:!px-3 font-semibold shrink-0"
+              className="btn btn-secondary btn-sm gap-1 sm:gap-1.5 text-xs !py-1.5 !px-2.5 sm:!px-3 font-semibold shrink-0 cursor-pointer"
               title="Sign In or Create Account"
             >
               <User size={13} />
@@ -976,11 +996,15 @@ export function Navbar({
               <span className="sm:hidden">Login</span>
             </button>
           ) : (
-            <div className="relative shrink-0 min-w-0" ref={userMenuRef}>
+            <div className="relative shrink-0 min-w-0 z-50" ref={userMenuRef}>
               <button
                 type="button"
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-1 sm:gap-1.5 py-1 px-2 sm:px-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors text-xs font-medium max-w-[95px] xs:max-w-[130px] sm:max-w-[160px] lg:max-w-[130px] xl:max-w-[190px] min-w-0"
+                onClick={() => {
+                  setIsUserMenuOpen(!isUserMenuOpen);
+                  setShowStatusPopover(false);
+                  setIsSearchOpen(false);
+                }}
+                className="flex items-center gap-1 sm:gap-1.5 py-1 px-2 sm:px-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors text-xs font-medium max-w-[95px] xs:max-w-[130px] sm:max-w-[160px] lg:max-w-[130px] xl:max-w-[190px] min-w-0 cursor-pointer"
                 title={user.fullName ? `${user.fullName} (${user.email})` : user.email}
               >
                 <div className="w-5 h-5 rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] font-bold text-[0.625rem] flex items-center justify-center shrink-0 border border-[var(--border-medium)]">
@@ -999,7 +1023,10 @@ export function Navbar({
 
               {/* User Dropdown Menu */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 p-1.5 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-50 animate-[scaleUp_0.15s_ease-out]">
+                <div
+                  className="absolute right-0 top-full mt-2 w-56 max-w-[calc(100vw-1.5rem)] p-1.5 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-[var(--radius-md)] shadow-[var(--shadow-xl)] z-[120] animate-[scaleUp_0.15s_ease-out]"
+                  style={{ transformOrigin: "top right" }}
+                >
                   <div className="px-3 py-2 border-b border-[var(--border-subtle)]">
                     <div className="text-xs font-bold truncate text-[var(--text-primary)]">
                       {user.fullName || user.name || "Member"}
@@ -1012,11 +1039,14 @@ export function Navbar({
                   <div className="py-1">
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setIsUserMenuOpen(false);
                         if (setActivePage) setActivePage("profile");
+                        navigate("/profile");
+                        window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-[var(--radius-xs)] transition-colors text-left font-medium"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-[var(--radius-xs)] transition-colors text-left font-medium cursor-pointer"
                     >
                       <User size={13} />
                       <span>Manage Profile</span>
@@ -1024,11 +1054,12 @@ export function Navbar({
 
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setIsUserMenuOpen(false);
                         openCart();
                       }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-[var(--radius-xs)] transition-colors text-left font-medium"
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] rounded-[var(--radius-xs)] transition-colors text-left font-medium cursor-pointer"
                     >
                       <div className="flex items-center gap-2.5">
                         <ShoppingBag size={13} />
@@ -1045,11 +1076,16 @@ export function Navbar({
                   <div className="border-t border-[var(--border-subtle)] pt-1">
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setIsUserMenuOpen(false);
                         logout();
+                        if (activePage === "profile") {
+                          if (setActivePage) setActivePage("home");
+                          navigate("/");
+                        }
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-[var(--radius-xs)] transition-colors text-left font-medium"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-[var(--radius-xs)] transition-colors text-left font-medium cursor-pointer"
                     >
                       <LogOut size={13} />
                       <span>Sign Out</span>
@@ -1258,7 +1294,12 @@ export function Navbar({
           return (
             <button
               type="button"
-              onClick={() => setIsMenuDrawerOpen(!isMenuDrawerOpen)}
+              onClick={() => {
+                setIsMenuDrawerOpen(!isMenuDrawerOpen);
+                setIsUserMenuOpen(false);
+                setShowStatusPopover(false);
+                setIsSearchOpen(false);
+              }}
               className={`flex flex-col items-center justify-center py-1.5 px-0.5 relative transition-all duration-200 cursor-pointer ${
                 isMenuTabActive
                   ? theme === "dark"
@@ -1695,7 +1736,7 @@ export function Navbar({
                     setIsMenuDrawerOpen(false);
                     openCart();
                   }}
-                  className="flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-left"
+                  className="flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-left cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
                     <ShoppingBag size={14} className="text-[var(--text-primary)]" />
@@ -1734,8 +1775,10 @@ export function Navbar({
                         onClick={() => {
                           setIsMenuDrawerOpen(false);
                           if (setActivePage) setActivePage("profile");
+                          navigate("/profile");
+                          window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
-                        className="btn btn-secondary btn-sm flex-1 !py-1 text-xs"
+                        className="btn btn-secondary btn-sm flex-1 !py-1 text-xs cursor-pointer"
                       >
                         Manage Profile
                       </button>
@@ -1744,8 +1787,12 @@ export function Navbar({
                         onClick={() => {
                           setIsMenuDrawerOpen(false);
                           logout();
+                          if (activePage === "profile") {
+                            if (setActivePage) setActivePage("home");
+                            navigate("/");
+                          }
                         }}
-                        className="btn btn-ghost btn-sm !py-1 text-xs text-rose-400"
+                        className="btn btn-ghost btn-sm !py-1 text-xs text-rose-400 cursor-pointer"
                       >
                         Logout
                       </button>
@@ -1757,8 +1804,10 @@ export function Navbar({
                     onClick={() => {
                       setIsMenuDrawerOpen(false);
                       if (setActivePage) setActivePage("login");
+                      navigate("/login");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    className="flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-left"
+                    className="flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-input)] border border-[var(--border-subtle)] hover:bg-[var(--bg-elevated)] transition-colors text-left cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       <User size={14} className="text-[var(--text-primary)]" />
