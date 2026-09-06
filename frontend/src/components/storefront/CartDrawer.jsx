@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   X,
@@ -10,10 +10,12 @@ import {
   MessageCircle,
   Package,
   Sparkles,
+  Truck,
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
+import { ChangeLocationModal } from "../common/ChangeLocationModal";
 
 export function CartDrawer({ onInquireWithCart }) {
   const navigate = useNavigate();
@@ -29,6 +31,23 @@ export function CartDrawer({ onInquireWithCart }) {
   } = useCart();
   const { user, isAuthenticated } = useAuth();
   const drawerRef = useRef(null);
+
+  const [deliveryAddress, setDeliveryAddress] = useState(
+    user?.deliveryAddress || user?.currentAddress || ""
+  );
+  const [nearbyLandmark, setNearbyLandmark] = useState(
+    user?.nearbyLandmark || ""
+  );
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (user?.deliveryAddress || user?.currentAddress) {
+      setDeliveryAddress(user.deliveryAddress || user.currentAddress);
+    }
+    if (user?.nearbyLandmark) {
+      setNearbyLandmark(user.nearbyLandmark);
+    }
+  }, [user]);
 
   // Auto-close if unauthenticated
   useEffect(() => {
@@ -91,8 +110,12 @@ export function CartDrawer({ onInquireWithCart }) {
         const sCode = user.secondaryCountryCode ? `${user.secondaryCountryCode} ` : "";
         orderText += `Secondary Phone: ${sCode}${user.secondaryContactNumber}\n`;
       }
-      if (user.currentAddress) orderText += `Delivery Address: ${user.currentAddress}\n`;
-      if (user.nearbyLandmark) orderText += `Landmark: ${user.nearbyLandmark}\n`;
+      const effectiveDelivery = deliveryAddress || user.deliveryAddress || user.currentAddress;
+      if (effectiveDelivery) {
+        orderText += `Delivery Address: ${effectiveDelivery}\n`;
+      }
+      const effectiveLandmark = nearbyLandmark || user.nearbyLandmark;
+      if (effectiveLandmark) orderText += `Landmark: ${effectiveLandmark}\n`;
     }
 
     const encoded = encodeURIComponent(orderText);
@@ -120,6 +143,8 @@ export function CartDrawer({ onInquireWithCart }) {
         cartItems: cartItems,
         totalItems,
         subtotal,
+        deliveryAddress: deliveryAddress || user?.deliveryAddress || user?.currentAddress || "",
+        nearbyLandmark: nearbyLandmark || user?.nearbyLandmark || "",
         description: orderDescription,
       });
       closeCart();
@@ -347,6 +372,31 @@ export function CartDrawer({ onInquireWithCart }) {
               </div>
             )}
 
+            {/* Delivery Location Preview & Change Popup */}
+            <div className="flex items-center justify-between p-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs">
+              <div className="min-w-0 pr-2">
+                <div className="flex items-center gap-1.5 text-[0.68rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                  <Truck size={13} className="text-white" />
+                  <span>Delivery Destination</span>
+                </div>
+                <div className="text-xs text-[var(--text-primary)] truncate mt-0.5">
+                  {deliveryAddress || "Not specified (click choose to set)"}
+                </div>
+                {deliveryAddress && nearbyLandmark && (
+                  <div className="text-[0.7rem] text-[var(--text-muted)] truncate mt-0.5">
+                    Landmark: {nearbyLandmark}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLocationModalOpen(true)}
+                className="text-[0.725rem] text-[var(--text-muted)] hover:text-white underline cursor-pointer shrink-0 font-medium"
+              >
+                {deliveryAddress ? "Change" : "Choose"}
+              </button>
+            </div>
+
             {/* Order Buttons */}
             <div className="flex flex-col gap-2">
               <button
@@ -381,6 +431,21 @@ export function CartDrawer({ onInquireWithCart }) {
           </div>
         )}
       </div>
+
+      {/* Change Delivery Location Pop up Modal */}
+      <ChangeLocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        title="Choose Delivery Location"
+        initialAddress={deliveryAddress}
+        initialLandmark={nearbyLandmark}
+        onConfirm={(newAddr, details) => {
+          setDeliveryAddress(newAddr);
+          if (details?.nearbyLandmark !== undefined) {
+            setNearbyLandmark(details.nearbyLandmark);
+          }
+        }}
+      />
     </div>
   );
 }

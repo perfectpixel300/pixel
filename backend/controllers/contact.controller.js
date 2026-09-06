@@ -13,7 +13,7 @@ const PHONE_REGEX = /^[+]?[\d\s().-]{7,20}$/;
 // @route   POST /api/contact
 exports.submitContact = async (req, res) => {
   try {
-    const { name, email, phone, subject, message, productTitle } = req.body;
+    const { name, email, phone, subject, message, productTitle, deliveryAddress } = req.body;
 
     // 1. Validate Name
     if (!name || typeof name !== "string") {
@@ -95,6 +95,9 @@ exports.submitContact = async (req, res) => {
     const sanitizedProductTitle = typeof productTitle === "string" && productTitle.trim()
       ? productTitle.trim().slice(0, 200)
       : "";
+    const sanitizedDeliveryAddress = typeof deliveryAddress === "string" && deliveryAddress.trim()
+      ? deliveryAddress.trim().slice(0, 300)
+      : "";
 
     // 6. Save inquiry to database
     const inquiry = await Contact.create({
@@ -104,6 +107,7 @@ exports.submitContact = async (req, res) => {
       subject: sanitizedSubject,
       message: trimmedMessage,
       productTitle: sanitizedProductTitle,
+      deliveryAddress: sanitizedDeliveryAddress,
     });
 
     // 7. Send email notification via Brevo API
@@ -114,7 +118,9 @@ exports.submitContact = async (req, res) => {
         email: inquiry.email,
         phone: inquiry.phone,
         subject: inquiry.subject,
-        message: inquiry.message,
+        message: inquiry.deliveryAddress
+          ? `${inquiry.message}\n\nDelivery Address: ${inquiry.deliveryAddress}`
+          : inquiry.message,
         productTitle: inquiry.productTitle,
         createdAt: inquiry.createdAt,
       });

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { CountryPhoneInput } from "../components/common/CountryPhoneInput";
+import { NepalLocationSelector } from "../components/common/NepalLocationSelector";
 import { validatePhoneNumber } from "../utils/phoneValidation";
 
 export function SetupProfilePage({ onNavigate, showToast }) {
@@ -29,7 +30,19 @@ export function SetupProfilePage({ onNavigate, showToast }) {
   const [contactNumber, setContactNumber] = useState("");
   const [secondaryCountryCode, setSecondaryCountryCode] = useState("+977");
   const [secondaryContactNumber, setSecondaryContactNumber] = useState("");
+  const [province, setProvince] = useState("");
+  const [district, setDistrict] = useState("");
+  const [city, setCity] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
   const [currentAddress, setCurrentAddress] = useState("");
+
+  // Delivery Address State
+  const [deliveryProvince, setDeliveryProvince] = useState("");
+  const [deliveryDistrict, setDeliveryDistrict] = useState("");
+  const [deliveryCity, setDeliveryCity] = useState("");
+  const [deliveryStreetAddress, setDeliveryStreetAddress] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+
   const [nearbyLandmark, setNearbyLandmark] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
 
@@ -49,7 +62,23 @@ export function SetupProfilePage({ onNavigate, showToast }) {
       if (user.contactNumber) setContactNumber(user.contactNumber);
       if (user.secondaryCountryCode) setSecondaryCountryCode(user.secondaryCountryCode);
       if (user.secondaryContactNumber) setSecondaryContactNumber(user.secondaryContactNumber);
+      if (user.province) setProvince(user.province);
+      if (user.district) setDistrict(user.district);
+      if (user.city) setCity(user.city);
+      if (user.streetAddress) setStreetAddress(user.streetAddress);
       if (user.currentAddress) setCurrentAddress(user.currentAddress);
+
+      if (user.deliveryProvince) setDeliveryProvince(user.deliveryProvince);
+      if (user.deliveryDistrict) setDeliveryDistrict(user.deliveryDistrict);
+      if (user.deliveryCity) setDeliveryCity(user.deliveryCity);
+      if (user.deliveryStreetAddress) setDeliveryStreetAddress(user.deliveryStreetAddress);
+      if (user.deliveryAddress) {
+        setDeliveryAddress(user.deliveryAddress);
+        if (user.currentAddress && user.deliveryAddress !== user.currentAddress) {
+          setSameAsResidence(false);
+        }
+      }
+
       if (user.nearbyLandmark) setNearbyLandmark(user.nearbyLandmark);
       if (user.dateOfBirth) setDateOfBirth(user.dateOfBirth);
     }
@@ -83,9 +112,10 @@ export function SetupProfilePage({ onNavigate, showToast }) {
     }
 
     if (!currentAddress.trim()) {
-      setError("Please enter your current delivery/residence address.");
+      setError("Please choose your Nepal residence location (Province, District, and Street/Tole).");
       return;
     }
+
     if (!dateOfBirth) {
       setError("Please select your date of birth.");
       return;
@@ -93,13 +123,39 @@ export function SetupProfilePage({ onNavigate, showToast }) {
 
     try {
       setLoading(true);
+
+      const finalDeliveryAddress = (deliveryAddress && deliveryAddress.trim())
+        ? deliveryAddress.trim()
+        : currentAddress.trim();
+      const finalDeliveryProvince = (deliveryProvince && deliveryProvince.trim())
+        ? deliveryProvince.trim()
+        : province;
+      const finalDeliveryDistrict = (deliveryDistrict && deliveryDistrict.trim())
+        ? deliveryDistrict.trim()
+        : district;
+      const finalDeliveryCity = (deliveryCity && deliveryCity.trim())
+        ? deliveryCity.trim()
+        : city;
+      const finalDeliveryStreetAddress = (deliveryStreetAddress && deliveryStreetAddress.trim())
+        ? deliveryStreetAddress.trim()
+        : streetAddress;
+
       const profileData = {
         fullName: fullName.trim(),
         countryCode,
         contactNumber: primaryValidation.cleanNumber,
         secondaryCountryCode,
         secondaryContactNumber: cleanSecondary,
+        province,
+        district,
+        city,
+        streetAddress,
         currentAddress: currentAddress.trim(),
+        deliveryAddress: finalDeliveryAddress,
+        deliveryProvince: finalDeliveryProvince,
+        deliveryDistrict: finalDeliveryDistrict,
+        deliveryCity: finalDeliveryCity,
+        deliveryStreetAddress: finalDeliveryStreetAddress,
         nearbyLandmark: (nearbyLandmark || "").trim(),
         dateOfBirth,
       };
@@ -219,25 +275,70 @@ export function SetupProfilePage({ onNavigate, showToast }) {
             onChange={setSecondaryContactNumber}
           />
 
-          {/* Current Address */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">
-              Current Address <span className="text-rose-400">*</span>
-            </label>
-            <div className="relative flex items-center">
-              <MapPin
-                size={16}
-                className="absolute left-3 text-[var(--text-muted)] pointer-events-none"
-              />
-              <input
-                type="text"
-                required
-                value={currentAddress}
-                onChange={(e) => setCurrentAddress(e.target.value)}
-                placeholder="e.g. New Baneshwor, Kathmandu"
-                className="form-input !pl-9.5 text-xs sm:text-sm py-2.5 w-full bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-white transition-colors"
-              />
+          {/* Nepal Location Selector - Residence Address */}
+          <NepalLocationSelector
+            label="Residence / Permanent Address"
+            required={true}
+            province={province}
+            onProvinceChange={setProvince}
+            district={district}
+            onDistrictChange={setDistrict}
+            city={city}
+            onCityChange={setCity}
+            streetAddress={streetAddress}
+            onStreetAddressChange={setStreetAddress}
+            fullAddress={currentAddress}
+            onAddressChange={(formatted, details) => {
+              setCurrentAddress(formatted);
+              if (details.province) setProvince(details.province);
+              if (details.district) setDistrict(details.district);
+              if (details.city) setCity(details.city);
+              if (details.streetAddress !== undefined) setStreetAddress(details.streetAddress);
+            }}
+          />
+
+          {/* Nepal Location Selector - Delivery Address (Same style as primary address) */}
+          <div className="pt-3 border-t border-[var(--border-subtle)] space-y-1.5">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[0.7rem] text-[var(--text-muted)]">
+                Delivery destination for physical orders
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setDeliveryProvince(province);
+                  setDeliveryDistrict(district);
+                  setDeliveryCity(city);
+                  setDeliveryStreetAddress(streetAddress);
+                  setDeliveryAddress(currentAddress);
+                  if (showToast) showToast("Delivery address set same as residence address");
+                }}
+                className="text-[0.725rem] text-[var(--text-muted)] hover:text-white underline cursor-pointer transition-colors font-medium"
+              >
+                Same as residence address
+              </button>
             </div>
+
+            <NepalLocationSelector
+              label="Delivery Address"
+              required={false}
+              province={deliveryProvince}
+              onProvinceChange={setDeliveryProvince}
+              district={deliveryDistrict}
+              onDistrictChange={setDeliveryDistrict}
+              city={deliveryCity}
+              onCityChange={setDeliveryCity}
+              streetAddress={deliveryStreetAddress}
+              onStreetAddressChange={setDeliveryStreetAddress}
+              fullAddress={deliveryAddress}
+              onAddressChange={(formatted, details) => {
+                setDeliveryAddress(formatted);
+                if (details.province) setDeliveryProvince(details.province);
+                if (details.district) setDeliveryDistrict(details.district);
+                if (details.city) setDeliveryCity(details.city);
+                if (details.streetAddress !== undefined) setDeliveryStreetAddress(details.streetAddress);
+              }}
+            />
           </div>
 
           {/* Nearby Landmark */}

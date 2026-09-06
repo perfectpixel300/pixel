@@ -344,6 +344,15 @@ exports.customerSetupProfile = async (req, res) => {
       secondaryCountryCode,
       secondaryContactNumber,
       currentAddress,
+      province,
+      district,
+      city,
+      streetAddress,
+      deliveryAddress,
+      deliveryProvince,
+      deliveryDistrict,
+      deliveryCity,
+      deliveryStreetAddress,
       nearbyLandmark,
       dateOfBirth,
     } = req.body;
@@ -376,6 +385,19 @@ exports.customerSetupProfile = async (req, res) => {
     customer.secondaryCountryCode = (secondaryCountryCode || "+977").trim();
     customer.secondaryContactNumber = (secondaryContactNumber || "").trim();
     customer.currentAddress = currentAddress.trim();
+    if (province !== undefined) customer.province = province.trim();
+    if (district !== undefined) customer.district = district.trim();
+    if (city !== undefined) customer.city = city.trim();
+    if (streetAddress !== undefined) customer.streetAddress = streetAddress.trim();
+
+    // Delivery address: defaults to currentAddress if not provided
+    const finalDeliveryAddress = (deliveryAddress && deliveryAddress.trim()) ? deliveryAddress.trim() : currentAddress.trim();
+    customer.deliveryAddress = finalDeliveryAddress;
+    customer.deliveryProvince = (deliveryProvince !== undefined && deliveryProvince !== "") ? deliveryProvince.trim() : (province || "").trim();
+    customer.deliveryDistrict = (deliveryDistrict !== undefined && deliveryDistrict !== "") ? deliveryDistrict.trim() : (district || "").trim();
+    customer.deliveryCity = (deliveryCity !== undefined && deliveryCity !== "") ? deliveryCity.trim() : (city || "").trim();
+    customer.deliveryStreetAddress = (deliveryStreetAddress !== undefined && deliveryStreetAddress !== "") ? deliveryStreetAddress.trim() : (streetAddress || "").trim();
+
     customer.nearbyLandmark = (nearbyLandmark || "").trim();
     customer.dateOfBirth = dateOfBirth.trim();
     customer.isProfileComplete = true;
@@ -399,6 +421,15 @@ exports.customerSetupProfile = async (req, res) => {
         secondaryCountryCode: customer.secondaryCountryCode || "+977",
         secondaryContactNumber: customer.secondaryContactNumber || "",
         currentAddress: customer.currentAddress,
+        province: customer.province || "",
+        district: customer.district || "",
+        city: customer.city || "",
+        streetAddress: customer.streetAddress || "",
+        deliveryAddress: customer.deliveryAddress || customer.currentAddress || "",
+        deliveryProvince: customer.deliveryProvince || "",
+        deliveryDistrict: customer.deliveryDistrict || "",
+        deliveryCity: customer.deliveryCity || "",
+        deliveryStreetAddress: customer.deliveryStreetAddress || "",
         nearbyLandmark: customer.nearbyLandmark,
         dateOfBirth: customer.dateOfBirth,
         isEmailVerified: customer.isEmailVerified,
@@ -484,6 +515,15 @@ exports.customerLogin = async (req, res) => {
         secondaryCountryCode: customer.secondaryCountryCode || "+977",
         secondaryContactNumber: customer.secondaryContactNumber || "",
         currentAddress: customer.currentAddress,
+        province: customer.province || "",
+        district: customer.district || "",
+        city: customer.city || "",
+        streetAddress: customer.streetAddress || "",
+        deliveryAddress: customer.deliveryAddress || customer.currentAddress || "",
+        deliveryProvince: customer.deliveryProvince || "",
+        deliveryDistrict: customer.deliveryDistrict || "",
+        deliveryCity: customer.deliveryCity || "",
+        deliveryStreetAddress: customer.deliveryStreetAddress || "",
         nearbyLandmark: customer.nearbyLandmark,
         dateOfBirth: customer.dateOfBirth,
         isEmailVerified: customer.isEmailVerified,
@@ -525,6 +565,15 @@ exports.customerGetMe = async (req, res) => {
         secondaryCountryCode: customer.secondaryCountryCode || "+977",
         secondaryContactNumber: customer.secondaryContactNumber || "",
         currentAddress: customer.currentAddress,
+        province: customer.province || "",
+        district: customer.district || "",
+        city: customer.city || "",
+        streetAddress: customer.streetAddress || "",
+        deliveryAddress: customer.deliveryAddress || customer.currentAddress || "",
+        deliveryProvince: customer.deliveryProvince || "",
+        deliveryDistrict: customer.deliveryDistrict || "",
+        deliveryCity: customer.deliveryCity || "",
+        deliveryStreetAddress: customer.deliveryStreetAddress || "",
         nearbyLandmark: customer.nearbyLandmark,
         dateOfBirth: customer.dateOfBirth,
         isEmailVerified: customer.isEmailVerified,
@@ -555,6 +604,15 @@ exports.customerUpdateProfile = async (req, res) => {
       secondaryCountryCode,
       secondaryContactNumber,
       currentAddress,
+      province,
+      district,
+      city,
+      streetAddress,
+      deliveryAddress,
+      deliveryProvince,
+      deliveryDistrict,
+      deliveryCity,
+      deliveryStreetAddress,
       nearbyLandmark,
       dateOfBirth,
     } = req.body;
@@ -573,6 +631,17 @@ exports.customerUpdateProfile = async (req, res) => {
     if (secondaryCountryCode !== undefined) customer.secondaryCountryCode = secondaryCountryCode.trim();
     if (secondaryContactNumber !== undefined) customer.secondaryContactNumber = secondaryContactNumber.trim();
     if (currentAddress) customer.currentAddress = currentAddress.trim();
+    if (province !== undefined) customer.province = province.trim();
+    if (district !== undefined) customer.district = district.trim();
+    if (city !== undefined) customer.city = city.trim();
+    if (streetAddress !== undefined) customer.streetAddress = streetAddress.trim();
+
+    if (deliveryAddress !== undefined) customer.deliveryAddress = deliveryAddress.trim();
+    if (deliveryProvince !== undefined) customer.deliveryProvince = deliveryProvince.trim();
+    if (deliveryDistrict !== undefined) customer.deliveryDistrict = deliveryDistrict.trim();
+    if (deliveryCity !== undefined) customer.deliveryCity = deliveryCity.trim();
+    if (deliveryStreetAddress !== undefined) customer.deliveryStreetAddress = deliveryStreetAddress.trim();
+
     if (nearbyLandmark !== undefined) customer.nearbyLandmark = nearbyLandmark.trim();
     if (dateOfBirth) customer.dateOfBirth = dateOfBirth.trim();
 
@@ -590,6 +659,15 @@ exports.customerUpdateProfile = async (req, res) => {
         secondaryCountryCode: customer.secondaryCountryCode || "+977",
         secondaryContactNumber: customer.secondaryContactNumber || "",
         currentAddress: customer.currentAddress,
+        province: customer.province || "",
+        district: customer.district || "",
+        city: customer.city || "",
+        streetAddress: customer.streetAddress || "",
+        deliveryAddress: customer.deliveryAddress || customer.currentAddress || "",
+        deliveryProvince: customer.deliveryProvince || "",
+        deliveryDistrict: customer.deliveryDistrict || "",
+        deliveryCity: customer.deliveryCity || "",
+        deliveryStreetAddress: customer.deliveryStreetAddress || "",
         nearbyLandmark: customer.nearbyLandmark,
         dateOfBirth: customer.dateOfBirth,
         isEmailVerified: customer.isEmailVerified,

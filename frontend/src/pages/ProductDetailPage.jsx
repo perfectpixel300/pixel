@@ -13,12 +13,15 @@ import {
   ShoppingBag,
   Plus,
   Minus,
+  Truck,
+  MapPin,
 } from "lucide-react";
 import { getOptimizedImageUrl } from "../utils/imageOptimizer";
 import { ShareModal } from "../components/common/ShareModal";
 import { SwipableImageGallery } from "../components/common/SwipableImageGallery";
 import { ProductCard } from "../components/storefront/ProductCard";
 import { ReviewModal } from "../components/storefront/ReviewModal";
+import { ChangeLocationModal } from "../components/common/ChangeLocationModal";
 import { useSmoothSwiper } from "../utils/useSmoothSwiper";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -47,8 +50,25 @@ export function ProductDetailPage({
   });
 
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [quantity, setQuantity] = useState(1);
+  const [deliveryAddress, setDeliveryAddress] = useState(
+    user?.deliveryAddress || user?.currentAddress || ""
+  );
+  const [nearbyLandmark, setNearbyLandmark] = useState(
+    user?.nearbyLandmark || ""
+  );
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (user?.deliveryAddress || user?.currentAddress) {
+      setDeliveryAddress(user.deliveryAddress || user.currentAddress);
+    }
+    if (user?.nearbyLandmark) {
+      setNearbyLandmark(user.nearbyLandmark);
+    }
+  }, [user]);
+
   const [loading, setLoading] = useState(!product && Boolean(idOrSlug));
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -220,7 +240,9 @@ export function ProductDetailPage({
     : 0;
 
   const supportWhatsAppNumber = "+9779808950275";
-  const whatsAppText = `Hello Pixel Perfect,\nI would like to order "${product.name}" (Price: NRs. ${effectivePrice.toLocaleString()}). Please advise on availability.`;
+  const deliveryAddressSnippet = deliveryAddress ? `\nDelivery Address: ${deliveryAddress}` : "";
+  const landmarkSnippet = nearbyLandmark ? `\nLandmark: ${nearbyLandmark}` : "";
+  const whatsAppText = `Hello Pixel Perfect,\nI would like to order "${product.name}" (Price: NRs. ${effectivePrice.toLocaleString()}).${deliveryAddressSnippet}${landmarkSnippet}\nPlease advise on availability.`;
   const whatsAppUrl = `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(whatsAppText)}`;
   const mainImage = images[0] || product?.imageUrl || "";
 
@@ -477,6 +499,37 @@ export function ProductDetailPage({
                 </button>
               </div>
 
+              {/* Delivery Address Option for Products */}
+              <div className="p-3.5 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)]">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-primary)]">
+                    <Truck size={14} className="text-white" />
+                    <span>Delivery Location</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsLocationModalOpen(true)}
+                    className="text-[0.725rem] text-[var(--text-muted)] hover:text-white underline cursor-pointer transition-colors font-medium"
+                  >
+                    {deliveryAddress ? "Change" : "Choose Location"}
+                  </button>
+                </div>
+
+                <div className="flex items-start gap-2 text-xs text-[var(--text-secondary)]">
+                  <MapPin size={13} className="shrink-0 mt-0.5 text-[var(--text-muted)]" />
+                  <div className="min-w-0">
+                    <span className="block truncate">
+                      {deliveryAddress || "No delivery address set. Click 'Choose Location' to select."}
+                    </span>
+                    {deliveryAddress && nearbyLandmark && (
+                      <span className="block text-[0.7rem] text-[var(--text-muted)] truncate mt-0.5">
+                        Landmark: {nearbyLandmark}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Direct Inquiry & WhatsApp Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <a
@@ -490,7 +543,13 @@ export function ProductDetailPage({
                 </a>
 
                 <button
-                  onClick={() => onInquire(product)}
+                  onClick={() =>
+                    onInquire({
+                      ...product,
+                      deliveryAddress: deliveryAddress || user?.deliveryAddress || user?.currentAddress || "",
+                      nearbyLandmark: nearbyLandmark || user?.nearbyLandmark || "",
+                    })
+                  }
                   className="btn btn-secondary py-3 text-xs sm:text-sm gap-2 font-semibold"
                 >
                   <MessageSquare size={16} />
@@ -798,6 +857,21 @@ export function ProductDetailPage({
         onClose={() => setReviewModalOpen(false)}
         product={product}
         onReviewSubmitted={handleReviewSubmitted}
+      />
+
+      {/* Delivery Location Change Pop up Modal */}
+      <ChangeLocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        initialAddress={deliveryAddress}
+        initialLandmark={nearbyLandmark}
+        onConfirm={(newAddr, details) => {
+          setDeliveryAddress(newAddr);
+          if (details?.nearbyLandmark !== undefined) {
+            setNearbyLandmark(details.nearbyLandmark);
+          }
+        }}
+        title="Choose Delivery Location"
       />
     </div>
   );

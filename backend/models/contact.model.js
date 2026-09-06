@@ -33,6 +33,11 @@ const contactSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    deliveryAddress: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     status: {
       type: String,
       enum: ["unread", "read", "archived"],

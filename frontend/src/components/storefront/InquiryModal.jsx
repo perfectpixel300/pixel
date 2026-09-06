@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { X, Send, CheckCircle2, MessageSquare, MessageCircle, ArrowRight } from "lucide-react";
+import { X, Send, CheckCircle2, MessageSquare, MessageCircle, ArrowRight, Truck } from "lucide-react";
 import { api } from "../../services/api";
 import { CountryPhoneInput } from "../common/CountryPhoneInput";
+import { ChangeLocationModal } from "../common/ChangeLocationModal";
 import { validatePhoneNumber } from "../../utils/phoneValidation";
 import { useAuth } from "../../context/AuthContext";
 
 export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
   const { user } = useAuth();
   const [countryCode, setCountryCode] = useState("+977");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [nearbyLandmark, setNearbyLandmark] = useState("");
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -21,21 +25,29 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
 
   const supportWhatsAppNumber = "9779808950275"; // Nepal WhatsApp hotline
 
+  const isService = Boolean(product && (product.type === "service" || product.packageTier));
+  const isCartOrder = Boolean(product && (product.type === "order" || product.isCartOrder || (product.cartItems && product.cartItems.length > 0)));
+  const isProduct = Boolean(product && !isService);
+
   useEffect(() => {
     const defaultCountry = user?.countryCode || "+977";
     const defaultPhone = user?.contactNumber || "";
     const defaultName = user?.fullName || user?.name || "";
     const defaultEmail = user?.email || "";
+    const defaultDelivery = product?.deliveryAddress || user?.deliveryAddress || user?.currentAddress || "";
+    const defaultLandmark = product?.nearbyLandmark || user?.nearbyLandmark || "";
     setCountryCode(defaultCountry);
+    setDeliveryAddress(defaultDelivery);
+    setNearbyLandmark(defaultLandmark);
 
     if (product) {
-      const isCartOrder = product.type === "order" || product.isCartOrder || (product.cartItems && product.cartItems.length > 0);
-      const isService = product.type === "service" || product.packageTier;
+      const isCart = product.type === "order" || product.isCartOrder || (product.cartItems && product.cartItems.length > 0);
+      const isServ = product.type === "service" || product.packageTier;
       const itemName = product.name || product.title || "Selected Item";
       const priceStr = product.indicativePrice || product.price ? `NRs. ${Number(product.indicativePrice || product.price).toLocaleString()}` : "";
 
       let initialMessage = "";
-      if (isCartOrder) {
+      if (isCart) {
         if (product.description) {
           initialMessage = product.description;
         } else if (product.cartItems && product.cartItems.length > 0) {
@@ -51,7 +63,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
         } else {
           initialMessage = `Hello Pixel Perfect Team,\n\nI would like to inquire about purchasing items from my cart ${priceStr ? `(Total: ${priceStr})` : ""}.\nPlease advise on product availability, delivery timeframe, and payment options.\n\nThank you.`;
         }
-      } else if (isService) {
+      } else if (isServ) {
         initialMessage = `Hello Pixel Perfect Team,\n\nI would like to inquire about your "${itemName}" service ${priceStr ? `(${priceStr})` : ""}.\nPlease share the project timeline, kickoff process, and proposal details.\n\nThank you.`;
       } else {
         initialMessage = `Hello Pixel Perfect,\n\nI would like to inquire about purchasing "${itemName}" ${priceStr ? `(${priceStr})` : ""}. Please advise on availability.\n\nThank you.`;
@@ -61,7 +73,7 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
         name: defaultName,
         email: defaultEmail,
         phone: defaultPhone,
-        subject: isCartOrder ? `Order Inquiry: ${itemName}` : `Inquiry: ${itemName}`,
+        subject: isCart ? `Order Inquiry: ${itemName}` : `Inquiry: ${itemName}`,
         message: initialMessage,
       });
     } else {
@@ -81,11 +93,15 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
 
   // Generate WhatsApp message URL
   const getWhatsAppUrl = () => {
-    const isCartOrder = product?.type === "order" || product?.isCartOrder || (product?.cartItems && product?.cartItems.length > 0);
-
     let text = "";
     if (isCartOrder) {
       text = formData.message || "Hello Pixel Perfect Team,\nI would like to inquire about my cart order.";
+      if (deliveryAddress && deliveryAddress.trim()) {
+        text += `\nDelivery Address: ${deliveryAddress.trim()}`;
+      }
+      if (nearbyLandmark && nearbyLandmark.trim()) {
+        text += `\nLandmark: ${nearbyLandmark.trim()}`;
+      }
       if (formData.name) text += `\n\nName: ${formData.name}`;
       if (formData.phone) text += `\nContact: ${countryCode} ${formData.phone}`;
       return `https://wa.me/${supportWhatsAppNumber}?text=${encodeURIComponent(text)}`;
@@ -96,6 +112,12 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
       const itemName = product.name || product.title;
       const priceVal = product.indicativePrice || product.price;
       text += `I am inquiring about "${itemName}" ${priceVal ? `(Price: NRs. ${Number(priceVal).toLocaleString()})` : ""}.\nCategory: ${product.category || "General"}.\n`;
+      if (isProduct && deliveryAddress && deliveryAddress.trim()) {
+        text += `Delivery Address: ${deliveryAddress.trim()}\n`;
+      }
+      if (isProduct && nearbyLandmark && nearbyLandmark.trim()) {
+        text += `Landmark: ${nearbyLandmark.trim()}\n`;
+      }
     } else {
       text += "I would like to ask a question regarding your products and IT web development services.\n";
     }
@@ -159,13 +181,22 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
       setIsSubmitting(true);
       setError("");
       const fullPhone = `${countryCode} ${phoneValidation.cleanNumber}`;
+      let fullMessage = trimmedMessage;
+      if (isProduct && deliveryAddress && deliveryAddress.trim()) {
+        const landmarkPart = nearbyLandmark && nearbyLandmark.trim() ? `\nLandmark: ${nearbyLandmark.trim()}` : "";
+        fullMessage = `${trimmedMessage}\n\nDelivery Address: ${deliveryAddress.trim()}${landmarkPart}`;
+      }
+      const fullDelivery = (isProduct && deliveryAddress)
+        ? (nearbyLandmark && nearbyLandmark.trim() ? `${deliveryAddress.trim()} (Landmark: ${nearbyLandmark.trim()})` : deliveryAddress.trim())
+        : "";
       const payload = {
         ...formData,
         name: trimmedName,
         email: trimmedEmail,
         phone: fullPhone,
-        message: trimmedMessage,
+        message: fullMessage,
         productTitle: product ? product.name : "",
+        deliveryAddress: fullDelivery,
       };
       await api.submitContact(payload);
       setIsSuccess(true);
@@ -205,11 +236,38 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
           </button>
         </div>
 
+        {/* Single Delivery Destination Selector for both WhatsApp and Web Inquiry */}
+        {isProduct && (
+          <div className="px-6 py-3 bg-[var(--bg-elevated)] border-b border-[var(--border-subtle)] flex items-center justify-between gap-3 shrink-0">
+            <div className="min-w-0 pr-2">
+              <div className="flex items-center gap-1.5 text-[0.68rem] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                <Truck size={12} className="text-white shrink-0" />
+                <span>Delivery Destination</span>
+              </div>
+              <div className="text-xs text-[var(--text-primary)] truncate mt-0.5">
+                {deliveryAddress || "No delivery address set (click to choose)"}
+              </div>
+              {deliveryAddress && nearbyLandmark && (
+                <div className="text-[0.7rem] text-[var(--text-muted)] truncate mt-0.5">
+                  Landmark: {nearbyLandmark}
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsLocationModalOpen(true)}
+              className="text-[0.725rem] text-[var(--text-muted)] hover:text-white underline cursor-pointer shrink-0 font-medium"
+            >
+              {deliveryAddress ? "Change" : "Choose"}
+            </button>
+          </div>
+        )}
+
         {/* WhatsApp Fast Channel Button */}
-        <div className="px-6 py-4 bg-[var(--bg-elevated)] border-b border-[var(--border-subtle)] flex flex-col gap-2 shrink-0">
+        <div className="px-6 py-4 bg-[var(--bg-elevated)] border-b border-[var(--border-subtle)] flex flex-col gap-2.5 shrink-0">
           <div className="flex justify-between items-center">
             <span className="text-[0.725rem] font-bold uppercase tracking-[0.06em] text-[var(--text-muted)]">
-              Instant Messaging
+              Instant Order via WhatsApp
             </span>
             <span className="text-[0.68rem] text-[var(--color-success)] font-medium">
               ● Online
@@ -324,6 +382,21 @@ export function InquiryModal({ isOpen, onClose, product, onSubmitted }) {
           </form>
         )}
       </div>
+
+      {/* Change Location Pop up Modal using same style as primary address */}
+      <ChangeLocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        title="Choose Delivery Location"
+        initialAddress={deliveryAddress}
+        initialLandmark={nearbyLandmark}
+        onConfirm={(newAddr, details) => {
+          setDeliveryAddress(newAddr);
+          if (details?.nearbyLandmark !== undefined) {
+            setNearbyLandmark(details.nearbyLandmark);
+          }
+        }}
+      />
     </div>
   );
 }
