@@ -217,6 +217,7 @@ export function AboutManagement({ aboutData, onUpdateAbout, showToast }) {
           position: "",
           image: "",
           portfolioLink: "",
+          description: "",
         },
       ],
     }));
@@ -768,6 +769,19 @@ export function AboutManagement({ aboutData, onUpdateAbout, showToast }) {
                           onChange={(e) => handleMemberChange(idx, "portfolioLink", e.target.value)}
                           placeholder="e.g. https://portfolio.com or https://github.com/..."
                           className="form-input text-xs font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="form-label text-xs">
+                          Short Description / Bio <span className="text-[var(--text-muted)] font-normal">(optional)</span>
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={member.description || ""}
+                          onChange={(e) => handleMemberChange(idx, "description", e.target.value)}
+                          placeholder="e.g. Leads design systems and oversees meticulous brand execution across physical and digital products."
+                          className="form-input text-xs resize-none"
                         />
                       </div>
 

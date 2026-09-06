@@ -43,6 +43,11 @@ const teamMemberSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    description: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
   { _id: false }
 );

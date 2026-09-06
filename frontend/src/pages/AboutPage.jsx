@@ -1,5 +1,5 @@
-import React from "react";
-import { ArrowRight, ExternalLink, ArrowUpRight } from "lucide-react";
+import React, { useState, useMemo, useRef } from "react";
+import { ArrowRight, ExternalLink, ArrowUpRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 const DEFAULT_ABOUT = {
   badge: "About Us",
@@ -36,8 +36,30 @@ const DEFAULT_ABOUT = {
     },
   ],
   teamHeading: "Our Team",
-  teamSubheading: "",
-  team: [],
+  teamSubheading: "Makers, engineers, and designers dedicated to precision craftsmanship.",
+  team: [
+    {
+      name: "Bikash Shrestha",
+      position: "Designer, Founder & Manager",
+      image: "https://bikashshrestha01.com.np/assets/img/my-profile-img.svg",
+      portfolioLink: "https://bikashshrestha01.com.np/",
+      description: "Directs visual brand strategy, product design systems, and holistic atelier operations.",
+    },
+    {
+      name: "Ramesh Shrestha",
+      position: "QA Developer & CEO",
+      image: "https://media.licdn.com/dms/image/v2/D5603AQFlv5Lq-7vOzw/profile-displayphoto-scale_200_200/B56Z8t3f20G8Ac-/0/1783180954994?e=2147483647&v=beta&t=CGs6dHFVIw41gFgK5y3JWkTpME0hTXGx4mdzFayRl5s",
+      portfolioLink: "https://np.linkedin.com/in/ramesh-shrestha-327655273",
+      description: "Steers executive technical strategy, continuous quality assurance, and engineering integrity.",
+    },
+    {
+      name: "Saksham Shrestha",
+      position: "Developer",
+      image: "https://www.sakshamstha.com.np/saksham.jpg",
+      portfolioLink: "https://www.sakshamstha.com.np/",
+      description: "Architects responsive full-stack web platforms and bespoke interactive digital experiences.",
+    },
+  ],
   ctaHeading: "Experience The Analog Difference",
   ctaDescription: "Explore our curated range of notebooks, machined writing instruments, and desk objects.",
   ctaButtonText: "Explore The Collection",
@@ -65,11 +87,47 @@ export function AboutPage({ onNavigate, aboutData }) {
       aboutData?.teamSubheading !== undefined
         ? aboutData.teamSubheading
         : DEFAULT_ABOUT.teamSubheading,
-    team: Array.isArray(aboutData?.team) ? aboutData.team : [],
+    team:
+      Array.isArray(aboutData?.team) && aboutData.team.length > 0
+        ? aboutData.team
+        : DEFAULT_ABOUT.team,
     ctaHeading: aboutData?.ctaHeading || DEFAULT_ABOUT.ctaHeading,
     ctaDescription: aboutData?.ctaDescription || DEFAULT_ABOUT.ctaDescription,
     ctaButtonText: aboutData?.ctaButtonText || DEFAULT_ABOUT.ctaButtonText,
     ctaButtonLink: aboutData?.ctaButtonLink || DEFAULT_ABOUT.ctaButtonLink,
+  };
+
+  const [selectedMemberIndex, setSelectedMemberIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const bigCardRef = useRef(null);
+
+  const MEMBERS_PER_PAGE = 6; // 3 cols x 2 rows
+  const teamList = data.team;
+  const totalPages = Math.max(1, Math.ceil(teamList.length / MEMBERS_PER_PAGE));
+
+  const safeIndex =
+    selectedMemberIndex >= 0 && selectedMemberIndex < teamList.length
+      ? selectedMemberIndex
+      : 0;
+  const activeMember = teamList[safeIndex] || teamList[0];
+
+  const paginatedMembers = useMemo(() => {
+    const start = (currentPage - 1) * MEMBERS_PER_PAGE;
+    return teamList.slice(start, start + MEMBERS_PER_PAGE);
+  }, [teamList, currentPage]);
+
+  const handleSelectMember = (originalIndex) => {
+    setSelectedMemberIndex(originalIndex);
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      bigCardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  };
+
+  const handlePrevPage = () => {
+    setCurrentPage((p) => Math.max(1, p - 1));
+  };
+  const handleNextPage = () => {
+    setCurrentPage((p) => Math.min(totalPages, p + 1));
   };
 
   const handleCtaClick = () => {
@@ -80,7 +138,7 @@ export function AboutPage({ onNavigate, aboutData }) {
 
   return (
     <div className="py-16 pb-24">
-      <div className="storefront-container max-w-[960px]">
+      <div className="storefront-container max-w-[1120px]">
         {/* Header */}
         <div className="mb-14 text-center">
           <span className="text-[0.75rem] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
@@ -149,11 +207,11 @@ export function AboutPage({ onNavigate, aboutData }) {
           </div>
         )}
 
-        {/* Our Team Section - Editorial / Magazine Style */}
+        {/* Our Team Section - Spotlight & Roster with Dynamic Pagination */}
         {data.team && data.team.length > 0 && (
           <div className="mb-24">
             {/* Editorial Masthead / Header */}
-            <div className="border-t border-b border-[var(--border-subtle)] py-6 mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="border-t border-b border-[var(--border-subtle)] py-6 mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="inline-block w-2 h-2 rounded-full bg-[#ea580c] dark:bg-[#ff7828]" />
@@ -172,76 +230,202 @@ export function AboutPage({ onNavigate, aboutData }) {
               )}
             </div>
 
-            {/* Editorial Plates Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-              {data.team.map((member, idx) => (
-                <div
-                  key={idx}
-                  className="group flex flex-col"
-                >
-                  {/* Editorial Plate Index Header */}
-                  <div className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)] text-[0.7rem] font-mono tracking-widest text-[var(--text-muted)] mb-3">
-                    <span>N° 0{idx + 1}</span>
-                    <span className="uppercase tracking-[0.2em] text-[0.65rem]">
-                      [ PORTRAIT ]
+            {/* Split Team Showcase: Primary Card Left + 3x2 Grid Right */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+              {/* PRIMARY SPOTLIGHT CARD (LEFT) */}
+              <div
+                ref={bigCardRef}
+                className="lg:col-span-5 lg:sticky lg:top-24 flex flex-col rounded-[var(--radius-md)] bg-[var(--bg-card)] border border-[var(--border-medium)] p-5 sm:p-6 shadow-sm overflow-hidden"
+              >
+                {/* Editorial Plate Index Header */}
+                <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--border-subtle)] text-[0.7rem] font-mono tracking-widest text-[var(--text-muted)]">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#ea580c] dark:bg-[#ff7828] animate-pulse" />
+                    <span className="font-bold text-[var(--text-primary)]">
+                      N° {String(safeIndex + 1).padStart(2, "0")}
                     </span>
                   </div>
+                  <span className="uppercase tracking-[0.2em] text-[0.65rem] px-2 py-0.5 rounded-xs bg-[var(--bg-elevated)] border border-[var(--border-subtle)] font-semibold text-[#ea580c] dark:text-[#ff7828]">
+                    [ SPOTLIGHT ]
+                  </span>
+                </div>
 
-                  {/* Photograph Frame (Magazine Plate) */}
-                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-[var(--bg-elevated)] border border-[var(--border-subtle)] group-hover:border-[var(--text-primary)] transition-colors duration-500">
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="w-full h-full object-cover object-top filter grayscale contrast-[1.08] brightness-[0.98] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-out"
-                      onError={(e) => {
-                        e.target.src = "/pixelperfect.png";
-                      }}
-                    />
+                {/* Photograph Frame */}
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] mb-5">
+                  <img
+                    key={activeMember.image || activeMember.name}
+                    src={activeMember.image}
+                    alt={activeMember.name}
+                    className="w-full h-full object-cover object-top contrast-[1.05] transition-all duration-700 ease-out"
+                    onError={(e) => {
+                      e.target.src = "/pixelperfect.png";
+                    }}
+                  />
 
-                    {/* Subtle Magazine Plate Corner Tag */}
-                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-black/60 backdrop-blur-xs text-white text-[10px] font-mono tracking-widest uppercase">
-                      ISSUE // 0{idx + 1}
-                    </div>
-
-                    {/* Subtle Gradient overlay for cinematic depth */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-40 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none" />
+                  {/* Corner tag */}
+                  <div className="absolute top-3 left-3 px-2 py-0.5 bg-black/70 backdrop-blur-xs text-white text-[10px] font-mono tracking-widest uppercase rounded-xs">
+                    TEAM // 0{safeIndex + 1}
                   </div>
-
-                  {/* Editorial Caption & Typography Block */}
-                  <div className="pt-4 flex flex-col flex-1 justify-between">
-                    <div>
-                      <span className="text-[0.68rem] uppercase tracking-[0.22em] font-semibold text-[#ea580c] dark:text-[#ff7828] block mb-1">
-                        {member.position}
-                      </span>
-                      <h3 className="text-xl sm:text-2xl font-serif font-medium tracking-tight text-[var(--text-primary)] group-hover:italic transition-all duration-300 m-0">
-                        {member.name}
-                      </h3>
-                    </div>
-
-                    {/* Editorial Link / Credit */}
-                    {member.portfolioLink && member.portfolioLink.trim() && (
-                      <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]">
-                        <a
-                          href={
-                            member.portfolioLink.startsWith("http://") || member.portfolioLink.startsWith("https://")
-                              ? member.portfolioLink
-                              : `https://${member.portfolioLink}`
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-[0.72rem] uppercase tracking-[0.18em] font-semibold text-[var(--text-secondary)] hover:text-[#ea580c] dark:hover:text-[#ff7828] transition-colors group/link"
-                        >
-                          <span>Selected Folio</span>
-                          <ArrowUpRight
-                            size={13}
-                            className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform duration-200"
-                          />
-                        </a>
-                      </div>
-                    )}
+                  <div className="absolute bottom-3 right-3 px-2 py-0.5 bg-black/70 backdrop-blur-xs text-white text-[10px] font-mono tracking-wider uppercase rounded-xs">
+                    ATELIER MEMBER
                   </div>
                 </div>
-              ))}
+
+                {/* Info Block */}
+                <div className="flex flex-col flex-1 justify-between">
+                  <div>
+                    <span className="text-[0.72rem] uppercase tracking-[0.24em] font-bold text-[#ea580c] dark:text-[#ff7828] block mb-1">
+                      {activeMember.position}
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-[var(--text-primary)] m-0 mb-3">
+                      {activeMember.name}
+                    </h3>
+
+                    {/* Short Description */}
+                    {activeMember.description ? (
+                      <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed italic m-0 mb-5 p-3.5 rounded-[var(--radius-xs)] bg-[var(--bg-elevated)]/60 border-l-2 border-[#ea580c] dark:border-[#ff7828]">
+                        "{activeMember.description}"
+                      </p>
+                    ) : (
+                      <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed italic m-0 mb-5">
+                        Crafting deliberate, contemplative solutions with micron precision and sensory materials at Pixel Perfect.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Portfolio Link */}
+                  {activeMember.portfolioLink && activeMember.portfolioLink.trim() && (
+                    <div className="pt-4 border-t border-[var(--border-subtle)]">
+                      <a
+                        href={
+                          activeMember.portfolioLink.startsWith("http://") || activeMember.portfolioLink.startsWith("https://")
+                            ? activeMember.portfolioLink
+                            : `https://${activeMember.portfolioLink}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-secondary btn-sm w-full gap-2 text-xs uppercase tracking-wider font-semibold justify-center py-2.5 hover:border-white transition-colors"
+                      >
+                        <span>View Selected Folio</span>
+                        <ArrowUpRight size={14} />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* MEMBERS GRID (RIGHT: 3 COLS x 2 ROWS) + DYNAMIC PAGINATION */}
+              <div className="lg:col-span-7 flex flex-col justify-between">
+                {/* Grid Header / Helper */}
+                <div className="flex items-center justify-between pb-2 mb-3 border-b border-[var(--border-subtle)] text-[0.725rem] text-[var(--text-muted)] font-mono">
+                  <span>TEAM ROSTER ({teamList.length} TOTAL)</span>
+                  <span className="hidden sm:inline text-[0.675rem] uppercase tracking-wider text-[var(--text-secondary)]">
+                    Click member to view in spotlight
+                  </span>
+                </div>
+
+                {/* 3 Columns x 2 Rows Grid (Max 6 members per page) */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                  {paginatedMembers.map((member, idx) => {
+                    const originalIdx = (currentPage - 1) * MEMBERS_PER_PAGE + idx;
+                    const isSelected = safeIndex === originalIdx;
+
+                    return (
+                      <button
+                        type="button"
+                        key={originalIdx}
+                        onClick={() => handleSelectMember(originalIdx)}
+                        className={`group relative text-left p-2 sm:p-2.5 rounded-[var(--radius-sm)] border transition-all duration-300 flex flex-col cursor-pointer ${
+                          isSelected
+                            ? "bg-[var(--bg-elevated)] border-[#ea580c] dark:border-[#ff7828] ring-1 ring-[#ea580c] dark:ring-[#ff7828] shadow-sm"
+                            : "bg-[var(--bg-card)] border-[var(--border-subtle)] hover:border-[var(--border-medium)] hover:bg-[var(--bg-elevated)]/60"
+                        }`}
+                      >
+                        {/* Member Photo Frame */}
+                        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[var(--radius-xs)] bg-[var(--bg-elevated)] mb-2 border border-[var(--border-subtle)]">
+                          <img
+                            src={member.image}
+                            alt={member.name}
+                            className={`w-full h-full object-cover object-top transition-all duration-500 ease-out ${
+                              isSelected
+                                ? "grayscale-0 scale-105"
+                                : "grayscale contrast-[1.06] group-hover:grayscale-0 group-hover:scale-105"
+                            }`}
+                            onError={(e) => {
+                              e.target.src = "/pixelperfect.png";
+                            }}
+                          />
+
+                          {/* Member Index Badge */}
+                          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-black/75 backdrop-blur-xs text-white text-[9px] font-mono tracking-wider uppercase rounded-xs">
+                            {String(originalIdx + 1).padStart(2, "0")}
+                          </div>
+
+                          {/* Active Indicator */}
+                          {isSelected && (
+                            <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#ea580c] dark:bg-[#ff7828] ring-2 ring-black" />
+                          )}
+                        </div>
+
+                        {/* Name Only */}
+                        <div className="min-w-0 px-0.5">
+                          <h4 className="text-xs sm:text-[0.8rem] font-serif font-medium text-[var(--text-primary)] truncate m-0 group-hover:text-white transition-colors">
+                            {member.name}
+                          </h4>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Dynamic Pagination Controls */}
+                <div className="mt-6 pt-4 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="text-xs font-mono text-[var(--text-muted)]">
+                    Showing {(currentPage - 1) * MEMBERS_PER_PAGE + 1}–{Math.min(currentPage * MEMBERS_PER_PAGE, teamList.length)} of {teamList.length} members
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handlePrevPage}
+                      disabled={currentPage <= 1}
+                      className="btn-icon btn-secondary !w-8 !h-8 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                      title="Previous Page"
+                      aria-label="Previous Page"
+                    >
+                      <ChevronLeft size={15} />
+                    </button>
+
+                    <div className="flex items-center gap-1 font-mono text-xs">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-8 h-8 rounded-[var(--radius-xs)] flex items-center justify-center font-bold text-xs transition-colors cursor-pointer ${
+                            currentPage === page
+                              ? "bg-white text-black dark:bg-white dark:text-black font-extrabold"
+                              : "text-[var(--text-muted)] hover:text-white hover:bg-[var(--bg-elevated)]"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleNextPage}
+                      disabled={currentPage >= totalPages}
+                      className="btn-icon btn-secondary !w-8 !h-8 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                      title="Next Page"
+                      aria-label="Next Page"
+                    >
+                      <ChevronRight size={15} />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

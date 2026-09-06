@@ -149,6 +149,7 @@ exports.updateAbout = async (req, res) => {
         position: m.position.trim(),
         image: m.image.trim(),
         portfolioLink: m.portfolioLink ? m.portfolioLink.trim() : "",
+        description: m.description ? m.description.trim() : "",
       }));
     }
 
