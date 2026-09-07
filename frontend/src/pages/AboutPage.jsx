@@ -59,6 +59,13 @@ const DEFAULT_ABOUT = {
       portfolioLink: "https://www.sakshamstha.com.np/",
       description: "Architects responsive full-stack web platforms and bespoke interactive digital experiences.",
     },
+    {
+      name: "Rohan Maharjan",
+      position: "Photographer",
+      image: "https://scontent.fktm8-1.fna.fbcdn.net/v/t39.30808-6/469894180_18285559288240369_4058052152381755037_n.jpg?stp=dst-jpg_tt6&cstp=mx1440x1800&ctp=s1440x1800&_nc_cat=110&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeHEx8bBQnD_72oEWHMtJBcB9i0rVjEn2u32LStWMSfa7U0tyiPomjbmCCmG2Xmc17TLIQ1ztO4zuJnkdpkzdyAz&_nc_ohc=15Cm3ukE3iYQ7kNvwGKFZ9P&_nc_oc=AdrP5Ji9MjBO-C1_hajG8IAxa30eSK7HYwB4K3TpY6x7b7hWPcIe85QqCfDTQNmq_Jsq5qb_eSqXCVloPKbFIMZh&_nc_zt=23&_nc_ht=scontent.fktm8-1.fna&_nc_gid=Z2aP16EyUu7m2Px9m7tLWA&_nc_ss=7b2a8&oh=00_AQJYDvcrdioN0jDZasZxb9ErU01Ikgm8JdOX4rcodRrDKQ&oe=6AA37B14",
+      portfolioLink: "",
+      description: "Specializes in high-precision product photography, visual storytelling, and studio media production.",
+    },
   ],
   ctaHeading: "Experience The Analog Difference",
   ctaDescription: "Explore our curated range of notebooks, machined writing instruments, and desk objects.",
@@ -282,9 +289,9 @@ export function AboutPage({ onNavigate, aboutData }) {
                     </h3>
 
                     {/* Short Description */}
-                    {activeMember.description ? (
+                    {activeMember.description && activeMember.description.trim() ? (
                       <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed italic m-0 mb-5 p-3.5 rounded-[var(--radius-xs)] bg-[var(--bg-elevated)]/60 border-l-2 border-[#ea580c] dark:border-[#ff7828]">
-                        "{activeMember.description}"
+                        "{activeMember.description.trim()}"
                       </p>
                     ) : (
                       <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed italic m-0 mb-5">

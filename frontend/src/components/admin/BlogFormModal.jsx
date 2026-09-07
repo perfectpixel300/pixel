@@ -117,7 +117,7 @@ export function BlogFormModal({
   });
 
   const [activeTab, setActiveTab] = useState("content"); // 'content' | 'media' | 'template' | 'settings'
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadingField, setUploadingField] = useState(null); // 'mediaUrl' | 'thumbnailUrl' | null
   const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
@@ -173,26 +173,33 @@ export function BlogFormModal({
     setUploadError("");
   }, [editingBlog, isOpen]);
 
-  // Handle Cloudinary upload
+  // Handle Cloudinary upload for mediaUrl or thumbnailUrl
   const handleFileUpload = async (e, field = "mediaUrl") => {
     const file = e.target.files[0];
     if (!file) return;
 
     try {
-      setIsUploading(true);
+      setUploadingField(field);
       setUploadError("");
       const res = await api.uploadImage(file, "blogs");
       if (res && res.url) {
-        setFormData((prev) => ({
-          ...prev,
-          [field]: res.url,
-          ...(field === "mediaUrl" && !prev.thumbnailUrl ? { thumbnailUrl: res.url } : {}),
-        }));
+        setFormData((prev) => {
+          const shouldSyncThumb =
+            field === "mediaUrl" &&
+            (!prev.thumbnailUrl ||
+              prev.thumbnailUrl === prev.mediaUrl ||
+              prev.thumbnailUrl.includes("photo-1544716278-ca5e3f4abd8c"));
+          return {
+            ...prev,
+            [field]: res.url,
+            ...(shouldSyncThumb ? { thumbnailUrl: res.url } : {}),
+          };
+        });
       }
     } catch (err) {
       setUploadError(err.message || "Failed to upload image");
     } finally {
-      setIsUploading(false);
+      setUploadingField(null);
       e.target.value = "";
     }
   };
@@ -482,42 +489,109 @@ export function BlogFormModal({
               {/* Dynamic Inputs based on mediaType */}
               <div className="p-4 rounded-[var(--radius-md)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] space-y-4">
                 {formData.mediaType === "photo" && (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="form-label text-xs">Image Link / CDN URL</label>
+                  <div className="space-y-4">
+                    {/* Primary Photo Cover */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="form-label text-xs m-0">Cover Photo URL *</label>
+                        <span className="text-[0.68rem] text-[var(--text-muted)] font-mono">
+                          Full resolution header photo
+                        </span>
+                      </div>
                       <input
                         type="url"
                         value={formData.mediaUrl}
+                        onChange={(e) => {
+                          const newUrl = e.target.value;
+                          setFormData((prev) => {
+                            const shouldSyncThumb =
+                              !prev.thumbnailUrl ||
+                              prev.thumbnailUrl === prev.mediaUrl ||
+                              prev.thumbnailUrl.includes("photo-1544716278-ca5e3f4abd8c");
+                            return {
+                              ...prev,
+                              mediaUrl: newUrl,
+                              thumbnailUrl: shouldSyncThumb ? newUrl : prev.thumbnailUrl,
+                            };
+                          });
+                        }}
+                        placeholder="https://images.unsplash.com/... or uploaded photo URL"
+                        className="form-input text-xs font-mono"
+                        required
+                      />
+                      <div>
+                        <label className="btn btn-secondary !py-2 !px-4 text-xs gap-2 cursor-pointer inline-flex items-center">
+                          <Upload size={14} />
+                          <span>
+                            {uploadingField === "mediaUrl"
+                              ? "Uploading Cover Photo..."
+                              : "Upload Cover Photo File"}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, "mediaUrl")}
+                            disabled={Boolean(uploadingField)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Dedicated Thumbnail for Photo Media */}
+                    <div className="pt-3 border-t border-[var(--border-subtle)] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="form-label text-xs m-0">
+                          Listing Card Thumbnail URL <span className="text-[var(--text-muted)] font-normal">(Card preview image)</span>
+                        </label>
+                        {formData.mediaUrl && formData.thumbnailUrl !== formData.mediaUrl && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                thumbnailUrl: prev.mediaUrl,
+                              }))
+                            }
+                            className="text-[0.7rem] text-[#ea580c] dark:text-[#ff7828] hover:underline font-mono cursor-pointer"
+                          >
+                            Use Cover Photo as Thumbnail
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        type="url"
+                        value={formData.thumbnailUrl}
                         onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            mediaUrl: e.target.value,
-                            thumbnailUrl: formData.thumbnailUrl || e.target.value,
-                          })
+                          setFormData({ ...formData, thumbnailUrl: e.target.value })
                         }
-                        placeholder="https://images.unsplash.com/..."
+                        placeholder="https://images.unsplash.com/... or custom card thumbnail link"
                         className="form-input text-xs font-mono"
                       />
-                    </div>
-                    <div>
-                      <label className="btn btn-secondary !py-2 !px-4 text-xs gap-2 cursor-pointer inline-flex items-center">
-                        <Upload size={14} />
-                        <span>{isUploading ? "Uploading to Cloudinary..." : "Upload Photo File"}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileUpload(e, "mediaUrl")}
-                          disabled={isUploading}
-                          className="hidden"
-                        />
-                      </label>
+                      <div>
+                        <label className="btn btn-secondary !py-2 !px-4 text-xs gap-2 cursor-pointer inline-flex items-center">
+                          <Upload size={14} />
+                          <span>
+                            {uploadingField === "thumbnailUrl"
+                              ? "Uploading Thumbnail..."
+                              : "Upload Custom Thumbnail File"}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, "thumbnailUrl")}
+                            disabled={Boolean(uploadingField)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {formData.mediaType === "video" && (
-                  <div className="space-y-3">
-                    <div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
                       <label className="form-label text-xs">Direct MP4 or WebM Video URL</label>
                       <input
                         type="url"
@@ -527,22 +601,39 @@ export function BlogFormModal({
                         className="form-input text-xs font-mono"
                       />
                     </div>
-                    <div>
+                    <div className="space-y-2">
                       <label className="form-label text-xs">Video Thumbnail / Poster Image URL</label>
                       <input
                         type="url"
                         value={formData.thumbnailUrl}
                         onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })}
-                        placeholder="https://example.com/poster.jpg (shown before play)"
+                        placeholder="https://example.com/poster.jpg (shown before play and on cards)"
                         className="form-input text-xs font-mono"
                       />
+                      <div>
+                        <label className="btn btn-secondary !py-1.5 !px-3 text-xs gap-2 cursor-pointer inline-flex items-center">
+                          <Upload size={13} />
+                          <span>
+                            {uploadingField === "thumbnailUrl"
+                              ? "Uploading Thumbnail..."
+                              : "Upload Poster / Thumbnail File"}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, "thumbnailUrl")}
+                            disabled={Boolean(uploadingField)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {formData.mediaType === "youtube" && (
-                  <div className="space-y-3">
-                    <div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
                       <label className="form-label text-xs">YouTube Video Link</label>
                       <input
                         type="text"
@@ -552,7 +643,7 @@ export function BlogFormModal({
                         className="form-input text-xs font-mono"
                       />
                     </div>
-                    <div>
+                    <div className="space-y-2">
                       <label className="form-label text-xs">Custom Card Thumbnail (Optional)</label>
                       <input
                         type="url"
@@ -561,13 +652,30 @@ export function BlogFormModal({
                         placeholder="https://images.unsplash.com/... (leave blank for default)"
                         className="form-input text-xs font-mono"
                       />
+                      <div>
+                        <label className="btn btn-secondary !py-1.5 !px-3 text-xs gap-2 cursor-pointer inline-flex items-center">
+                          <Upload size={13} />
+                          <span>
+                            {uploadingField === "thumbnailUrl"
+                              ? "Uploading Thumbnail..."
+                              : "Upload Custom Thumbnail File"}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, "thumbnailUrl")}
+                            disabled={Boolean(uploadingField)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {formData.mediaType === "embed" && (
-                  <div className="space-y-3">
-                    <div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
                       <label className="form-label text-xs">External Video Player Embed URL / iFrame Source</label>
                       <input
                         type="text"
@@ -577,7 +685,7 @@ export function BlogFormModal({
                         className="form-input text-xs font-mono"
                       />
                     </div>
-                    <div>
+                    <div className="space-y-2">
                       <label className="form-label text-xs">Listing Card Thumbnail Image</label>
                       <input
                         type="url"
@@ -586,6 +694,23 @@ export function BlogFormModal({
                         placeholder="https://images.unsplash.com/... (required for card preview)"
                         className="form-input text-xs font-mono"
                       />
+                      <div>
+                        <label className="btn btn-secondary !py-1.5 !px-3 text-xs gap-2 cursor-pointer inline-flex items-center">
+                          <Upload size={13} />
+                          <span>
+                            {uploadingField === "thumbnailUrl"
+                              ? "Uploading Thumbnail..."
+                              : "Upload Card Thumbnail File"}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, "thumbnailUrl")}
+                            disabled={Boolean(uploadingField)}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -595,58 +720,84 @@ export function BlogFormModal({
                 )}
               </div>
 
-              {/* Live Media Preview Box */}
-              <div>
-                <div className="text-xs font-bold mb-2 flex items-center gap-1.5 text-[var(--text-secondary)]">
-                  <Eye size={13} />
-                  <span>Live Media Player Preview</span>
+              {/* Live Media & Thumbnail Preview Box */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2 space-y-2">
+                  <div className="text-xs font-bold flex items-center gap-1.5 text-[var(--text-secondary)]">
+                    <Eye size={13} />
+                    <span>Header / Main Media Preview</span>
+                  </div>
+                  <div className="rounded-[var(--radius-md)] overflow-hidden border border-[var(--border-subtle)] bg-black/40 aspect-video flex items-center justify-center relative">
+                    {formData.mediaType === "photo" && formData.mediaUrl && (
+                      <img
+                        src={formData.mediaUrl}
+                        alt="Cover Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1400&auto=format&fit=crop";
+                        }}
+                      />
+                    )}
+
+                    {formData.mediaType === "video" && formData.mediaUrl && (
+                      <video
+                        src={formData.mediaUrl}
+                        poster={formData.thumbnailUrl}
+                        controls
+                        className="w-full h-full object-contain"
+                      />
+                    )}
+
+                    {formData.mediaType === "youtube" && formData.mediaUrl && (
+                      <iframe
+                        src={getYouTubeEmbedUrl(formData.mediaUrl)}
+                        title="YouTube Preview"
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    )}
+
+                    {formData.mediaType === "embed" && formData.mediaUrl && (
+                      <iframe
+                        src={formData.mediaUrl}
+                        title="External Player Preview"
+                        className="w-full h-full border-0"
+                        allowFullScreen
+                      />
+                    )}
+
+                    {!formData.mediaUrl && (
+                      <div className="text-xs text-[var(--text-muted)] flex flex-col items-center gap-2">
+                        <Film size={24} />
+                        <span>Enter media URL to view preview</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="rounded-[var(--radius-md)] overflow-hidden border border-[var(--border-subtle)] bg-black/40 aspect-video flex items-center justify-center relative">
-                  {formData.mediaType === "photo" && formData.mediaUrl && (
-                    <img
-                      src={formData.mediaUrl}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1400&auto=format&fit=crop";
-                      }}
-                    />
-                  )}
 
-                  {formData.mediaType === "video" && formData.mediaUrl && (
-                    <video
-                      src={formData.mediaUrl}
-                      poster={formData.thumbnailUrl}
-                      controls
-                      className="w-full h-full object-contain"
-                    />
-                  )}
-
-                  {formData.mediaType === "youtube" && formData.mediaUrl && (
-                    <iframe
-                      src={getYouTubeEmbedUrl(formData.mediaUrl)}
-                      title="YouTube Preview"
-                      className="w-full h-full border-0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  )}
-
-                  {formData.mediaType === "embed" && formData.mediaUrl && (
-                    <iframe
-                      src={formData.mediaUrl}
-                      title="External Player Preview"
-                      className="w-full h-full border-0"
-                      allowFullScreen
-                    />
-                  )}
-
-                  {!formData.mediaUrl && (
-                    <div className="text-xs text-[var(--text-muted)] flex flex-col items-center gap-2">
-                      <Film size={24} />
-                      <span>Enter media URL to view preview</span>
-                    </div>
-                  )}
+                <div className="space-y-2">
+                  <div className="text-xs font-bold flex items-center gap-1.5 text-[var(--text-secondary)]">
+                    <ImageIcon size={13} />
+                    <span>Card Thumbnail Preview</span>
+                  </div>
+                  <div className="rounded-[var(--radius-md)] overflow-hidden border border-[var(--border-subtle)] bg-black/40 aspect-video flex items-center justify-center relative">
+                    {(formData.thumbnailUrl || (formData.mediaType === "photo" ? formData.mediaUrl : null)) ? (
+                      <img
+                        src={formData.thumbnailUrl || formData.mediaUrl}
+                        alt="Card Thumbnail Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=600&auto=format&fit=crop";
+                        }}
+                      />
+                    ) : (
+                      <div className="text-xs text-[var(--text-muted)] flex flex-col items-center gap-1.5 p-3 text-center">
+                        <ImageIcon size={20} />
+                        <span className="text-[11px]">No thumbnail set</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

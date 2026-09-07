@@ -39,8 +39,37 @@ const getOrCreateAbout = async () => {
         },
       ],
       teamHeading: "Our Team",
-      teamSubheading: "",
-      team: [],
+      teamSubheading: "The dedicated craftsmen, designers, and innovators behind Pixel Perfect.",
+      team: [
+        {
+          name: "Bikash Shrestha",
+          position: "Designer, Founder & Manager",
+          image: "https://bikashshrestha01.com.np/assets/img/my-profile-img.svg",
+          portfolioLink: "https://bikashshrestha01.com.np/",
+          description: "Directs visual brand strategy, product design systems, and holistic atelier operations.",
+        },
+        {
+          name: "Ramesh Shrestha",
+          position: "QA Developer & CEO",
+          image: "https://scontent.fktm8-1.fna.fbcdn.net/v/t51.82787-15/669861636_18369986179207519_4582259281304280521_n.jpg?stp=dst-jpg_tt6&cstp=mx1440x1800&ctp=s1440x1800&_nc_cat=106&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeHqZmrOwa3f2y8rGFPVQyw6yO9BsCZeJqTI70GwJl4mpNtLnmF3Xq7hEckfCzXKxsXytji4Frt7ofePAOBvc3bM&_nc_ohc=Q1mmjMkwMjAQ7kNvwGBMsQj&_nc_oc=Ado-1o8tyeJkp8ojRhCiLdQBWEz1_q_Am-J2qJgu1rZ-DSAZbpKHeRbLjgUztsshNIoOnDAqEhtlpaHidEltNGQN&_nc_zt=23&_nc_ht=scontent.fktm8-1.fna&_nc_gid=P-sxWd5BekzycgixCWKZPA&_nc_ss=7b2a8&oh=00_AQIw1_815NsR9JLPXAeiKY4i_Q70pS0vPsxY7Ckyr5x1TA&oe=6AA38E7F",
+          portfolioLink: "https://np.linkedin.com/in/ramesh-shrestha-327655273",
+          description: "Steers executive technical strategy, continuous quality assurance, and engineering integrity.",
+        },
+        {
+          name: "Saksham Shrestha",
+          position: "Developer",
+          image: "https://www.sakshamstha.com.np/saksham.jpg",
+          portfolioLink: "https://www.sakshamstha.com.np/",
+          description: "Architects responsive full-stack web platforms and bespoke interactive digital experiences.",
+        },
+        {
+          name: "Rohan Maharjan",
+          position: "Photographer",
+          image: "https://scontent.fktm8-1.fna.fbcdn.net/v/t39.30808-6/469894180_18285559288240369_4058052152381755037_n.jpg?stp=dst-jpg_tt6&cstp=mx1440x1800&ctp=s1440x1800&_nc_cat=110&ccb=1-7&_nc_sid=127cfc&_nc_eui2=AeHEx8bBQnD_72oEWHMtJBcB9i0rVjEn2u32LStWMSfa7U0tyiPomjbmCCmG2Xmc17TLIQ1ztO4zuJnkdpkzdyAz&_nc_ohc=15Cm3ukE3iYQ7kNvwGKFZ9P&_nc_oc=AdrP5Ji9MjBO-C1_hajG8IAxa30eSK7HYwB4K3TpY6x7b7hWPcIe85QqCfDTQNmq_Jsq5qb_eSqXCVloPKbFIMZh&_nc_zt=23&_nc_ht=scontent.fktm8-1.fna&_nc_gid=Z2aP16EyUu7m2Px9m7tLWA&_nc_ss=7b2a8&oh=00_AQJYDvcrdioN0jDZasZxb9ErU01Ikgm8JdOX4rcodRrDKQ&oe=6AA37B14",
+          portfolioLink: "",
+          description: "Specializes in high-precision product photography, visual storytelling, and studio media production.",
+        },
+      ],
       ctaHeading: "Experience The Analog Difference",
       ctaDescription: "Explore our curated range of notebooks, machined writing instruments, and desk objects.",
       ctaButtonText: "Explore The Collection",
@@ -145,12 +174,13 @@ exports.updateAbout = async (req, res) => {
       }
 
       about.team = team.map((m) => ({
-        name: m.name.trim(),
-        position: m.position.trim(),
-        image: m.image.trim(),
+        name: m.name ? m.name.trim() : "",
+        position: m.position ? m.position.trim() : "",
+        image: m.image ? m.image.trim() : "",
         portfolioLink: m.portfolioLink ? m.portfolioLink.trim() : "",
         description: m.description ? m.description.trim() : "",
       }));
+      about.markModified("team");
     }
 
     if (ctaHeading !== undefined) about.ctaHeading = ctaHeading.trim();

@@ -370,7 +370,7 @@ exports.createBlog = async (req, res) => {
       },
       mediaType: mediaType || "photo",
       mediaUrl: mediaUrl?.trim() || "",
-      thumbnailUrl: thumbnailUrl?.trim() || "",
+      thumbnailUrl: thumbnailUrl?.trim() || (mediaType === "photo" ? mediaUrl?.trim() : "") || "",
       template: template || "editorial",
       readTime: readTime?.trim() || "4 min read",
       isPublished: isPublished !== undefined ? Boolean(isPublished) : true,
@@ -451,7 +451,11 @@ exports.updateBlog = async (req, res) => {
     }
     if (mediaType !== undefined) blog.mediaType = mediaType;
     if (mediaUrl !== undefined) blog.mediaUrl = mediaUrl.trim();
-    if (thumbnailUrl !== undefined) blog.thumbnailUrl = thumbnailUrl.trim();
+    if (thumbnailUrl !== undefined) {
+      blog.thumbnailUrl = thumbnailUrl.trim();
+    } else if (blog.mediaType === "photo" && !blog.thumbnailUrl && blog.mediaUrl) {
+      blog.thumbnailUrl = blog.mediaUrl;
+    }
     if (template !== undefined) blog.template = template;
     if (readTime !== undefined) blog.readTime = readTime.trim();
     if (isPublished !== undefined) blog.isPublished = Boolean(isPublished);
