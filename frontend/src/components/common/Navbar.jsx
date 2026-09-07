@@ -97,9 +97,7 @@ export function Navbar({
   const statusPopoverRef = useRef(null);
   const desktopStatusPopoverRef = useRef(null);
   const searchContainerRef = useRef(null);
-  const mobileSearchContainerRef = useRef(null);
   const searchInputRef = useRef(null);
-  const mobileSearchInputRef = useRef(null);
   const userMenuRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
 
@@ -462,12 +460,10 @@ export function Navbar({
   // Close search dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
-      const isInsideDesktop =
+      const isInsideSearch =
         searchContainerRef.current && searchContainerRef.current.contains(e.target);
-      const isInsideMobile =
-        mobileSearchContainerRef.current && mobileSearchContainerRef.current.contains(e.target);
       const isSearchButton = e.target.closest('button[aria-label="Search"]');
-      if (!isInsideDesktop && !isInsideMobile && !isSearchButton) {
+      if (!isInsideSearch && !isSearchButton) {
         setIsSearchOpen(false);
       }
     };
@@ -1476,27 +1472,27 @@ export function Navbar({
         </div>
       </div>
 
-      {/* Universal Search Expansion Bar (Desktop only, slides right under topbar) */}
+      {/* Universal Search Expansion Bar (Slides right under topbar on desktop & mobile) */}
       {isSearchOpen && (
         <div
           ref={searchContainerRef}
-          className="hidden lg:block bg-[var(--bg-card)]/98 backdrop-blur-md border-b border-[var(--border-medium)] p-3 sm:p-4 shadow-2xl animate-[fadeIn_0.15s_ease-out] z-50 relative"
+          className="bg-[var(--bg-card)]/98 backdrop-blur-md border-b border-[var(--border-medium)] p-2.5 sm:p-4 shadow-2xl animate-[fadeIn_0.15s_ease-out] z-50 relative"
         >
           <div className="storefront-container max-w-[760px] mx-auto">
             <form onSubmit={handleSearchFormSubmit} className="relative flex items-center">
               <Search
                 size={16}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
+                className="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
               />
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search products, services, custom prints, categories..."
+                placeholder="Search products, services, printing..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="form-input !pl-10 !pr-44 !text-[16px] sm:!text-sm py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
+                className="form-input !pl-8.5 sm:!pl-10 !pr-36 sm:!pr-44 !text-[16px] sm:!text-sm py-2 sm:py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
               />
-              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              <div className="absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-1.5">
                 {/* Filter option in search field beside the cross button */}
                 <CategoryDropdown
                   categories={searchFilterOptions}
@@ -1527,7 +1523,7 @@ export function Navbar({
                 <button
                   type="button"
                   onClick={() => setIsSearchOpen(false)}
-                  className="btn-icon btn-ghost !w-7 !h-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  className="btn-icon btn-ghost !w-6 sm:!w-7 !h-6 sm:!h-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   title="Close search"
                 >
                   <X size={16} />
@@ -1537,7 +1533,7 @@ export function Navbar({
 
             {/* Live Search Results Dropdown */}
             {searchQuery.trim() && (
-              <div className="mt-2.5 bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] overflow-hidden max-h-[380px] overflow-y-auto shadow-xl">
+              <div className="mt-2 sm:mt-2.5 bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] overflow-hidden max-h-[60vh] sm:max-h-[380px] overflow-y-auto shadow-xl">
                 {renderSearchResultsList()}
               </div>
             )}
@@ -1550,80 +1546,13 @@ export function Navbar({
     {/* Fixed Navbar Space Placeholder to prevent layout jump */}
     <div className="h-[96px] sm:h-[106px] w-full shrink-0" aria-hidden="true" />
 
-    {/* Mobile Search Overlay Backdrop */}
+    {/* Search Overlay Backdrop */}
     {isSearchOpen && (
       <div
         onClick={() => setIsSearchOpen(false)}
-        className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-40 animate-[fadeIn_0.15s_ease-out]"
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 animate-[fadeIn_0.15s_ease-out]"
         aria-hidden="true"
       />
-    )}
-
-    {/* Mobile Bottom Search Bar & Results (Elevated floating island above the bottom nav) */}
-    {isSearchOpen && (
-      <div
-        ref={mobileSearchContainerRef}
-        className="lg:hidden fixed bottom-[calc(74px+env(safe-area-inset-bottom,0px))] left-2.5 right-2.5 sm:left-4 sm:right-4 max-w-[500px] mx-auto z-40 bg-[var(--bg-card)]/98 backdrop-blur-xl border border-[var(--border-medium)] rounded-[var(--radius-md)] p-2.5 sm:p-3 shadow-[0_8px_36px_rgba(0,0,0,0.55)] animate-[slideUp_0.2s_ease-out]"
-      >
-        <div className="w-full flex flex-col">
-          {/* Live Search Results: Expands UPWARD above the search input */}
-          {searchQuery.trim() && (
-            <div className="mb-2 bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] overflow-hidden max-h-[46vh] overflow-y-auto shadow-2xl">
-              {renderSearchResultsList()}
-            </div>
-          )}
-
-          {/* Mobile Bottom Search Form */}
-          <form onSubmit={handleSearchFormSubmit} className="relative flex items-center">
-            <Search
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-            />
-            <input
-              ref={mobileSearchInputRef}
-              type="text"
-              placeholder="Search products, services, printing..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="form-input !pl-8.5 !pr-36 !text-[16px] sm:!text-sm py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
-            />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-              {/* Filter option in search field beside the cross button */}
-              <CategoryDropdown
-                categories={searchFilterOptions}
-                selectedCategory={selectedFilter}
-                onSelectCategory={(catName) => setSelectedFilter(catName)}
-                totalCount={products.length + printingServices.length + services.length}
-                label="Filter"
-                allLabel="All"
-                size="sm"
-                align="right"
-                placement="top"
-              />
-
-              {searchQuery ? (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="btn-icon btn-ghost !w-6 !h-6 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  title="Clear search text"
-                >
-                  <X size={13} />
-                </button>
-              ) : null}
-
-              <button
-                type="button"
-                onClick={() => setIsSearchOpen(false)}
-                className="btn-icon btn-ghost !w-6 !h-6 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                title="Close search"
-              >
-                <X size={15} />
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
     )}
 
     {/* Mobile Bottom Navigation Bar: Search (Before Home) + First 4 Nav Links + Menu */}
