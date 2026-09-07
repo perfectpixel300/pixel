@@ -137,10 +137,10 @@ export function AboutPage({ onNavigate, aboutData }) {
   };
 
   return (
-    <div className="py-16 pb-24">
+    <div className="pt-8 sm:pt-12 pb-24">
       <div className="storefront-container max-w-[1120px]">
         {/* Header */}
-        <div className="mb-14 text-center">
+        <div className="mb-8 sm:mb-10 text-center">
           <span className="text-[0.75rem] font-bold uppercase tracking-[0.15em] text-[var(--text-muted)]">
             {data.badge}
           </span>
@@ -156,11 +156,11 @@ export function AboutPage({ onNavigate, aboutData }) {
 
         {/* Hero Image */}
         {data.heroImage && (
-          <div className="rounded-[var(--radius-lg)] overflow-hidden h-[340px] sm:h-[420px] mb-16 border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-sm">
+          <div className="rounded-[var(--radius-lg)] overflow-hidden h-[440px] sm:h-[560px] lg:h-[660px] mb-16 border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-md relative group">
             <img
               src={data.heroImage}
               alt={data.heroImageAlt || data.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.01]"
               onError={(e) => {
                 e.target.src = DEFAULT_ABOUT.heroImage;
               }}
@@ -267,7 +267,7 @@ export function AboutPage({ onNavigate, aboutData }) {
                     TEAM // 0{safeIndex + 1}
                   </div>
                   <div className="absolute bottom-3 right-3 px-2 py-0.5 bg-black/70 backdrop-blur-xs text-white text-[10px] font-mono tracking-wider uppercase rounded-xs">
-                    ATELIER MEMBER
+                    PIXEL MEMBER
                   </div>
                 </div>
 
