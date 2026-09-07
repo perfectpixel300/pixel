@@ -150,7 +150,7 @@ export function CategoryDropdown({
                   placeholder={`Search ${label.toLowerCase()}s...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="form-input !pl-7.5 !py-1 text-xs bg-[var(--bg-card)] border-[var(--border-subtle)] rounded-[var(--radius-xs)] w-full"
+                  className="form-input !pl-7.5 !py-1 !text-[16px] sm:!text-xs bg-[var(--bg-card)] border-[var(--border-subtle)] rounded-[var(--radius-xs)] w-full"
                 />
                 {searchTerm && (
                   <button

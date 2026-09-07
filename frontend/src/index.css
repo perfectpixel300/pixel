@@ -659,3 +659,12 @@ input, textarea, select {
 .preloader-progress-bar {
   animation: preloaderSlide 1.2s ease-in-out infinite alternate;
 }
+
+/* Prevent iOS Safari from auto-zooming on search inputs on mobile devices */
+@media screen and (max-width: 767px) {
+  input[type="search"],
+  input[placeholder*="Search" i] {
+    font-size: 16px !important;
+  }
+}
+

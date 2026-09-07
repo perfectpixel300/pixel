@@ -434,9 +434,9 @@ export function Navbar({
     if (isSearchOpen) {
       setTimeout(() => {
         if (window.innerWidth >= 1024) {
-          searchInputRef.current?.focus();
+          searchInputRef.current?.focus({ preventScroll: true });
         } else {
-          mobileSearchInputRef.current?.focus();
+          mobileSearchInputRef.current?.focus({ preventScroll: true });
         }
       }, 70);
     }
@@ -1494,7 +1494,7 @@ export function Navbar({
                 placeholder="Search products, services, custom prints, categories..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="form-input !pl-10 !pr-44 text-xs sm:text-sm py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
+                className="form-input !pl-10 !pr-44 !text-[16px] sm:!text-sm py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
               />
               <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
                 {/* Filter option in search field beside the cross button */}
@@ -1585,7 +1585,7 @@ export function Navbar({
               placeholder="Search products, services, printing..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="form-input !pl-8.5 !pr-36 text-xs sm:text-sm py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
+              className="form-input !pl-8.5 !pr-36 !text-[16px] sm:!text-sm py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
               {/* Filter option in search field beside the cross button */}
