@@ -92,13 +92,14 @@ export function ServicesPage({
   const serviceIdOrSlug = propServiceIdOrSlug || params?.idOrSlug || params?.slug || params?.id;
 
   const categoryFromUrl = searchParams.get("category");
+  const searchFromUrl = searchParams.get("search");
   const [selectedCategory, setSelectedCategory] = useState(() => categoryFromUrl || "All");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(() => searchFromUrl || "");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
   const [shareServiceModalOpen, setShareServiceModalOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState(null);
 
-  // Sync category from URL query parameter
+  // Sync category and search from URL query parameter
   useEffect(() => {
     const catQuery = searchParams.get("category");
     if (catQuery) {
@@ -117,6 +118,11 @@ export function ServicesPage({
       }
     } else if (!searchParams.has("category") && selectedCategory !== "All" && !serviceIdOrSlug) {
       setSelectedCategory("All");
+    }
+
+    const searchQuery = searchParams.get("search");
+    if (searchQuery !== null && searchQuery !== searchTerm) {
+      setSearchTerm(searchQuery);
     }
   }, [searchParams, serviceIdOrSlug]);
 

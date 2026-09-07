@@ -40,14 +40,15 @@ export function PrintingPage({
   const printingIdOrSlug = propPrintingIdOrSlug || params?.idOrSlug || params?.slug || params?.id;
 
   const categoryFromUrl = searchParams.get("category");
+  const searchFromUrl = searchParams.get("search");
   const [selectedCategory, setSelectedCategory] = useState(() => categoryFromUrl || "All");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(() => searchFromUrl || "");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
   const [sharePrintingModalOpen, setSharePrintingModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
 
-  // Sync category from URL query parameter
+  // Sync category and search from URL query parameter
   useEffect(() => {
     const catQuery = searchParams.get("category");
     if (catQuery) {
@@ -64,6 +65,11 @@ export function PrintingPage({
       }, 100);
     } else if (!catQuery && searchParams.has("category") === false && selectedCategory !== "All" && !printingIdOrSlug) {
       setSelectedCategory("All");
+    }
+
+    const searchQuery = searchParams.get("search");
+    if (searchQuery !== null && searchQuery !== searchTerm) {
+      setSearchTerm(searchQuery);
     }
   }, [searchParams, printingIdOrSlug]);
 

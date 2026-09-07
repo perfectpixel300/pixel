@@ -61,7 +61,6 @@ export function HomePage({
 
   const handleCategoryClick = (category) => {
     if (onSelectCategory) onSelectCategory(category);
-    if (onNavigate) onNavigate("products");
     navigate(`/products?category=${encodeURIComponent(category)}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

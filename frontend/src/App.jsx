@@ -308,7 +308,14 @@ function AppContent() {
   // View single product detail
   const handleViewProduct = (product) => {
     setSelectedProduct(product);
+    setSearchQuery("");
     navigate(`/products/${product.slug || product._id}`);
+  };
+
+  // Select category handler that also resets any active product search filter
+  const handleSelectCategory = (category) => {
+    setSelectedCategory(category);
+    setSearchQuery("");
   };
 
   // View single blog article detail
@@ -428,7 +435,7 @@ function AppContent() {
             printingCategories={printingCategories}
             services={services}
             serviceCategories={serviceCategories}
-            onSelectCategory={setSelectedCategory}
+            onSelectCategory={handleSelectCategory}
             onViewProduct={handleViewProduct}
             onSearchSubmit={handleSearchSubmit}
             shopStatus={shopStatus}
@@ -452,7 +459,7 @@ function AppContent() {
                 onInquireService={handleOpenInquiry}
                 onInquirePrinting={handleOpenPrintingInquiry}
                 onNavigate={setActivePage}
-                onSelectCategory={setSelectedCategory}
+                onSelectCategory={handleSelectCategory}
               />
             )}
 

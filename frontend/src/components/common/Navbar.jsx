@@ -431,11 +431,7 @@ export function Navbar({
   useEffect(() => {
     if (isSearchOpen) {
       setTimeout(() => {
-        if (window.innerWidth >= 1024) {
-          searchInputRef.current?.focus({ preventScroll: true });
-        } else {
-          mobileSearchInputRef.current?.focus({ preventScroll: true });
-        }
+        searchInputRef.current?.focus({ preventScroll: true });
       }, 70);
     }
   }, [isSearchOpen]);
@@ -585,13 +581,10 @@ export function Navbar({
     setHoveredNav(null);
     if (navId === "products") {
       if (onSelectCategory) onSelectCategory("All");
-      if (setActivePage) setActivePage("products");
       navigate("/products");
     } else if (navId === "printing") {
-      if (setActivePage) setActivePage("printing");
       navigate("/printing");
     } else if (navId === "services") {
-      if (setActivePage) setActivePage("services");
       navigate("/services");
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -599,18 +592,19 @@ export function Navbar({
 
   const handleCategoryClick = (navId, catName) => {
     setHoveredNav(null);
+    setIsSearchOpen(false);
+    setIsMenuDrawerOpen(false);
+    setSearchQuery("");
     if (navId === "products") {
       if (onSelectCategory) onSelectCategory(catName);
-      if (setActivePage) setActivePage("products");
       navigate(`/products?category=${encodeURIComponent(catName)}`);
       setTimeout(() => {
         const el = document.getElementById("catalog-section");
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-      }, 100);
+      }, 150);
     } else if (navId === "printing") {
-      if (setActivePage) setActivePage("printing");
       navigate(`/printing?category=${encodeURIComponent(catName)}`);
       setTimeout(() => {
         const el =
@@ -619,9 +613,8 @@ export function Navbar({
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-      }, 100);
+      }, 150);
     } else if (navId === "services") {
-      if (setActivePage) setActivePage("services");
       navigate(`/services?category=${encodeURIComponent(catName)}`);
       setTimeout(() => {
         const targetId = catName === "Web Development" ? "web-tier-pricing" : "other-it-services";
@@ -629,41 +622,36 @@ export function Navbar({
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
-      }, 100);
+      }, 150);
     }
   };
 
   const handleSelectProduct = (product) => {
     if (onViewProduct) {
       onViewProduct(product);
+    } else {
+      navigate(`/products/${product.slug || product._id}`);
     }
-    navigate(`/products/${product.slug || product._id}`);
-    if (setActivePage) setActivePage("products");
     setSearchQuery("");
     setIsSearchOpen(false);
     setIsMenuDrawerOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSelectPrinting = (printing) => {
-    navigate(`/printing?category=${encodeURIComponent(printing.category || "All")}`);
-    if (setActivePage) setActivePage("printing");
+    navigate(`/printing/${printing.slug || printing._id}`);
     setSearchQuery("");
     setIsSearchOpen(false);
     setIsMenuDrawerOpen(false);
-    setTimeout(() => {
-      const el =
-        document.getElementById("printing-catalog-section") ||
-        document.getElementById("printing-catalog-grid");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 120);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSelectService = (service) => {
     navigate(`/services/${service.slug || service._id}`);
-    if (setActivePage) setActivePage("services");
     setSearchQuery("");
     setIsSearchOpen(false);
     setIsMenuDrawerOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSelectCategory = (cat) => {
@@ -679,16 +667,13 @@ export function Navbar({
     const q = searchQuery.trim();
     if (selectedFilter === "Printing") {
       navigate(`/printing?category=All&search=${encodeURIComponent(q)}`);
-      if (setActivePage) setActivePage("printing");
     } else if (selectedFilter === "Services") {
       navigate(`/services?category=All&search=${encodeURIComponent(q)}`);
-      if (setActivePage) setActivePage("services");
     } else {
       if (onSearchSubmit) {
         onSearchSubmit(q);
       } else {
         navigate(`/products?search=${encodeURIComponent(q)}`);
-        if (setActivePage) setActivePage("products");
       }
     }
     setIsSearchOpen(false);
