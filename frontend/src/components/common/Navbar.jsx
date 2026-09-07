@@ -31,7 +31,9 @@ import {
   User,
   LogOut,
   Shield,
+  Filter,
 } from "lucide-react";
+import { CategoryDropdown } from "./CategoryDropdown";
 import { getOptimizedImageUrl } from "../../utils/imageOptimizer";
 import { usePWA } from "../../context/PWAContext";
 import { useAuth } from "../../context/AuthContext";
@@ -81,6 +83,7 @@ export function Navbar({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuDrawerOpen, setIsMenuDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("All");
   const [showStatusPopover, setShowStatusPopover] = useState(false);
   const [timerText, setTimerText] = useState("");
   const [hoveredNav, setHoveredNav] = useState(null);
@@ -94,7 +97,9 @@ export function Navbar({
   const statusPopoverRef = useRef(null);
   const desktopStatusPopoverRef = useRef(null);
   const searchContainerRef = useRef(null);
+  const mobileSearchContainerRef = useRef(null);
   const searchInputRef = useRef(null);
+  const mobileSearchInputRef = useRef(null);
   const userMenuRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
 
@@ -299,23 +304,141 @@ export function Navbar({
     { id: "contact", label: "Contact", icon: MessageSquare },
   ];
 
-  // Filter matching products for live preview
-  const searchResults = searchQuery.trim()
-    ? products
-        .filter((p) => {
-          const q = searchQuery.toLowerCase();
-          const matchName = p.name?.toLowerCase().includes(q);
-          const matchCategory = p.category?.toLowerCase().includes(q);
-          const matchDesc = p.description?.toLowerCase().includes(q);
-          return matchName || matchCategory || matchDesc;
-        })
-        .slice(0, 5)
-    : [];
+  // Filter options for Universal Search Dropdown (Type scopes + individual categories)
+  const searchFilterOptions = [
+    { id: "Products", name: "Products", count: (products || []).length },
+    { id: "Printing", name: "Printing", count: (printingServices || []).length },
+    { id: "Services", name: "Services", count: (services || []).length },
+    {
+      id: "Categories",
+      name: "Categories",
+      count:
+        (categories || []).length +
+        (printingCategories || []).length +
+        (serviceCategories || []).length,
+    },
+    ...Array.from(
+      new Set([
+        ...(categories || []).map((c) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+        ...(products || []).map((p) => p.category).filter(Boolean),
+      ])
+    ).map((catName) => ({
+      id: `prod-${catName}`,
+      name: catName,
+      count: (products || []).filter((p) => p.category === catName).length,
+    })),
+  ];
+
+  // Universal Live Search across Products, Printing Services, IT Services, and Categories
+  const unifiedSearchResults = (() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) {
+      return { products: [], printing: [], services: [], categories: [], total: 0 };
+    }
+
+    const isAll = selectedFilter === "All" || !selectedFilter;
+    const shouldCheckProducts =
+      isAll || selectedFilter === "Products" || (products || []).some((p) => p.category === selectedFilter);
+    const shouldCheckPrinting =
+      isAll || selectedFilter === "Printing" || (printingServices || []).some((s) => s.category === selectedFilter);
+    const shouldCheckServices =
+      isAll || selectedFilter === "Services" || (services || []).some((s) => s.category === selectedFilter);
+    const shouldCheckCategories = isAll || selectedFilter === "Categories";
+
+    // Matching Products
+    const matchedProducts = shouldCheckProducts
+      ? (products || [])
+          .filter((p) => {
+            if (!isAll && selectedFilter !== "Products" && p.category !== selectedFilter) return false;
+            const matchName = p.name?.toLowerCase().includes(q);
+            const matchCategory = p.category?.toLowerCase().includes(q);
+            const matchDesc = (p.description || p.shortDescription || "")?.toLowerCase().includes(q);
+            const matchMaterial = (p.materials || []).some((m) => m?.toLowerCase?.().includes(q));
+            return matchName || matchCategory || matchDesc || matchMaterial;
+          })
+          .slice(0, 6)
+      : [];
+
+    // Matching Printing Services
+    const matchedPrinting = shouldCheckPrinting
+      ? (printingServices || [])
+          .filter((s) => {
+            if (!isAll && selectedFilter !== "Printing" && s.category !== selectedFilter) return false;
+            const matchName = s.name?.toLowerCase().includes(q);
+            const matchCategory = s.category?.toLowerCase().includes(q);
+            const matchDesc = (s.description || s.shortDescription || "")?.toLowerCase().includes(q);
+            return matchName || matchCategory || matchDesc;
+          })
+          .slice(0, 6)
+      : [];
+
+    // Matching Digital & IT Services
+    const matchedServices = shouldCheckServices
+      ? (services || [])
+          .filter((s) => {
+            if (!isAll && selectedFilter !== "Services" && s.category !== selectedFilter) return false;
+            const matchTitle = (s.title || s.name || "")?.toLowerCase().includes(q);
+            const matchCategory = s.category?.toLowerCase().includes(q);
+            const matchDesc = (s.description || s.shortDescription || "")?.toLowerCase().includes(q);
+            return matchTitle || matchCategory || matchDesc;
+          })
+          .slice(0, 6)
+      : [];
+
+    // Matching Categories
+    const allUniqueCategories = [
+      ...Array.from(
+        new Set([
+          ...(categories || []).map((c) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+          ...(products || []).map((p) => p.category).filter(Boolean),
+        ])
+      ).map((name) => ({ name, type: "products", label: "Product Category" })),
+      ...Array.from(
+        new Set([
+          ...(printingCategories || []).map((c) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+          ...(printingServices || []).map((s) => s.category).filter(Boolean),
+        ])
+      ).map((name) => ({ name, type: "printing", label: "Printing Category" })),
+      ...Array.from(
+        new Set([
+          ...(serviceCategories || []).map((c) => (typeof c === "string" ? c : c?.name)).filter(Boolean),
+          ...(services || []).map((s) => s.category).filter(Boolean),
+        ])
+      ).map((name) => ({ name, type: "services", label: "Service Category" })),
+    ];
+
+    const matchedCategories = shouldCheckCategories
+      ? allUniqueCategories
+          .filter((cat) => cat.name?.toLowerCase().includes(q))
+          .filter((cat, idx, arr) => arr.findIndex((c) => c.name === cat.name && c.type === cat.type) === idx)
+          .slice(0, 4)
+      : [];
+
+    const total =
+      matchedProducts.length +
+      matchedPrinting.length +
+      matchedServices.length +
+      matchedCategories.length;
+
+    return {
+      products: matchedProducts,
+      printing: matchedPrinting,
+      services: matchedServices,
+      categories: matchedCategories,
+      total,
+    };
+  })();
 
   // Focus search input when search bar is opened
   useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) {
-      setTimeout(() => searchInputRef.current?.focus(), 60);
+    if (isSearchOpen) {
+      setTimeout(() => {
+        if (window.innerWidth >= 1024) {
+          searchInputRef.current?.focus();
+        } else {
+          mobileSearchInputRef.current?.focus();
+        }
+      }, 70);
     }
   }, [isSearchOpen]);
 
@@ -339,11 +462,12 @@ export function Navbar({
   // Close search dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(e.target) &&
-        !e.target.closest('button[aria-label="Search"]')
-      ) {
+      const isInsideDesktop =
+        searchContainerRef.current && searchContainerRef.current.contains(e.target);
+      const isInsideMobile =
+        mobileSearchContainerRef.current && mobileSearchContainerRef.current.contains(e.target);
+      const isSearchButton = e.target.closest('button[aria-label="Search"]');
+      if (!isInsideDesktop && !isInsideMobile && !isSearchButton) {
         setIsSearchOpen(false);
       }
     };
@@ -513,27 +637,278 @@ export function Navbar({
     }
   };
 
-  const handleSelectResult = (product) => {
+  const handleSelectProduct = (product) => {
     if (onViewProduct) {
       onViewProduct(product);
     }
     navigate(`/products/${product.slug || product._id}`);
+    if (setActivePage) setActivePage("products");
+    setSearchQuery("");
+    setIsSearchOpen(false);
+    setIsMenuDrawerOpen(false);
+  };
+
+  const handleSelectPrinting = (printing) => {
+    navigate(`/printing?category=${encodeURIComponent(printing.category || "All")}`);
+    if (setActivePage) setActivePage("printing");
+    setSearchQuery("");
+    setIsSearchOpen(false);
+    setIsMenuDrawerOpen(false);
+    setTimeout(() => {
+      const el =
+        document.getElementById("printing-catalog-section") ||
+        document.getElementById("printing-catalog-grid");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+  };
+
+  const handleSelectService = (service) => {
+    navigate(`/services/${service.slug || service._id}`);
+    if (setActivePage) setActivePage("services");
+    setSearchQuery("");
+    setIsSearchOpen(false);
+    setIsMenuDrawerOpen(false);
+  };
+
+  const handleSelectCategory = (cat) => {
+    handleCategoryClick(cat.type, cat.name);
     setSearchQuery("");
     setIsSearchOpen(false);
     setIsMenuDrawerOpen(false);
   };
 
   const handleSearchFormSubmit = (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     if (!searchQuery.trim()) return;
-    if (onSearchSubmit) {
-      onSearchSubmit(searchQuery.trim());
+    const q = searchQuery.trim();
+    if (selectedFilter === "Printing") {
+      navigate(`/printing?category=All&search=${encodeURIComponent(q)}`);
+      if (setActivePage) setActivePage("printing");
+    } else if (selectedFilter === "Services") {
+      navigate(`/services?category=All&search=${encodeURIComponent(q)}`);
+      if (setActivePage) setActivePage("services");
     } else {
-      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-      if (setActivePage) setActivePage("products");
+      if (onSearchSubmit) {
+        onSearchSubmit(q);
+      } else {
+        navigate(`/products?search=${encodeURIComponent(q)}`);
+        if (setActivePage) setActivePage("products");
+      }
     }
     setIsSearchOpen(false);
     setIsMenuDrawerOpen(false);
+  };
+
+  const renderSearchResultsList = () => {
+    if (!searchQuery.trim()) return null;
+
+    if (unifiedSearchResults.total === 0) {
+      return (
+        <div className="p-6 text-center text-xs text-[var(--text-muted)]">
+          <div>No items match "{searchQuery}"</div>
+          {selectedFilter !== "All" && (
+            <button
+              type="button"
+              onClick={() => setSelectedFilter("All")}
+              className="mt-2 text-[#ea580c] dark:text-[#ff7828] underline text-xs font-semibold cursor-pointer"
+            >
+              Search across All categories instead
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="divide-y divide-[var(--border-subtle)]">
+        <div className="p-2.5 px-3.5 border-b border-[var(--border-subtle)] flex justify-between items-center text-[0.65rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider bg-[var(--bg-card)]">
+          <span>Search Results ({selectedFilter})</span>
+          <span>{unifiedSearchResults.total} Results</span>
+        </div>
+
+        {/* Categories matches */}
+        {unifiedSearchResults.categories.length > 0 && (
+          <div>
+            <div className="px-3.5 py-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--bg-app)]/60">
+              Categories ({unifiedSearchResults.categories.length})
+            </div>
+            {unifiedSearchResults.categories.map((cat, idx) => (
+              <div
+                key={`cat-${cat.name}-${idx}`}
+                onClick={() => handleSelectCategory(cat)}
+                className="p-2.5 px-3.5 flex items-center justify-between gap-3 cursor-pointer hover:bg-[var(--bg-card)] transition-colors"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-[var(--radius-xs)] bg-[#ea580c]/10 text-[#ea580c] dark:text-[#ff7828] flex items-center justify-center shrink-0">
+                    <Filter size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs sm:text-[0.825rem] font-bold text-[var(--text-primary)] truncate">
+                      {cat.name}
+                    </div>
+                    <span className="text-[0.625rem] text-[var(--text-muted)]">
+                      {cat.label} · Browse Category
+                    </span>
+                  </div>
+                </div>
+                <ArrowRight size={13} className="text-[var(--text-muted)] shrink-0" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Products matches */}
+        {unifiedSearchResults.products.length > 0 && (
+          <div>
+            <div className="px-3.5 py-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--bg-app)]/60">
+              Products ({unifiedSearchResults.products.length})
+            </div>
+            {unifiedSearchResults.products.map((product) => (
+              <div
+                key={product._id}
+                onClick={() => handleSelectProduct(product)}
+                className="p-3 flex items-center gap-3 cursor-pointer hover:bg-[var(--bg-card)] transition-colors"
+              >
+                {product.images?.[0] ? (
+                  <img
+                    src={getOptimizedImageUrl(product.images[0], { width: 80 })}
+                    alt={product.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-10 h-10 rounded-[var(--radius-xs)] object-cover bg-black shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-[var(--radius-xs)] bg-[var(--bg-app)] flex items-center justify-center shrink-0 text-[var(--text-muted)]">
+                    <ShoppingBag size={16} />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs sm:text-[0.825rem] font-bold text-[var(--text-primary)] truncate">
+                    {product.name}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="badge badge-neutral text-[0.55rem]">
+                      Product · {product.category}
+                    </span>
+                    {product.discountPrice && Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.indicativePrice) ? (
+                      <div className="flex items-center gap-1.5 font-mono text-[0.75rem]">
+                        <span className="text-emerald-400 font-bold">
+                          NRs. {Number(product.discountPrice).toLocaleString()}
+                        </span>
+                        <span className="text-[var(--text-muted)] line-through text-[0.65rem]">
+                          NRs. {Number(product.indicativePrice).toLocaleString()}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="font-mono text-[0.75rem] text-[var(--text-secondary)] font-semibold">
+                        NRs. {Number(product.indicativePrice || 0).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <ArrowRight size={14} className="text-[var(--text-muted)] shrink-0" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Printing Services matches */}
+        {unifiedSearchResults.printing.length > 0 && (
+          <div>
+            <div className="px-3.5 py-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--bg-app)]/60">
+              Printing Services ({unifiedSearchResults.printing.length})
+            </div>
+            {unifiedSearchResults.printing.map((printing) => (
+              <div
+                key={printing._id}
+                onClick={() => handleSelectPrinting(printing)}
+                className="p-3 flex items-center gap-3 cursor-pointer hover:bg-[var(--bg-card)] transition-colors"
+              >
+                {printing.images?.[0] ? (
+                  <img
+                    src={getOptimizedImageUrl(printing.images[0], { width: 80 })}
+                    alt={printing.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-10 h-10 rounded-[var(--radius-xs)] object-cover bg-black shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-[var(--radius-xs)] bg-[var(--bg-app)] flex items-center justify-center shrink-0 text-sky-400">
+                    <Printer size={16} />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs sm:text-[0.825rem] font-bold text-[var(--text-primary)] truncate">
+                    {printing.name}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="badge badge-neutral text-[0.55rem] text-sky-400">
+                      Printing · {printing.category}
+                    </span>
+                    {printing.indicativePrice ? (
+                      <span className="font-mono text-[0.75rem] text-[var(--text-secondary)] font-semibold">
+                        NRs. {Number(printing.discountPrice || printing.indicativePrice).toLocaleString()}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+                <ArrowRight size={14} className="text-[var(--text-muted)] shrink-0" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Digital & IT Services matches */}
+        {unifiedSearchResults.services.length > 0 && (
+          <div>
+            <div className="px-3.5 py-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-[var(--text-muted)] bg-[var(--bg-app)]/60">
+              Digital & IT Services ({unifiedSearchResults.services.length})
+            </div>
+            {unifiedSearchResults.services.map((service) => (
+              <div
+                key={service._id}
+                onClick={() => handleSelectService(service)}
+                className="p-3 flex items-center gap-3 cursor-pointer hover:bg-[var(--bg-card)] transition-colors"
+              >
+                <div className="w-10 h-10 rounded-[var(--radius-xs)] bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                  <Layers size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs sm:text-[0.825rem] font-bold text-[var(--text-primary)] truncate">
+                    {service.title || service.name}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="badge badge-neutral text-[0.55rem] text-amber-400">
+                      Service · {service.category}
+                    </span>
+                    {service.price ? (
+                      <span className="font-mono text-[0.75rem] text-[var(--text-secondary)] font-semibold">
+                        NRs. {Number(service.discountPrice || service.price).toLocaleString()}
+                      </span>
+                    ) : (
+                      <span className="text-[0.65rem] text-[var(--text-muted)]">
+                        Custom Quote
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <ArrowRight size={14} className="text-[var(--text-muted)] shrink-0" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* View All Footer */}
+        <button
+          type="button"
+          onClick={handleSearchFormSubmit}
+          className="w-full py-2.5 px-3 bg-[var(--bg-card)] border-t border-[var(--border-subtle)] text-xs font-bold text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <span>View all results for "{searchQuery}"</span>
+          <ArrowRight size={12} />
+        </button>
+      </div>
+    );
   };
 
   const renderStatusPopoverContent = () => {
@@ -669,7 +1044,7 @@ export function Navbar({
                 className="inline-flex items-center gap-1.5 text-[0.72rem] sm:text-[0.75rem] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors leading-none"
                 title="Call +977 9808950275"
               >
-                <Phone size={12} className="shrink-0 text-[#ea580c] dark:text-[#ff7828]" />
+                <Phone size={12} className="w-3.5 h-3.5 sm:w-3 sm:h-3 shrink-0 text-[#ea580c] dark:text-[#ff7828]" />
                 <span className="font-mono tracking-tight leading-none self-center">+977 9808950275</span>
               </a>
             </div>
@@ -785,7 +1160,7 @@ export function Navbar({
                 title="Chat on WhatsApp"
                 aria-label="Chat on WhatsApp"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="shrink-0 block">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="w-[17px] h-[17px] sm:w-3.5 sm:h-3.5 shrink-0 block">
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
                 </svg>
               </a>
@@ -801,7 +1176,7 @@ export function Navbar({
                 title="Follow on Instagram"
                 aria-label="Follow on Instagram"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 block">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-[17px] h-[17px] sm:w-3.5 sm:h-3.5 shrink-0 block">
                   <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
                   <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                   <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
@@ -819,7 +1194,7 @@ export function Navbar({
                 title="Follow on Facebook"
                 aria-label="Follow on Facebook"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="shrink-0 block">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="w-[17px] h-[17px] sm:w-3.5 sm:h-3.5 shrink-0 block">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                 </svg>
               </a>
@@ -935,14 +1310,14 @@ export function Navbar({
 
         {/* Right Side - Search trigger, Theme Toggle, Shopping Cart, User Account */}
         <div className="flex items-center gap-1 sm:gap-1.5 xl:gap-2 shrink-0">
-          {/* Universal Search Trigger Button (Desktop & Mobile) */}
+          {/* Universal Search Trigger Button (Desktop Only) */}
           <button
             onClick={() => {
               setIsSearchOpen(!isSearchOpen);
               setIsUserMenuOpen(false);
               setShowStatusPopover(false);
             }}
-            className={`btn-icon transition-colors ${
+            className={`hidden lg:inline-flex btn-icon transition-colors ${
               isSearchOpen
                 ? "bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-subtle)]"
                 : "btn-ghost"
@@ -956,24 +1331,28 @@ export function Navbar({
           {/* Theme Switcher */}
           <button
             onClick={toggleTheme}
-            className="btn-icon btn-ghost"
+            className="btn-icon btn-ghost !w-9 !h-9 sm:!w-[34px] sm:!h-[34px]"
             title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
             aria-label={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
           >
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === "dark" ? (
+              <Sun size={16} className="w-5 h-5 sm:w-4 sm:h-4" />
+            ) : (
+              <Moon size={16} className="w-5 h-5 sm:w-4 sm:h-4" />
+            )}
           </button>
 
           {/* Shopping Cart Button with Dynamic Badge */}
           <button
             type="button"
             onClick={openCart}
-            className="btn-icon btn-ghost relative"
+            className="btn-icon btn-ghost relative !w-9 !h-9 sm:!w-[34px] sm:!h-[34px]"
             title="Shopping Cart"
             aria-label="View Shopping Cart"
           >
-            <ShoppingBag size={16} />
+            <ShoppingBag size={16} className="w-5 h-5 sm:w-4 sm:h-4" />
             {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[var(--text-primary)] text-[var(--bg-card)] font-mono font-black text-[0.58rem] w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-[scaleUp_0.15s_ease-out]">
+              <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-[var(--text-primary)] text-[var(--bg-card)] font-mono font-black text-[0.58rem] w-4 h-4 rounded-full flex items-center justify-center shadow-md animate-[scaleUp_0.15s_ease-out]">
                 {totalItems > 99 ? "99+" : totalItems}
               </span>
             )}
@@ -988,12 +1367,11 @@ export function Navbar({
                 navigate("/login");
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className="btn btn-secondary btn-sm gap-1 sm:gap-1.5 text-xs !py-1.5 !px-2.5 sm:!px-3 font-semibold shrink-0 cursor-pointer"
+              className="btn btn-secondary btn-sm gap-1 sm:gap-1.5 text-xs !py-1.5 !px-2 sm:!px-3 !h-9 sm:!h-auto !w-9 sm:!w-auto justify-center font-semibold shrink-0 cursor-pointer"
               title="Sign In or Create Account"
             >
-              <User size={13} />
+              <User size={14} className="w-5 h-5 sm:w-3.5 sm:h-3.5 shrink-0" />
               <span className="hidden sm:inline">Login / Register</span>
-              <span className="sm:hidden">Login</span>
             </button>
           ) : (
             <div className="relative shrink-0 min-w-0 z-50" ref={userMenuRef}>
@@ -1004,18 +1382,18 @@ export function Navbar({
                   setShowStatusPopover(false);
                   setIsSearchOpen(false);
                 }}
-                className="flex items-center gap-1 sm:gap-1.5 py-1 px-2 sm:px-2.5 rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors text-xs font-medium max-w-[95px] xs:max-w-[130px] sm:max-w-[160px] lg:max-w-[130px] xl:max-w-[190px] min-w-0 cursor-pointer"
+                className="flex items-center gap-1 sm:gap-1.5 py-1 px-1.5 sm:px-2.5 !h-9 sm:!h-auto rounded-[var(--radius-sm)] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-colors text-xs font-medium shrink-0 cursor-pointer"
                 title={user.fullName ? `${user.fullName} (${user.email})` : user.email}
               >
-                <div className="w-5 h-5 rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] font-bold text-[0.625rem] flex items-center justify-center shrink-0 border border-[var(--border-medium)]">
+                <div className="w-7 h-7 sm:w-5 sm:h-5 rounded-full bg-[var(--text-primary)] text-[var(--bg-card)] font-bold text-[0.75rem] sm:text-[0.625rem] flex items-center justify-center shrink-0 border border-[var(--border-medium)]">
                   {(getUserFirstName(user) || "U")[0].toUpperCase()}
                 </div>
-                <span className="truncate text-[var(--text-primary)] min-w-0">
+                <span className="hidden sm:inline truncate text-[var(--text-primary)] min-w-0 max-w-[120px] xl:max-w-[180px]">
                   {getUserFirstName(user)}
                 </span>
                 <ChevronDown
                   size={12}
-                  className={`text-[var(--text-muted)] shrink-0 transition-transform duration-200 ${
+                  className={`hidden sm:inline text-[var(--text-muted)] shrink-0 transition-transform duration-200 ${
                     isUserMenuOpen ? "rotate-180" : ""
                   }`}
                 />
@@ -1098,11 +1476,11 @@ export function Navbar({
         </div>
       </div>
 
-      {/* Universal Search Expansion Bar (Slides right under topbar for all screens) */}
+      {/* Universal Search Expansion Bar (Desktop only, slides right under topbar) */}
       {isSearchOpen && (
         <div
           ref={searchContainerRef}
-          className="bg-[var(--bg-card)]/98 backdrop-blur-md border-b border-[var(--border-medium)] p-3 sm:p-4 shadow-2xl animate-[fadeIn_0.15s_ease-out] z-50 relative"
+          className="hidden lg:block bg-[var(--bg-card)]/98 backdrop-blur-md border-b border-[var(--border-medium)] p-3 sm:p-4 shadow-2xl animate-[fadeIn_0.15s_ease-out] z-50 relative"
         >
           <div className="storefront-container max-w-[760px] mx-auto">
             <form onSubmit={handleSearchFormSubmit} className="relative flex items-center">
@@ -1113,12 +1491,25 @@ export function Navbar({
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search products, stationery, custom prints, IT disciplines..."
+                placeholder="Search products, services, custom prints, categories..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="form-input !pl-10 !pr-20 text-xs sm:text-sm py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
+                className="form-input !pl-10 !pr-44 text-xs sm:text-sm py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
               />
               <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                {/* Filter option in search field beside the cross button */}
+                <CategoryDropdown
+                  categories={searchFilterOptions}
+                  selectedCategory={selectedFilter}
+                  onSelectCategory={(catName) => setSelectedFilter(catName)}
+                  totalCount={products.length + printingServices.length + services.length}
+                  label="Filter"
+                  allLabel="All"
+                  size="sm"
+                  align="right"
+                  placement="bottom"
+                />
+
                 {searchQuery ? (
                   <button
                     type="button"
@@ -1146,72 +1537,8 @@ export function Navbar({
 
             {/* Live Search Results Dropdown */}
             {searchQuery.trim() && (
-              <div className="mt-2.5 bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] overflow-hidden max-h-[320px] overflow-y-auto divide-y divide-[var(--border-subtle)] shadow-xl">
-                {searchResults.length === 0 ? (
-                  <div className="p-5 text-center text-xs text-[var(--text-muted)]">
-                    No products match "{searchQuery}"
-                  </div>
-                ) : (
-                  <>
-                    <div className="p-2.5 px-3.5 border-b border-[var(--border-subtle)] flex justify-between items-center text-[0.65rem] text-[var(--text-muted)] font-semibold uppercase tracking-wider bg-[var(--bg-card)]">
-                      <span>Matching Catalog Items</span>
-                      <span>{searchResults.length} Results</span>
-                    </div>
-                    {searchResults.map((product) => (
-                      <div
-                        key={product._id}
-                        onClick={() => handleSelectResult(product)}
-                        className="p-3 flex items-center gap-3 cursor-pointer hover:bg-[var(--bg-card)] transition-colors"
-                      >
-                        {product.images?.[0] ? (
-                          <img
-                            src={getOptimizedImageUrl(product.images[0], { width: 100 })}
-                            alt={product.name}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-10 h-10 rounded-[var(--radius-xs)] object-cover bg-black shrink-0"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-[var(--radius-xs)] bg-[var(--bg-app)] flex items-center justify-center shrink-0 text-[var(--text-muted)]">
-                            <Package size={16} />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs sm:text-[0.825rem] font-bold text-[var(--text-primary)] truncate">
-                            {product.name}
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="badge badge-neutral text-[0.55rem]">
-                              {product.category}
-                            </span>
-                            {product.discountPrice && Number(product.discountPrice) > 0 && Number(product.discountPrice) < Number(product.indicativePrice) ? (
-                              <div className="flex items-center gap-1.5 font-mono text-[0.75rem]">
-                                <span className="text-emerald-400 font-bold">
-                                  NRs. {Number(product.discountPrice).toLocaleString()}
-                                </span>
-                                <span className="text-[var(--text-muted)] line-through text-[0.65rem]">
-                                  NRs. {Number(product.indicativePrice).toLocaleString()}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="font-mono text-[0.75rem] text-[var(--text-secondary)] font-semibold">
-                                NRs. {Number(product.indicativePrice).toLocaleString()}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <ArrowRight size={14} className="text-[var(--text-muted)] shrink-0" />
-                      </div>
-                    ))}
-                    <button
-                      onClick={handleSearchFormSubmit}
-                      className="w-full py-2.5 px-3 bg-[var(--bg-card)] border-t border-[var(--border-subtle)] text-xs font-bold text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      <span>View all results for "{searchQuery}"</span>
-                      <ArrowRight size={12} />
-                    </button>
-                  </>
-                )}
+              <div className="mt-2.5 bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] overflow-hidden max-h-[380px] overflow-y-auto shadow-xl">
+                {renderSearchResultsList()}
               </div>
             )}
           </div>
@@ -1223,24 +1550,156 @@ export function Navbar({
     {/* Fixed Navbar Space Placeholder to prevent layout jump */}
     <div className="h-[96px] sm:h-[106px] w-full shrink-0" aria-hidden="true" />
 
-    {/* Mobile Bottom Navigation Bar (Facebook App Style: First 4 + Hamburger Menu) */}
+    {/* Mobile Search Overlay Backdrop */}
+    {isSearchOpen && (
+      <div
+        onClick={() => setIsSearchOpen(false)}
+        className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-40 animate-[fadeIn_0.15s_ease-out]"
+        aria-hidden="true"
+      />
+    )}
+
+    {/* Mobile Bottom Search Bar & Results (Elevated floating island above the bottom nav) */}
+    {isSearchOpen && (
+      <div
+        ref={mobileSearchContainerRef}
+        className="lg:hidden fixed bottom-[calc(74px+env(safe-area-inset-bottom,0px))] left-2.5 right-2.5 sm:left-4 sm:right-4 max-w-[500px] mx-auto z-40 bg-[var(--bg-card)]/98 backdrop-blur-xl border border-[var(--border-medium)] rounded-[var(--radius-md)] p-2.5 sm:p-3 shadow-[0_8px_36px_rgba(0,0,0,0.55)] animate-[slideUp_0.2s_ease-out]"
+      >
+        <div className="w-full flex flex-col">
+          {/* Live Search Results: Expands UPWARD above the search input */}
+          {searchQuery.trim() && (
+            <div className="mb-2 bg-[var(--bg-elevated)] rounded-[var(--radius-sm)] border border-[var(--border-subtle)] overflow-hidden max-h-[46vh] overflow-y-auto shadow-2xl">
+              {renderSearchResultsList()}
+            </div>
+          )}
+
+          {/* Mobile Bottom Search Form */}
+          <form onSubmit={handleSearchFormSubmit} className="relative flex items-center">
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
+            />
+            <input
+              ref={mobileSearchInputRef}
+              type="text"
+              placeholder="Search products, services, printing..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="form-input !pl-8.5 !pr-36 text-xs sm:text-sm py-2.5 bg-[var(--bg-input)] rounded-[var(--radius-sm)] border border-[var(--border-medium)] focus:border-[var(--border-bright)] w-full transition-colors"
+            />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {/* Filter option in search field beside the cross button */}
+              <CategoryDropdown
+                categories={searchFilterOptions}
+                selectedCategory={selectedFilter}
+                onSelectCategory={(catName) => setSelectedFilter(catName)}
+                totalCount={products.length + printingServices.length + services.length}
+                label="Filter"
+                allLabel="All"
+                size="sm"
+                align="right"
+                placement="top"
+              />
+
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="btn-icon btn-ghost !w-6 !h-6 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  title="Clear search text"
+                >
+                  <X size={13} />
+                </button>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(false)}
+                className="btn-icon btn-ghost !w-6 !h-6 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                title="Close search"
+              >
+                <X size={15} />
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+
+    {/* Mobile Bottom Navigation Bar: Search (Before Home) + First 4 Nav Links + Menu */}
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-card)]/95 backdrop-blur-lg border-t border-[var(--border-medium)] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] px-1.5 pt-2.5 pb-[max(0.65rem,calc(env(safe-area-inset-bottom)+0.25rem))]"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-card)]/95 backdrop-blur-lg border-t border-[var(--border-medium)] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] px-1 pt-2 pb-[max(0.6rem,calc(env(safe-area-inset-bottom)+0.2rem))]"
       aria-label="Mobile Navigation"
     >
-      <div className="grid grid-cols-5 items-center max-w-[500px] mx-auto">
+      <div className="grid grid-cols-6 items-center max-w-[500px] mx-auto">
+        {/* 1st Tab: Search Button (Before Home) */}
+        <button
+          type="button"
+          onClick={() => {
+            setIsSearchOpen(!isSearchOpen);
+            setIsMenuDrawerOpen(false);
+            setShowStatusPopover(false);
+            setIsUserMenuOpen(false);
+          }}
+          className={`flex flex-col items-center justify-center py-1 px-0.5 relative transition-all duration-200 cursor-pointer ${
+            isSearchOpen
+              ? theme === "dark"
+                ? "text-[#ff7828]"
+                : "text-[#ea580c]"
+              : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+          }`}
+          aria-label="Search"
+          aria-expanded={isSearchOpen}
+        >
+          {isSearchOpen && (
+            <span
+              className={`absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-[2.5px] rounded-full transition-all duration-200 ${
+                theme === "dark"
+                  ? "bg-[#ff7828] shadow-[0_0_12px_rgba(255,120,40,0.85)]"
+                  : "bg-[#ea580c] shadow-[0_1px_4px_rgba(234,88,12,0.35)]"
+              }`}
+            />
+          )}
+
+          <div
+            className={`flex items-center justify-center transition-transform duration-200 ${
+              isSearchOpen
+                ? theme === "dark"
+                  ? "scale-105 bg-[#ff7828]/15 p-1 rounded-xl text-[#ff7828] shadow-[0_0_10px_rgba(255,120,40,0.2)]"
+                  : "scale-105 bg-[#ea580c]/12 p-1 rounded-xl text-[#ea580c] shadow-xs"
+                : "p-1"
+            }`}
+          >
+            <Search size={18} strokeWidth={isSearchOpen ? 2.4 : 1.8} />
+          </div>
+
+          <span
+            className={`text-[0.6rem] tracking-tight truncate w-full text-center leading-none mt-0.5 ${
+              isSearchOpen
+                ? theme === "dark"
+                  ? "font-bold text-[#ff7828]"
+                  : "font-bold text-[#ea580c]"
+                : "font-medium text-[var(--text-muted)]"
+            }`}
+          >
+            Search
+          </span>
+        </button>
+
+        {/* 2nd - 5th Tabs: Home, Products, Printing, Services */}
         {navLinks.slice(0, 4).map((link) => {
-          const isActive = activePage === link.id && !isMenuDrawerOpen;
+          const isActive = activePage === link.id && !isMenuDrawerOpen && !isSearchOpen;
           const Icon = link.icon;
           return (
             <button
               key={link.id}
               type="button"
               onClick={() => {
+                setIsSearchOpen(false);
                 setIsMenuDrawerOpen(false);
                 handleNavClick(link.id);
               }}
-              className={`flex flex-col items-center justify-center py-1.5 px-0.5 relative transition-all duration-200 cursor-pointer ${
+              className={`flex flex-col items-center justify-center py-1 px-0.5 relative transition-all duration-200 cursor-pointer ${
                 isActive
                   ? theme === "dark"
                     ? "text-[#ff7828]"
@@ -1250,10 +1709,9 @@ export function Navbar({
               aria-label={link.label}
               aria-current={isActive ? "page" : undefined}
             >
-              {/* Active top line indicator (Facebook app style with mode-specific glow) */}
               {isActive && (
                 <span
-                  className={`absolute -top-2.5 left-1/2 -translate-x-1/2 w-8 h-[2.5px] rounded-full transition-all duration-200 ${
+                  className={`absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-[2.5px] rounded-full transition-all duration-200 ${
                     theme === "dark"
                       ? "bg-[#ff7828] shadow-[0_0_12px_rgba(255,120,40,0.85)]"
                       : "bg-[#ea580c] shadow-[0_1px_4px_rgba(234,88,12,0.35)]"
@@ -1265,16 +1723,16 @@ export function Navbar({
                 className={`flex items-center justify-center transition-transform duration-200 ${
                   isActive
                     ? theme === "dark"
-                      ? "scale-110 bg-[#ff7828]/15 p-1 rounded-xl text-[#ff7828] shadow-[0_0_10px_rgba(255,120,40,0.2)]"
-                      : "scale-110 bg-[#ea580c]/12 p-1 rounded-xl text-[#ea580c] shadow-xs"
+                      ? "scale-105 bg-[#ff7828]/15 p-1 rounded-xl text-[#ff7828] shadow-[0_0_10px_rgba(255,120,40,0.2)]"
+                      : "scale-105 bg-[#ea580c]/12 p-1 rounded-xl text-[#ea580c] shadow-xs"
                     : "p-1"
                 }`}
               >
-                <Icon size={20} strokeWidth={isActive ? 2.4 : 1.8} />
+                <Icon size={18} strokeWidth={isActive ? 2.4 : 1.8} />
               </div>
 
               <span
-                className={`text-[0.65rem] tracking-tight truncate w-full text-center leading-none mt-1 ${
+                className={`text-[0.6rem] tracking-tight truncate w-full text-center leading-none mt-0.5 ${
                   isActive
                     ? theme === "dark"
                       ? "font-bold text-[#ff7828]"
@@ -1288,19 +1746,19 @@ export function Navbar({
           );
         })}
 
-        {/* 5th Tab: Hamburger / Menu button aside the 4 navigations */}
+        {/* 6th Tab: Hamburger / Menu button */}
         {(() => {
-          const isMenuTabActive = isMenuDrawerOpen || ["about", "contact"].includes(activePage);
+          const isMenuTabActive = (isMenuDrawerOpen || ["about", "contact"].includes(activePage)) && !isSearchOpen;
           return (
             <button
               type="button"
               onClick={() => {
                 setIsMenuDrawerOpen(!isMenuDrawerOpen);
+                setIsSearchOpen(false);
                 setIsUserMenuOpen(false);
                 setShowStatusPopover(false);
-                setIsSearchOpen(false);
               }}
-              className={`flex flex-col items-center justify-center py-1.5 px-0.5 relative transition-all duration-200 cursor-pointer ${
+              className={`flex flex-col items-center justify-center py-1 px-0.5 relative transition-all duration-200 cursor-pointer ${
                 isMenuTabActive
                   ? theme === "dark"
                     ? "text-[#ff7828]"
@@ -1312,7 +1770,7 @@ export function Navbar({
             >
               {isMenuTabActive && (
                 <span
-                  className={`absolute -top-2.5 left-1/2 -translate-x-1/2 w-8 h-[2.5px] rounded-full transition-all duration-200 ${
+                  className={`absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-[2.5px] rounded-full transition-all duration-200 ${
                     theme === "dark"
                       ? "bg-[#ff7828] shadow-[0_0_12px_rgba(255,120,40,0.85)]"
                       : "bg-[#ea580c] shadow-[0_1px_4px_rgba(234,88,12,0.35)]"
@@ -1324,20 +1782,20 @@ export function Navbar({
                 className={`flex items-center justify-center transition-transform duration-200 ${
                   isMenuTabActive
                     ? theme === "dark"
-                      ? "scale-110 bg-[#ff7828]/15 p-1 rounded-xl text-[#ff7828] shadow-[0_0_10px_rgba(255,120,40,0.2)]"
-                      : "scale-110 bg-[#ea580c]/12 p-1 rounded-xl text-[#ea580c] shadow-xs"
+                      ? "scale-105 bg-[#ff7828]/15 p-1 rounded-xl text-[#ff7828] shadow-[0_0_10px_rgba(255,120,40,0.2)]"
+                      : "scale-105 bg-[#ea580c]/12 p-1 rounded-xl text-[#ea580c] shadow-xs"
                     : "p-1"
                 }`}
               >
                 {isMenuDrawerOpen ? (
-                  <X size={20} strokeWidth={2.4} />
+                  <X size={18} strokeWidth={2.4} />
                 ) : (
-                  <Menu size={20} strokeWidth={isMenuTabActive ? 2.4 : 1.8} />
+                  <Menu size={18} strokeWidth={isMenuTabActive ? 2.4 : 1.8} />
                 )}
               </div>
 
               <span
-                className={`text-[0.65rem] tracking-tight truncate w-full text-center leading-none mt-1 ${
+                className={`text-[0.6rem] tracking-tight truncate w-full text-center leading-none mt-0.5 ${
                   isMenuTabActive
                     ? theme === "dark"
                       ? "font-bold text-[#ff7828]"

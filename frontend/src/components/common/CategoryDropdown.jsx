@@ -13,6 +13,8 @@ export function CategoryDropdown({
   allLabel = "All Categories",
   className = "",
   size = "md", // 'sm' | 'md'
+  align = "left", // 'left' | 'right'
+  placement = "bottom", // 'bottom' | 'top'
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -86,8 +88,8 @@ export function CategoryDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`inline-flex items-center justify-between gap-2.5 rounded-[var(--radius-xs)] border transition-all duration-200 cursor-pointer ${
-          size === "sm" ? "px-3 py-1.5 text-xs" : "px-3.5 py-2 text-[0.825rem]"
+        className={`inline-flex items-center justify-between gap-1.5 sm:gap-2.5 rounded-[var(--radius-xs)] border transition-all duration-200 cursor-pointer ${
+          size === "sm" ? "px-2 sm:px-2.5 py-1 text-xs" : "px-3.5 py-2 text-[0.825rem]"
         } ${
           !isAll
             ? "bg-[var(--bg-card)] border-[var(--border-bright)] text-[var(--text-primary)] shadow-xs font-semibold"
@@ -96,30 +98,30 @@ export function CategoryDropdown({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <div className="flex items-center gap-2">
-          <Filter size={size === "sm" ? 12 : 14} className={!isAll ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"} />
-          <span className="truncate max-w-[150px] sm:max-w-[200px]">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <Filter size={size === "sm" ? 11 : 14} className={!isAll ? "text-[var(--text-primary)] shrink-0" : "text-[var(--text-muted)] shrink-0"} />
+          <span className={`truncate ${size === "sm" ? "max-w-[65px] sm:max-w-[120px]" : "max-w-[150px] sm:max-w-[200px]"}`}>
             {isAll ? allLabel : selectedCategory}
           </span>
           {isAll && totalCount !== undefined && (
-            <span className="text-[0.7rem] px-1.5 py-0.2 rounded-full bg-[var(--bg-app)] text-[var(--text-muted)] border border-[var(--border-subtle)] font-mono">
+            <span className="hidden sm:inline text-[0.7rem] px-1.5 py-0.2 rounded-full bg-[var(--bg-app)] text-[var(--text-muted)] border border-[var(--border-subtle)] font-mono">
               {totalCount}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           {!isAll && (
             <span
               onClick={handleClear}
               className="p-0.5 rounded-full hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               title="Clear category filter"
             >
-              <X size={12} />
+              <X size={size === "sm" ? 11 : 12} />
             </span>
           )}
           <ChevronDown
-            size={size === "sm" ? 12 : 14}
+            size={size === "sm" ? 11 : 14}
             className={`text-[var(--text-muted)] transition-transform duration-200 ${
               isOpen ? "rotate-180 text-[var(--text-primary)]" : ""
             }`}
@@ -129,7 +131,11 @@ export function CategoryDropdown({
 
       {/* Floating Dropdown Popover */}
       {isOpen && (
-        <div className="absolute left-0 mt-1.5 w-64 sm:w-72 rounded-[var(--radius-sm)] bg-[var(--bg-card)] border border-[var(--border-medium)] shadow-[var(--shadow-xl)] z-50 overflow-hidden animate-[fadeIn_0.15s_ease-out] backdrop-blur-md">
+        <div
+          className={`absolute ${align === "right" ? "right-0" : "left-0"} ${
+            placement === "top" ? "bottom-full mb-1.5" : "top-full mt-1.5"
+          } w-64 sm:w-72 rounded-[var(--radius-sm)] bg-[var(--bg-card)] border border-[var(--border-medium)] shadow-[var(--shadow-xl)] z-50 overflow-hidden animate-[fadeIn_0.15s_ease-out] backdrop-blur-md`}
+        >
           {/* Header search if > 4 categories */}
           {normalizedCategories.length > 4 && (
             <div className="p-2 border-b border-[var(--border-subtle)] bg-[var(--bg-app)]">
