@@ -22,6 +22,8 @@ const promoBannerRoutes = require("./routes/promoBanner.routes");
 const aboutRoutes = require("./routes/about.routes");
 const blogRoutes = require("./routes/blog.routes");
 const reviewRoutes = require("./routes/review.routes");
+const healthRoutes = require("./routes/health.routes");
+const initKeepAlive = require("./utils/keepAlive");
 
 
 const PORT = process.env.PORT || 5000;
@@ -71,6 +73,8 @@ app.use("/api/about", aboutRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/health", healthRoutes);
+app.use("/health", healthRoutes);
 
 // Base route & Health check
 app.get("/", (req, res) => {
@@ -82,6 +86,7 @@ app.get("/", (req, res) => {
     theme: "monochrome",
     endpoints: {
       auth: "/api/auth/login",
+      health: "/api/health",
       products: "/api/products",
       categories: "/api/categories",
       banners: "/api/banners",
@@ -111,4 +116,5 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`[Server] Pixel Perfect Backend running at http://localhost:${PORT}`);
+  initKeepAlive();
 });
