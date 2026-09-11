@@ -365,7 +365,7 @@ export function TermsPage({ onNavigate }) {
                 </h2>
               </div>
               <p>
-                In addition to physical printing, our engineering wing builds customized web platforms, portfolio systems, e-commerce storefronts, and brand design identities.
+                In addition to printing, our digital team develops customized web platforms, portfolio systems, e-commerce storefronts, and brand design identities.
               </p>
               <ul className="list-disc pl-5 space-y-2 text-xs sm:text-sm">
                 <li>
