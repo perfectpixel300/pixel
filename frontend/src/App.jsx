@@ -21,6 +21,8 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 import { SetupProfilePage } from "./pages/SetupProfilePage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { TermsPage } from "./pages/TermsPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
@@ -65,6 +67,8 @@ const getRouteInfoFromPath = (pathname) => {
   if (path === "/verify-email" || path.startsWith("/verify-email")) return { page: "verify-email" };
   if (path === "/setup-profile") return { page: "setup-profile" };
   if (path === "/profile") return { page: "profile" };
+  if (path === "/terms" || path === "/terms-and-conditions" || path === "/terms-conditions" || path === "/tos") return { page: "terms" };
+  if (path === "/privacy" || path === "/privacy-policy") return { page: "privacy" };
   return { page: "home" };
 };
 
@@ -157,6 +161,13 @@ function AppContent() {
       }
     }
   }, [activePage, routeInfo.idOrSlug, products, selectedProduct]);
+
+  // Prevent authenticated users from accessing login and register pages
+  useEffect(() => {
+    if (isAuthenticated && (activePage === "login" || activePage === "register")) {
+      navigate("/profile", { replace: true });
+    }
+  }, [isAuthenticated, activePage, navigate]);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -529,6 +540,14 @@ function AppContent() {
 
             {activePage === "contact" && (
               <ContactPage />
+            )}
+
+            {activePage === "terms" && (
+              <TermsPage onNavigate={setActivePage} />
+            )}
+
+            {activePage === "privacy" && (
+              <PrivacyPage onNavigate={setActivePage} />
             )}
 
             {activePage === "login" && (

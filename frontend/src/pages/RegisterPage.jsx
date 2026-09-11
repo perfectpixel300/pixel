@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Mail,
@@ -16,17 +16,59 @@ import { useAuth } from "../context/AuthContext";
 
 export function RegisterPage({ onNavigate }) {
   const navigate = useNavigate();
-  const { register, resendVerification } = useAuth();
+  const { register, resendVerification, isAuthenticated, user } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [registeredEmail, setRegisteredEmail] = useState(null);
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+
+  // Prevent registration page access if user is already logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (onNavigate) {
+        onNavigate("profile");
+      } else {
+        navigate("/profile", { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate, onNavigate]);
+
+  if (isAuthenticated && user) {
+    return (
+      <div className="storefront-container py-16 sm:py-24 max-w-md mx-auto text-center">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-[var(--radius-lg)] p-8 shadow-xl">
+          <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle size={28} />
+          </div>
+          <h2 className="text-xl font-bold m-0">You're already signed in</h2>
+          <p className="text-xs text-[var(--text-muted)] mt-2 mb-6">
+            Signed in as <strong className="text-[var(--text-primary)]">{user.email}</strong>. Redirecting to your profile dashboard...
+          </p>
+          <div className="flex flex-col gap-2.5">
+            <button
+              onClick={() => (onNavigate ? onNavigate("profile") : navigate("/profile"))}
+              className="btn btn-primary w-full py-2.5 text-xs font-semibold cursor-pointer"
+            >
+              Go to Profile
+            </button>
+            <button
+              onClick={() => (onNavigate ? onNavigate("home") : navigate("/"))}
+              className="btn btn-secondary w-full py-2.5 text-xs font-semibold cursor-pointer"
+            >
+              Return to Store
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,9 +91,14 @@ export function RegisterPage({ onNavigate }) {
       return;
     }
 
+    if (!agreedToTerms) {
+      setError("Please agree to the Terms & Conditions and Privacy Policy to create an account.");
+      return;
+    }
+
     try {
       setLoading(true);
-      const res = await register(cleanEmail, password);
+      await register(cleanEmail, password);
       setRegisteredEmail(cleanEmail);
     } catch (err) {
       console.error("Registration error:", err);
@@ -240,10 +287,51 @@ export function RegisterPage({ onNavigate }) {
             </div>
           </div>
 
+          {/* Terms & Conditions and Privacy Policy Agreement Checkbox */}
+          <div className="pt-1 pb-1">
+            <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs leading-relaxed group">
+              <input
+                type="checkbox"
+                id="agreeToTerms"
+                checked={agreedToTerms}
+                onChange={(e) => {
+                  setAgreedToTerms(e.target.checked);
+                  if (error && error.includes("Terms")) {
+                    setError(null);
+                  }
+                }}
+                className="mt-0.5 w-4 h-4 rounded-[var(--radius-xs)] border border-[var(--border-medium)] bg-[var(--bg-input)] text-white focus:ring-1 focus:ring-white accent-white cursor-pointer shrink-0"
+              />
+              <span className="flex-1 text-[0.78rem] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
+                I agree to the{" "}
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-bold text-[var(--text-primary)] underline underline-offset-2 hover:text-white transition-colors"
+                >
+                  Terms &amp; Conditions
+                </a>{" "}
+                and{" "}
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-bold text-[var(--text-primary)] underline underline-offset-2 hover:text-white transition-colors"
+                >
+                  Privacy Policy
+                </a>
+                .
+              </span>
+            </label>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary w-full py-3 text-xs sm:text-sm font-bold gap-2 mt-2 shadow-md cursor-pointer"
+            className="btn btn-primary w-full py-3 text-xs sm:text-sm font-bold gap-2 mt-1 shadow-md cursor-pointer"
           >
             {loading ? (
               <Loader2 size={16} className="animate-spin" />

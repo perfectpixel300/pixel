@@ -109,6 +109,12 @@ export function Footer({ setActivePage, categories = [] }) {
             <span onClick={() => handleNav("contact")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               Contact & Inquiries
             </span>
+            <span onClick={() => handleNav("terms")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+              Terms &amp; Conditions
+            </span>
+            <span onClick={() => handleNav("privacy")} className="cursor-pointer text-[0.85rem] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+              Privacy Policy
+            </span>
           </div>
 
           {/* Col 3: Disciplines */}
@@ -193,8 +199,21 @@ export function Footer({ setActivePage, categories = [] }) {
             © {new Date().getFullYear()} PIXEL PERFECT. All rights reserved. Precision analog tools.
           </div>
 
-          <div className="flex items-center gap-4">
-            
+          <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+            <span
+              onClick={() => handleNav("terms")}
+              className="cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+            >
+              Terms &amp; Conditions
+            </span>
+            <span className="text-[var(--text-dim)]">•</span>
+            <span
+              onClick={() => handleNav("privacy")}
+              className="cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+            >
+              Privacy Policy
+            </span>
+            <span className="text-[var(--text-dim)]">•</span>
             <button
               onClick={scrollToTop}
               className="bg-transparent border-0 text-[var(--text-muted)] cursor-pointer text-[0.75rem] hover:text-[var(--text-primary)]"

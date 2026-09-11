@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Mail,
@@ -10,7 +10,6 @@ import {
   CheckCircle,
   Loader2,
   Send,
-  User,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -28,7 +27,19 @@ export function LoginPage({ onNavigate }) {
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
 
-  // If already logged in, show logged-in state or redirect
+  // Prevent login page access if user is already logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const returnUrl = location.state?.from || "/profile";
+      if (onNavigate && returnUrl === "/profile") {
+        onNavigate("profile");
+      } else {
+        navigate(returnUrl, { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate, location.state, onNavigate]);
+
+  // If already logged in, show logged-in redirection state
   if (isAuthenticated && user) {
     return (
       <div className="storefront-container py-16 sm:py-24 max-w-md mx-auto text-center">
@@ -38,18 +49,18 @@ export function LoginPage({ onNavigate }) {
           </div>
           <h2 className="text-xl font-bold m-0">You're already logged in</h2>
           <p className="text-xs text-[var(--text-muted)] mt-2 mb-6">
-            Signed in as <strong className="text-[var(--text-primary)]">{user.email}</strong> ({user.fullName || user.name})
+            Signed in as <strong className="text-[var(--text-primary)]">{user.email}</strong>. Redirecting to your account...
           </p>
           <div className="flex flex-col gap-2.5">
             <button
               onClick={() => (onNavigate ? onNavigate("profile") : navigate("/profile"))}
-              className="btn btn-primary w-full py-2.5 text-xs font-semibold"
+              className="btn btn-primary w-full py-2.5 text-xs font-semibold cursor-pointer"
             >
               Manage Profile
             </button>
             <button
               onClick={() => (onNavigate ? onNavigate("home") : navigate("/"))}
-              className="btn btn-secondary w-full py-2.5 text-xs font-semibold"
+              className="btn btn-secondary w-full py-2.5 text-xs font-semibold cursor-pointer"
             >
               Return to Store
             </button>
@@ -71,7 +82,7 @@ export function LoginPage({ onNavigate }) {
       setError(null);
       setUnverifiedState(false);
 
-      const res = await login(email, password);
+      await login(email, password);
 
       // Successfully authenticated
       const returnUrl = location.state?.from;
